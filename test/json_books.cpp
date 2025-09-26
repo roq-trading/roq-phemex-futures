@@ -2,11 +2,11 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/bitget/json/books.hpp"
-#include "roq/bitget/json/parser.hpp"
+#include "roq/phemex/json/books.hpp"
+#include "roq/phemex/json/parser.hpp"
 
 using namespace roq;
-using namespace roq::bitget;
+using namespace roq::phemex;
 
 using namespace std::literals;
 

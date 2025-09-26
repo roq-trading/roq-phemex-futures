@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex/json/TradeScope",
+  "type": "enum",
+  "values": [
+    {
+      "name": "taker"
+    },
+    {
+      "name": "maker"
+    }
+  ]
+}

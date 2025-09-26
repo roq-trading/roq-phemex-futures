@@ -1,0 +1,15 @@
+{
+  "name": "roq/phemex/json/OpenOrdersData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "list",
+      "type": "roq/phemex/json/OpenOrdersDataListItem",
+      "array": "std/span"
+    },
+    {
+      "name": "cursor",
+      "type": "std/int64"
+    }
+  ]
+}

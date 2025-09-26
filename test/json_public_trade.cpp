@@ -4,10 +4,10 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/bitget/json/public_trade.hpp"
+#include "roq/phemex/json/public_trade.hpp"
 
 using namespace roq;
-using namespace roq::bitget;
+using namespace roq::phemex;
 
 using namespace std::literals;
 

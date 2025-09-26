@@ -1,0 +1,15 @@
+{
+  "name": "roq/phemex/json/FillHistoryData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "list",
+      "type": "roq/phemex/json/FillHistoryDataListItem",
+      "array": "std/span"
+    },
+    {
+      "name": "cursor",
+      "type": "std/int64"
+    }
+  ]
+}

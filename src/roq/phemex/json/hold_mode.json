@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex/json/HoldMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "one_way_mode"
+    },
+    {
+      "name": "hedge_mode"
+    }
+  ]
+}

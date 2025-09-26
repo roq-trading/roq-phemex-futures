@@ -1,0 +1,11 @@
+{
+  "name": "roq/phemex/json/CancelAllOrdersAckData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "list",
+      "type": "roq/phemex/json/CancelAllOrdersAckDataListItem",
+      "array": "std/span"
+    }
+  ]
+}

@@ -2,10 +2,10 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/bitget/json/encoder.hpp"
+#include "roq/phemex/json/encoder.hpp"
 
 using namespace roq;
-using namespace roq::bitget;
+using namespace roq::phemex;
 
 using namespace std::literals;
 

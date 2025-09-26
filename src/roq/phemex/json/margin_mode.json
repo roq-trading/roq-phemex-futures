@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex/json/MarginMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "crossed"
+    },
+    {
+      "name": "isolated"
+    }
+  ]
+}

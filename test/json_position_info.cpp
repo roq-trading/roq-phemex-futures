@@ -4,10 +4,10 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/bitget/json/position_info.hpp"
+#include "roq/phemex/json/position_info.hpp"
 
 using namespace roq;
-using namespace roq::bitget;
+using namespace roq::phemex;
 
 using namespace std::literals;
 using namespace std::chrono_literals;

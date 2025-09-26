@@ -1,0 +1,75 @@
+{
+  "name": "roq/phemex/json/FillHistoryDataListItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "execId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "execLinkId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "orderId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "clientOid",
+      "type": "std/string_view"
+    },
+    {
+      "name": "category",
+      "type": "roq/phemex/json/Category"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "orderType",
+      "type": "roq/phemex/json/OrderType"
+    },
+    {
+      "name": "execPrice",
+      "type": "std/double"
+    },
+    {
+      "name": "execQty",
+      "type": "std/double"
+    },
+    {
+      "name": "execValue",
+      "type": "std/double"
+    },
+    {
+      "name": "feeDetail",
+      "type": "roq/phemex/json/FillHistoryDataListItemFeeDetailItem",
+      "array": "std/span"
+    },
+    {
+      "name": "side",
+      "type": "roq/phemex/json/Side"
+    },
+    {
+      "name": "tradeScope",
+      "type": "roq/phemex/json/TradeScope"
+    },
+    {
+      "name": "tradeSide",
+      "type": "roq/phemex/json/TradeSide"
+    },
+    {
+      "name": "createdTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "updatedTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "execPnl",
+      "type": "std/double"
+    }
+  ]
+}

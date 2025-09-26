@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex/json/SymbolType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "perpetual"
+    },
+    {
+      "name": "delivery"
+    }
+  ]
+}

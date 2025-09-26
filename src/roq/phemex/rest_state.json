@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex/RestState",
+  "type": "enum",
+  "values": [
+    {
+      "name": "instruments"
+    },
+    {
+      "name": "done"
+    }
+  ]
+}
