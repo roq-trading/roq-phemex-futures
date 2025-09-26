@@ -1,0 +1,12 @@
+{
+  "name": "roq/bitget/RestState",
+  "type": "enum",
+  "values": [
+    {
+      "name": "instruments"
+    },
+    {
+      "name": "done"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "roq/bitget/json/CancelAllOrdersAckData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "list",
+      "type": "roq/bitget/json/CancelAllOrdersAckDataListItem",
+      "array": "std/span"
+    }
+  ]
+}
