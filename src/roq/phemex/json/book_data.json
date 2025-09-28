@@ -1,0 +1,16 @@
+{
+  "name": "roq/phemex/json/BookData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "asks",
+      "type": "roq/phemex/json/BookDataItem",
+      "array": "std/span"
+    },
+    {
+      "name": "bids",
+      "type": "roq/phemex/json/BookDataItem",
+      "array": "std/span"
+    }
+  ]
+}

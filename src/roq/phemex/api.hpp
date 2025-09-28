@@ -13,7 +13,7 @@ struct API final {
   std::string_view category;
   std::string_view inst_type;
   struct {
-    std::string_view instruments;
+    std::string_view products;
   } market_data;
 
   struct {

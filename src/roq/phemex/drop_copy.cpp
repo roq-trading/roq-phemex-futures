@@ -43,7 +43,7 @@ auto create_name(auto stream_id, auto &account) {
 }
 
 auto create_connection(auto &handler, auto &settings, auto &context) {
-  auto uri = settings.ws.private_uri;
+  auto uri = settings.ws.uri;
   auto config = web::socket::Client::Config{
       // connection
       .interface = {},
@@ -231,25 +231,29 @@ void DropCopy::parse(std::string_view const &message) {
   });
 }
 
-void DropCopy::operator()(Trace<json::Error> const &event) {
-  auto &[trace_info, error] = event;
-  log::fatal("event={{book_ticker={}, trace_info={}}}"sv, error, trace_info);
+void DropCopy::operator()(Trace<json::Pong> const &event) {
+  auto &[trace_info, pong] = event;
+  log::warn("DEBUG pong={}"sv, pong);
 }
 
-void DropCopy::operator()(Trace<json::Subscribe> const &event) {
-  auto &[trace_info, subscribe] = event;
-  log::warn("DEBUG subscribe={}"sv, subscribe);
+void DropCopy::operator()(Trace<json::Ack> const &event) {
+  auto &[trace_info, ack] = event;
+  log::warn("DEBUG ack={}"sv, ack);
 }
 
-void DropCopy::operator()(Trace<json::Ticker> const &) {
+void DropCopy::operator()(Trace<json::Book> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::PublicTrade> const &) {
+void DropCopy::operator()(Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Books> const &) {
+void DropCopy::operator()(Trace<json::Market24h> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void DropCopy::operator()(Trace<json::Kline> const &) {
   log::fatal("Unexpected"sv);
 }
 

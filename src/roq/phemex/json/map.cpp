@@ -192,6 +192,35 @@ std::optional<roq::MarginMode> Map<phemex::json::MarginMode>::helper() const {
   return Helper{args_};
 }
 
+// phemex::json::MessageType => roq::UpdateType
+
+template <>
+template <>
+constexpr Helper<phemex::json::MessageType>::operator std::optional<roq::UpdateType>() const {
+  switch (std::get<0>(args_)) {
+    using enum phemex::json::MessageType::type_t;
+    case UNDEFINED_INTERNAL:
+      return roq::UpdateType::UNDEFINED;
+    case UNKNOWN_INTERNAL:
+      return roq::UpdateType::UNDEFINED;
+    case SNAPSHOT:
+      return roq::UpdateType::SNAPSHOT;
+    case INCREMENTAL:
+      return roq::UpdateType::INCREMENTAL;
+  }
+  return {};
+}
+
+static_assert(Helper{phemex::json::MessageType{phemex::json::MessageType::UNDEFINED_INTERNAL}} == roq::UpdateType::UNDEFINED);
+static_assert(Helper{phemex::json::MessageType{phemex::json::MessageType::SNAPSHOT}} == roq::UpdateType::SNAPSHOT);
+static_assert(Helper{phemex::json::MessageType{phemex::json::MessageType::INCREMENTAL}} == roq::UpdateType::INCREMENTAL);
+
+template <>
+template <>
+std::optional<roq::UpdateType> Map<phemex::json::MessageType>::helper() const {
+  return Helper{args_};
+}
+
 // phemex::json::OrderStatus => roq::OrderStatus
 
 template <>

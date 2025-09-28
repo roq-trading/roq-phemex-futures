@@ -15,7 +15,6 @@
 
 #include "roq/phemex/json/encoder.hpp"
 #include "roq/phemex/json/map.hpp"
-#include "roq/phemex/json/message.hpp"
 #include "roq/phemex/json/utils.hpp"
 
 using namespace std::literals;
@@ -1121,8 +1120,8 @@ void OrderEntry::process_response(web::rest::Response const &response, auto erro
             assert(false);
             [[fallthrough]];
           default: {
-            json::Message error{body};
-            error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
+            // json::Message error{body};
+            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
           }
         }
         break;

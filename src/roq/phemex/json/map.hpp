@@ -20,6 +20,7 @@
 #include "roq/phemex/json/category.hpp"
 #include "roq/phemex/json/futures_type.hpp"
 #include "roq/phemex/json/margin_mode.hpp"
+#include "roq/phemex/json/message_type.hpp"
 #include "roq/phemex/json/order_status.hpp"
 #include "roq/phemex/json/order_type.hpp"
 #include "roq/phemex/json/pos_side.hpp"
@@ -48,6 +49,10 @@ std::optional<SecurityType> Map<phemex::json::Category, phemex::json::FuturesTyp
 template <>
 template <>
 std::optional<MarginMode> Map<phemex::json::MarginMode>::helper() const;
+
+template <>
+template <>
+std::optional<UpdateType> Map<phemex::json::MessageType>::helper() const;
 
 template <>
 template <>

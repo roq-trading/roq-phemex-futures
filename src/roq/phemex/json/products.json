@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex/json/Instruments",
+  "name": "roq/phemex/json/Products",
   "type": "dictionary",
   "values": [
     {
@@ -11,13 +11,8 @@
       "type": "std/string_view"
     },
     {
-      "name": "requestTime",
-      "type": "std/milliseconds"
-    },
-    {
       "name": "data",
-      "type": "roq/phemex/json/InstrumentsDataItem",
-      "array": "std/span"
+      "type": "roq/phemex/json/ProductsData"
     }
   ]
 }

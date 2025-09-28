@@ -9,12 +9,13 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex/json/error.hpp"
-#include "roq/phemex/json/subscribe.hpp"
+#include "roq/phemex/json/ack.hpp"
+#include "roq/phemex/json/pong.hpp"
 
-#include "roq/phemex/json/books.hpp"
-#include "roq/phemex/json/public_trade.hpp"
-#include "roq/phemex/json/ticker.hpp"
+#include "roq/phemex/json/book.hpp"
+#include "roq/phemex/json/kline.hpp"
+#include "roq/phemex/json/market24h.hpp"
+#include "roq/phemex/json/trades.hpp"
 
 #include "roq/phemex/json/login.hpp"
 
@@ -29,12 +30,13 @@ namespace json {
 
 struct Parser final {
   struct Handler {
-    virtual void operator()(Trace<json::Error> const &) = 0;
-    virtual void operator()(Trace<json::Subscribe> const &) = 0;
+    virtual void operator()(Trace<json::Pong> const &) = 0;
+    virtual void operator()(Trace<json::Ack> const &) = 0;
     //
-    virtual void operator()(Trace<json::Ticker> const &) = 0;
-    virtual void operator()(Trace<json::PublicTrade> const &) = 0;
-    virtual void operator()(Trace<json::Books> const &) = 0;
+    virtual void operator()(Trace<json::Book> const &) = 0;
+    virtual void operator()(Trace<json::Trades> const &) = 0;
+    virtual void operator()(Trace<json::Market24h> const &) = 0;
+    virtual void operator()(Trace<json::Kline> const &) = 0;
     //
     virtual void operator()(Trace<json::Login> const &) = 0;
     virtual void operator()(Trace<json::Account> const &) = 0;

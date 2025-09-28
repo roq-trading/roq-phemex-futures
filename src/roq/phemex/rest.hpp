@@ -24,7 +24,7 @@
 #include "roq/phemex/rest_state.hpp"
 #include "roq/phemex/shared.hpp"
 
-#include "roq/phemex/json/instruments.hpp"
+#include "roq/phemex/json/products.hpp"
 
 namespace roq {
 namespace phemex {
@@ -65,9 +65,9 @@ class Rest final : public web::rest::Client::Handler {
 
   uint32_t download(RestState);
 
-  void get_instruments();
-  void get_instruments_ack(Trace<web::rest::Response> const &, uint32_t sequence);
-  void operator()(Trace<json::Instruments> const &);
+  void get_products();
+  void get_products_ack(Trace<web::rest::Response> const &, uint32_t sequence);
+  void operator()(Trace<json::Products> const &);
 
   void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 
@@ -85,7 +85,7 @@ class Rest final : public web::rest::Client::Handler {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile instruments, instruments_ack;
+    utils::metrics::Profile products, products_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;

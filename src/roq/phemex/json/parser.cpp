@@ -4,8 +4,9 @@
 
 #include "roq/logging.hpp"
 
-#include "roq/phemex/json/message.hpp"
-#include "roq/phemex/json/utils.hpp"
+#include "roq/core/json/parser.hpp"
+
+#include "roq/phemex/json/message_field.hpp"
 
 using namespace std::literals;
 
@@ -13,11 +14,15 @@ namespace roq {
 namespace phemex {
 namespace json {
 
-// === CONSTANTS ===
+// === HELPERS ===
 
 namespace {
-auto const PONG = "pong"sv;
-}
+auto const BIT_ID = uint8_t{1} << 0;
+auto const BIT_BOOK = uint8_t{1} << 1;
+auto const BIT_TRADES = uint8_t{1} << 2;
+auto const BIT_MARKET24H = uint8_t{1} << 3;
+auto const BIT_KLINE = uint8_t{1} << 4;
+}  // namespace
 
 // === HELPERS ===
 
@@ -33,68 +38,86 @@ void dispatch_helper(auto &handler, auto &message, auto &buffer_stack, auto &tra
 
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info, bool allow_unknown_event_types) {
-  if (message == PONG) {
-    // note! drop
+  uint8_t mask = {};
+  auto pong = false;
+  auto helper = [&](auto &key, auto &value) {
+    MessageField field{key};
+    switch (field) {
+      using enum MessageField::type_t;
+      case UNDEFINED_INTERNAL:
+        assert(false);
+      case UNKNOWN_INTERNAL:
+        break;
+      case ID:
+        mask |= BIT_ID;
+        break;
+      case ERROR:
+        break;
+      case RESULT:
+        if (!core::json::is_object(value)) {
+          pong = true;
+        }
+        break;
+      case SEQUENCE:
+        break;
+      case TIMESTAMP:
+        break;
+      case SYMBOL:
+        break;
+      case TYPE:
+        break;
+      case BOOK:
+        mask |= BIT_BOOK;
+        break;
+      case TRADES:
+        mask |= BIT_TRADES;
+        break;
+      case MARKET24H:
+        mask |= BIT_MARKET24H;
+        break;
+      case KLINE:
+        mask |= BIT_KLINE;
+        break;
+      case DEPTH:
+        break;
+      case PRICE_SCALE:
+        break;
+      case QTY_SCALE:
+        break;
+      case VALUE_SCALE:
+        break;
+    }
+  };
+  core::json::Parser parser{message};
+  auto value = parser.root();
+  std::get<core::json::Object>(value).dispatch(helper);
+  if (mask == 0) [[unlikely]] {
+    if (allow_unknown_event_types) {
+      return false;
+    }
+  } else if (mask & BIT_ID) {
+    assert((mask & (~BIT_ID)) == 0);
+    if (pong) {
+      dispatch_helper<Pong>(handler, message, buffer_stack, trace_info);
+    } else {
+      dispatch_helper<Ack>(handler, message, buffer_stack, trace_info);
+    }
     return true;
-  }
-  Message message_2{message, buffer_stack};
-  switch (message_2.event) {
-    using enum Event::type_t;
-    case UNDEFINED_INTERNAL:
-      break;
-    case UNKNOWN_INTERNAL:
-      if (allow_unknown_event_types) {
-        return false;
-      }
-      break;
-    case ERROR: {
-      auto error = Error{
-          .event = message_2.event,
-          .code = message_2.code,
-          .msg = message_2.msg,
-      };
-      create_trace_and_dispatch(handler, trace_info, error);
-      return true;
+  } else {
+    assert(mask != 0);
+    if (mask & BIT_BOOK) {
+      dispatch_helper<Book>(handler, message, buffer_stack, trace_info);
     }
-    case SUBSCRIBE: {
-      dispatch_helper<Subscribe>(handler, message, buffer_stack, trace_info);
-      return true;
+    if (mask & BIT_TRADES) {
+      dispatch_helper<Trades>(handler, message, buffer_stack, trace_info);
     }
-    case LOGIN:
-      dispatch_helper<Login>(handler, message, buffer_stack, trace_info);
-      return true;
-  }
-  switch (message_2.arg.topic) {
-    using enum Topic::type_t;
-    case UNDEFINED_INTERNAL:
-      break;
-    case UNKNOWN_INTERNAL:
-      return false;  // unexpected
-    case TICKER:
-      dispatch_helper<Ticker>(handler, message, buffer_stack, trace_info);
-      return true;
-    case PUBLIC_TRADE:
-      dispatch_helper<PublicTrade>(handler, message, buffer_stack, trace_info);
-      return true;
-    case BOOKS:
-    case BOOKS5:
-    case BOOKS15: {
-      dispatch_helper<Books>(handler, message, buffer_stack, trace_info);
-      return true;
+    if (mask & BIT_MARKET24H) {
+      dispatch_helper<Market24h>(handler, message, buffer_stack, trace_info);
     }
-    //
-    case ACCOUNT:
-      dispatch_helper<Account>(handler, message, buffer_stack, trace_info);
-      return true;
-    case POSITION:
-      dispatch_helper<Position>(handler, message, buffer_stack, trace_info);
-      return true;
-    case ORDER:
-      dispatch_helper<Order>(handler, message, buffer_stack, trace_info);
-      return true;
-    case FILL:
-      dispatch_helper<Fill>(handler, message, buffer_stack, trace_info);
-      return true;
+    if (mask & BIT_KLINE) {
+      dispatch_helper<Kline>(handler, message, buffer_stack, trace_info);
+    }
+    return true;
   }
   log::fatal(R"(Unexpected: message="{}")"sv, message);
 }

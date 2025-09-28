@@ -4,17 +4,10 @@
   "prefix": "ws_",
   "values": [
     {
-      "name": "public_uri",
+      "name": "uri",
       "type": "roq/io/web/URI",
       "validator": "roq/core/flags/URI",
-      "default": "wss://ws.phemex.com/v2/ws/public",
-      "description": "Exchange end-point"
-    },
-    {
-      "name": "private_uri",
-      "type": "roq/io/web/URI",
-      "validator": "roq/core/flags/URI",
-      "default": "wss://ws.phemex.com/v2/ws/private",
+      "default": "wss://testnet-api.phemex.com/ws",
       "description": "Exchange end-point"
     },
     {

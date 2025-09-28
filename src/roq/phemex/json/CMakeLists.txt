@@ -16,12 +16,16 @@ set(AUTOGEN_SCHEMAS
     account_info.json
     account.json
     account_mode.json
+    ack_error.json
+    ack.json
+    ack_result.json
+    ack_result_status.json
     action.json
     arg.json
     asset_mode.json
-    books_data.json
-    books_item.json
-    books.json
+    book_data_item.json
+    book_data.json
+    book.json
     cancel_all_orders_ack_data.json
     cancel_all_orders_ack_data_list_item.json
     cancel_all_orders_ack.json
@@ -30,7 +34,6 @@ set(AUTOGEN_SCHEMAS
     category.json
     category_ws.json
     delivery_period.json
-    error.json
     event.json
     fill_data_item_fee_detail_item.json
     fill_data_item.json
@@ -42,11 +45,14 @@ set(AUTOGEN_SCHEMAS
     futures_type.json
     hold_mode.json
     hold_side.json
-    instruments_data_item.json
-    instruments.json
+    kline_data_item.json
+    kline.json
     login.json
     margin_mode.json
-    message.json
+    market24h_data.json
+    market24h.json
+    message_field.json
+    message_type.json
     modify_order_ack_data.json
     modify_order_ack.json
     open_orders_data.json
@@ -61,6 +67,7 @@ set(AUTOGEN_SCHEMAS
     order_type.json
     place_order_ack_data.json
     place_order_ack.json
+    pong.json
     position_data_item.json
     position_info_data.json
     position_info_data_list_item.json
@@ -69,20 +76,23 @@ set(AUTOGEN_SCHEMAS
     position_status.json
     pos_mode.json
     pos_side.json
-    public_trade_data_item.json
-    public_trade.json
+    products_data_currencies_item.json
+    products_data.json
+    products_data_products_item.json
+    products.json
     side.json
+    status.json
     stp_mode.json
-    subscribe.json
     symbol_status.json
     symbol_type.json
-    ticker_data_item.json
-    ticker.json
     time_in_force.json
     topic.json
     trade_scope.json
     trade_side.json
-    trading_status.json)
+    trades.json
+    trades_trades_item.json
+    trading_status.json
+    type.json)
 
 roq_autogen_hpp(
   OUTPUT

@@ -67,17 +67,22 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
  private:
   void operator()(ConnectionStatus);
 
+  void ping(std::chrono::nanoseconds now);
+
   void subscribe(std::span<Symbol const> const &symbols);
-  void subscribe(std::string_view const &topic, std::span<Symbol const> const &symbols);
+  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &method);
+  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &method, uint32_t depth);
+  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &method, std::chrono::seconds interval);
 
   void parse(std::string_view const &message);
 
-  void operator()(Trace<json::Error> const &) override;
-  void operator()(Trace<json::Subscribe> const &) override;
+  void operator()(Trace<json::Pong> const &) override;
+  void operator()(Trace<json::Ack> const &) override;
 
-  void operator()(Trace<json::Ticker> const &) override;
-  void operator()(Trace<json::PublicTrade> const &) override;
-  void operator()(Trace<json::Books> const &) override;
+  void operator()(Trace<json::Book> const &) override;
+  void operator()(Trace<json::Trades> const &) override;
+  void operator()(Trace<json::Market24h> const &) override;
+  void operator()(Trace<json::Kline> const &) override;
 
   void operator()(Trace<json::Login> const &) override;
   void operator()(Trace<json::Account> const &) override;
@@ -100,7 +105,7 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, ticker, public_trade, books;
+    utils::metrics::Profile parse, pong, ack, book, trades, market24h, kline;
   } profile_;
   struct {
     utils::metrics::Latency ping;
@@ -110,6 +115,7 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
   // state
   ConnectionStatus status_ = {};
   std::chrono::nanoseconds next_ping_ = {};
+  uint32_t request_id_ = {};
 };
 
 }  // namespace phemex

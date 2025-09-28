@@ -1,0 +1,23 @@
+{
+  "name": "roq/phemex/json/Trades",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "trades",
+      "type": "roq/phemex/json/TradesTradesItem",
+      "array": "std/span"
+    },
+    {
+      "name": "type",
+      "type": "roq/phemex/json/MessageType"
+    }
+  ]
+}

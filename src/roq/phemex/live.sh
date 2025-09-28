@@ -16,7 +16,7 @@ CONFIG_FILE="$ROQ_CONFIG_PATH/roq-phemex/$CONFIG.toml"
 
 FLAGFILE="../../../share/flags/prod/flags.cfg"
 
-API="MARGIN"
+API="USD-M"
 
 $PREFIX ./roq-phemex \
   --name "$NAME" \

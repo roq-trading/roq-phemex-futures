@@ -1,13 +1,13 @@
 {
-  "name": "roq/phemex/json/BooksItem",
+  "name": "roq/phemex/json/BookDataItem",
   "type": "by_index",
   "values": [
     {
-      "name": "price",
+      "name": "price_ep",
       "type": "std/double"
     },
     {
-      "name": "size",
+      "name": "qty",
       "type": "std/double"
     }
   ]

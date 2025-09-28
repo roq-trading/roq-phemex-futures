@@ -17,9 +17,8 @@ namespace {
 enum class Key {
   SPOT,
   MARGIN,
-  USDT_FUTURES,
-  USDC_FUTURES,
-  COIN_FUTURES,
+  USD_M,
+  COIN_M,
 };
 
 auto parse_api(auto &api) {
@@ -36,9 +35,7 @@ API API::create(Settings const &settings) {
     return {
         .category = category,
         .inst_type = inst_type,
-        .market_data{
-            .instruments = "/api/v3/market/instruments"sv,
-        },
+        .market_data{.products = "/public/products"},
         .order_management{
             .account_info = "/api/v3/account/settings"sv,
             .account_assets = "/api/v3/account/assets"sv,
@@ -60,11 +57,9 @@ API API::create(Settings const &settings) {
       return helper("SPOT"sv, "spot"sv);
     case MARGIN:
       return helper("MARGIN"sv, "margin"sv);
-    case USDT_FUTURES:
+    case USD_M:
       return helper("USDT-FUTURES"sv, "usdt-futures"sv);
-    case USDC_FUTURES:
-      return helper("USDC-FUTURES"sv, "usdc-futures"sv);
-    case COIN_FUTURES:
+    case COIN_M:
       return helper("COIN-FUTURES"sv, "coin-futures"sv);
   }
   log::fatal("Unexpected"sv);

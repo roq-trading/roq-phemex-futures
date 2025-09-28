@@ -12,7 +12,6 @@
 #include "roq/utils/metrics/factory.hpp"
 
 #include "roq/phemex/json/map.hpp"
-#include "roq/phemex/json/message.hpp"
 #include "roq/phemex/json/utils.hpp"
 
 using namespace std::literals;
@@ -84,8 +83,8 @@ Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &s
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
-          .instruments = create_metrics(shared.settings, name_, "instruments"sv),
-          .instruments_ack = create_metrics(shared.settings, name_, "instruments_ack"sv),
+          .products = create_metrics(shared.settings, name_, "products"sv),
+          .products_ack = create_metrics(shared.settings, name_, "products_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
@@ -111,8 +110,8 @@ void Rest::operator()(metrics::Writer &writer) const {
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
       // profile
-      .write(profile_.instruments, metrics::Type::PROFILE)
-      .write(profile_.instruments_ack, metrics::Type::PROFILE)
+      .write(profile_.products, metrics::Type::PROFILE)
+      .write(profile_.products_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
 }
@@ -173,8 +172,8 @@ uint32_t Rest::download(RestState state) {
     case UNDEFINED:
       assert(false);
       break;
-    case INSTRUMENTS:
-      get_instruments();
+    case PRODUCTS:
+      get_products();
       return 1;
     case DONE:
       (*this)(ConnectionStatus::READY);
@@ -184,14 +183,14 @@ uint32_t Rest::download(RestState state) {
   return 0;
 }
 
-// instruments
+// products
 
-void Rest::get_instruments() {
-  profile_.instruments([&]() {
+void Rest::get_products() {
+  profile_.products([&]() {
     auto query = fmt::format("?category={}"sv, shared_.api.category);
     auto request = web::rest::Request{
         .method = web::http::Method::GET,
-        .path = shared_.api.market_data.instruments,
+        .path = shared_.api.market_data.products,
         .query = query,
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = {},
@@ -200,17 +199,17 @@ void Rest::get_instruments() {
         .quality_of_service = {},
     };
     auto sequence = download_.sequence();
-    (*connection_)("instruments"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+    (*connection_)("products"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
       Trace event{trace_info, response};
-      get_instruments_ack(event, sequence);
+      get_products_ack(event, sequence);
     });
   });
 }
 
-void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
-  auto const state = RestState::INSTRUMENTS;
-  profile_.instruments_ack([&]() {
+void Rest::get_products_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
+  auto const state = RestState::PRODUCTS;
+  profile_.products_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
@@ -220,13 +219,13 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, uint32_t
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
       } else {
-        json::Instruments instruments{body, decode_buffer_};
-        if (instruments.code == 0) {
-          Trace event{trace_info, instruments};
+        json::Products products{body, decode_buffer_};
+        if (products.code == 0) {
+          Trace event{trace_info, products};
           (*this)(event);
           download_.check(state);
         } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(instruments.code), instruments.msg);
+          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products.code), products.msg);
         }
       }
     };
@@ -234,14 +233,15 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, uint32_t
   });
 }
 
-void Rest::operator()(Trace<json::Instruments> const &event) {
-  auto &[trace_info, instruments] = event;
-  log::info<4>("instruments={}"sv, instruments);
+void Rest::operator()(Trace<json::Products> const &event) {
+  auto &[trace_info, products] = event;
+  log::info<4>("products={}"sv, products);
+  auto &data = products.data;
   std::vector<Symbol> symbols;
-  symbols.reserve(std::size(instruments.data));
+  symbols.reserve(std::size(data.products));
   size_t counter = 0;
-  for (size_t i = 0; i < std::size(instruments.data); ++i) {
-    auto &item = instruments.data[i];
+  for (size_t i = 0; i < std::size(data.products); ++i) {
+    auto &item = data.products[i];
     log::info<2>("item={}"sv, item);
     if (shared_.discard_symbol(item.symbol)) {
       continue;
@@ -250,44 +250,24 @@ void Rest::operator()(Trace<json::Instruments> const &event) {
       symbols.emplace_back(item.symbol);
     }
     ++counter;
-    auto settlement_currency = [&]() -> std::string_view {
-      switch (item.category) {
-        using enum json::Category::type_t;
-        case UNDEFINED_INTERNAL:
-        case UNKNOWN_INTERNAL:
-          break;
-        case SPOT:
-          return item.quote_coin;  // ???
-        case MARGIN:
-          return item.quote_coin;  // ???
-        case USDT_FUTURES:
-          return item.base_coin;  // inverse ???
-        case USDC_FUTURES:
-          return item.quote_coin;  // linear ???
-        case COIN_FUTURES:
-          return item.quote_coin;  // linear ???
-      }
-      return {};
-    }();
-    auto tick_size = std::pow(10.0, -static_cast<double>(item.price_precision));
     auto reference_data = ReferenceData{
         .stream_id = stream_id_,
         .exchange = shared_.settings.exchange,
         .symbol = item.symbol,
         .description = {},
-        .security_type = map(item.category, item.type),
+        .security_type = {},
         .cfi_code = {},
-        .base_currency = item.base_coin,
-        .quote_currency = item.quote_coin,
-        .settlement_currency = settlement_currency,
+        .base_currency = {},
+        .quote_currency = {},
+        .settlement_currency = {},
         .margin_currency = {},
         .commission_currency = {},
-        .tick_size = tick_size,
+        .tick_size = item.tick_size,
         .tick_size_steps = {},
-        .multiplier = item.quantity_multiplier,  // XXX ???
+        .multiplier = NaN,
         .min_notional = NaN,
-        .min_trade_vol = item.min_order_qty,
-        .max_trade_vol = item.max_order_qty,
+        .min_trade_vol = NaN,
+        .max_trade_vol = NaN,
         .trade_vol_step_size = NaN,
         .option_type = {},
         .strike_currency = {},
@@ -300,10 +280,11 @@ void Rest::operator()(Trace<json::Instruments> const &event) {
         .expiry_datetime_utc = {},
         .exchange_time_utc = {},
         .exchange_sequence = {},
-        .sending_time_utc = instruments.request_time,
+        .sending_time_utc = {},
         .discard = {},
     };
     create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+    /*
     auto market_status = MarketStatus{
         .stream_id = stream_id_,
         .exchange = shared_.settings.exchange,
@@ -311,18 +292,19 @@ void Rest::operator()(Trace<json::Instruments> const &event) {
         .trading_status = map(item.status),
         .exchange_time_utc = {},
         .exchange_sequence = {},
-        .sending_time_utc = instruments.request_time,
+        .sending_time_utc = products.request_time,
     };
     create_trace_and_dispatch(handler_, trace_info, market_status, true);
+    */
   }
   if (!std::empty(symbols)) {
-    auto instruments_update = SymbolsUpdate{
+    auto symbols_update = SymbolsUpdate{
         .symbols = symbols,
     };
-    handler_(instruments_update);
+    handler_(symbols_update);
   }
   if (counter > 0) [[unlikely]] {
-    log::info("Symbols {} / {}"sv, counter, std::size(instruments.data));
+    log::info("Symbols {} / {}"sv, counter, std::size(data.products));
   }
 }
 
@@ -356,8 +338,8 @@ void Rest::process_response(web::rest::Response const &response, auto error_hand
             assert(false);
             [[fallthrough]];
           default: {
-            json::Message error{body};
-            error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
+            // json::Message error{body};
+            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
           }
         }
         break;
