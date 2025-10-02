@@ -113,10 +113,6 @@ void Gateway::operator()(Trace<MarketStatus> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<TopOfBook> const &event, bool is_last) {
-  dispatcher_(event, is_last);
-}
-
 void Gateway::operator()(Trace<MarketByPriceUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last, shared_.final_bids, shared_.final_asks, []([[maybe_unused]] auto &market_by_price) {});
 }

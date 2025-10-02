@@ -131,10 +131,6 @@ void OrderEntry::operator()(Event<Timer> const &event) {
   if (!ready()) {
     return;
   }
-  if (shared_.settings.rest.cancel_on_disconnect && next_heartbeat_ < now) {
-    next_heartbeat_ = now + (shared_.settings.rest.ping_freq / 3);
-    countdown_cancel_all();
-  }
 }
 
 void OrderEntry::operator()(metrics::Writer &writer) const {
@@ -203,7 +199,6 @@ void OrderEntry::operator()(Trace<web::rest::Client::Disconnected> const &) {
   if (!download_.downloading()) {
     download_.reset();
   }
-  next_heartbeat_ = {};
 }
 
 void OrderEntry::operator()(Trace<web::rest::Client::Latency> const &event) {
@@ -1051,43 +1046,6 @@ void OrderEntry::operator()(Trace<json::CancelAllOrdersAck> const &event, uint8_
   auto &[trace_info, cancel_all_orders_ack] = event;
   log::info<2>("cancel_all_orders_ack={}"sv, cancel_all_orders_ack);
   log::warn("DEBUG cancel_all_orders_ack={}"sv, cancel_all_orders_ack);
-}
-
-// countdown_cancel_all
-
-void OrderEntry::countdown_cancel_all() {
-  profile_.countdown_cancel_all([&]() {
-    auto method = web::http::Method::POST;
-    auto path = shared_.api.order_management.countdown_cancel_all;
-    auto body = json::Encoder::countdown_cancel_all(encode_buffer_, std::chrono::duration_cast<std::chrono::seconds>(shared_.settings.rest.ping_freq));
-    auto headers = account_.create_headers(method, path, {}, body);
-    auto request = web::rest::Request{
-        .method = method,
-        .path = path,
-        .query = {},
-        .accept = web::http::Accept::APPLICATION_JSON,
-        .content_type = web::http::ContentType::APPLICATION_JSON,
-        .headers = headers,
-        .body = body,
-        .quality_of_service = {},
-    };
-    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      countdown_cancel_all_ack(event);
-    };
-    (*connection_)("countdown_cancel_all"sv, request, callback);
-  });
-}
-
-void OrderEntry::countdown_cancel_all_ack(Trace<web::rest::Response> const &event) {
-  profile_.countdown_cancel_all_ack([&]() {
-    auto &[trace_info, response] = event;
-    auto [status, category, body] = response.result();
-    if (status != web::http::Status::OK) {
-      log::warn(R"(DEBUG status={}, category={}, body="{}")"sv, status, category, body);
-    }
-  });
 }
 
 // helpers

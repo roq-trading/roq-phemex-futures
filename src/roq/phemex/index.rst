@@ -1,6 +1,7 @@
 .. _roq-phemex:
 
 .. |checkmark| unicode:: U+2713
+.. |checkmark-2| unicode:: U+2021
 
 roq-phemex
 ===========
@@ -63,11 +64,11 @@ Supports
       :widths: auto
 
       * - Reference Data
-        - |checkmark|
+        - |checkmark-2|
       * - Market Status
-        - (|checkmark|)
+        - |checkmark-2|
       * - Top of Book
-        - |checkmark|
+        -
       * - Market by Price
         - |checkmark|
       * - Market by Order
@@ -93,7 +94,7 @@ Supports
       * - Cancel All
         - |checkmark|
       * - Auto-Cancel
-        - |checkmark|
+        -
 
   .. grid-item-card::  Account Management
 
@@ -103,7 +104,10 @@ Supports
       * - Positions
         - |checkmark|
       * - Funds
-        - |checkmark|
+        -
+
+
+|checkmark-2| There are no live updates for reference data and market status.
 
 
 .. _roq-phemex-flags:
@@ -142,6 +146,15 @@ Environments
       $ $CONDA_PREFIX/share/roq-phemex/flags/prod/flags.cfg
 
    .. include:: flags/prod/flags.cfg
+     :code: shell
+
+.. tab:: Test
+
+   .. code-block:: shell
+
+      $ $CONDA_PREFIX/share/roq-phemex/flags/test/flags.cfg
+
+   .. include:: flags/test/flags.cfg
      :code: shell
 
 
@@ -482,9 +495,24 @@ Streams
 Constraints
 -----------
 
-* There is no live update of reference data or trading status
-* Stop orders are not supported
-
 
 Comments
 --------
+
+
+References
+----------
+
+Common
+~~~~~~
+
+* :ref:`Using Conda <tutorial-conda>`
+* :ref:`Using Flags <abseil-cpp>`
+* :ref:`Gateway Flags <gateway-flags>`
+* :ref:`Gateway Config <gateway-config>`
+
+Exchange
+~~~~~~~~
+
+* `Website <https://phemex.com/>`__
+* `Documentation <https://phemex-docs.github.io/>`__

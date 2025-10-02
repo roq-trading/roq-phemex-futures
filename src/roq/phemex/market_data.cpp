@@ -279,7 +279,6 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_v
 }
 
 void MarketData::parse(std::string_view const &message) {
-  log::warn("DEBUG {}"sv, message);
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
@@ -298,7 +297,6 @@ void MarketData::operator()(Trace<json::Pong> const &event) {
   profile_.pong([&]() {
     auto &[trace_info, pong] = event;
     auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
-    log::warn("DEBUG pong={}, latency={}"sv, pong, latency);
     // XXX HANS ExternalLatency
   });
 }
@@ -306,14 +304,15 @@ void MarketData::operator()(Trace<json::Pong> const &event) {
 void MarketData::operator()(Trace<json::Ack> const &event) {
   profile_.ack([&]() {
     auto &[trace_info, ack] = event;
-    log::warn("DEBUG ack={}"sv, ack);
+    if (ack.result.status != json::AckResultStatus::SUCCESS) {
+      log::warn("DEBUG ack={}"sv, ack);
+    }
   });
 }
 
 void MarketData::operator()(Trace<json::Book> const &event) {
   profile_.book([&]() {
     auto &[trace_info, book] = event;
-    log::warn("DEBUG book={}"sv, book);
     auto &bids = shared_.bids;
     auto &asks = shared_.asks;
     bids.clear();
@@ -364,7 +363,6 @@ void MarketData::operator()(Trace<json::Book> const &event) {
 void MarketData::operator()(Trace<json::Trades> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
-    log::warn("DEBUG trades={}"sv, trades);
     if (trades.type != json::MessageType::INCREMENTAL) {  // note! drop snapshot
       return;
     }
@@ -401,7 +399,6 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
 void MarketData::operator()(Trace<json::Market24h> const &event) {
   profile_.market24h([&]() {
     auto &[trace_info, market24h] = event;
-    log::warn("DEBUG market24h={}"sv, market24h);
     std::array<Statistics, 8> statistics{{
         {
             .type = StatisticsType::OPEN_PRICE,
@@ -467,10 +464,7 @@ void MarketData::operator()(Trace<json::Market24h> const &event) {
 }
 
 void MarketData::operator()(Trace<json::Kline> const &event) {
-  profile_.kline([&]() {
-    auto &[trace_info, kline] = event;
-    log::warn("DEBUG kline={}"sv, kline);
-  });
+  profile_.kline([&]() { auto &[trace_info, kline] = event; });
 }
 
 void MarketData::operator()(Trace<json::Login> const &) {
