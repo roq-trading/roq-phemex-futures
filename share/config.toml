@@ -1,3 +1,5 @@
+# config template for the roq-phemex gateway
+
 symbols = [
  "^BTCUSDT$",
  "^BTCPERP$",
