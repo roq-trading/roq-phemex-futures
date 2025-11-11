@@ -39,7 +39,7 @@ TEST_CASE("snapshot", "[json_book]") {
     void operator()(Trace<json::Ack> const &) { FAIL(); }
     void operator()(Trace<json::Book> const &event) {
       ++count;
-      auto &[trace_info, book] = event;
+      [[maybe_unused]] auto &[trace_info, book] = event;
       /*
       CHECK(book.action == json::Action::UPDATE);
       CHECK(book.arg.symbol == "ETHUSDT"sv);
@@ -100,7 +100,7 @@ TEST_CASE("incremental", "[json_book]") {
     void operator()(Trace<json::Ack> const &) { FAIL(); }
     void operator()(Trace<json::Book> const &event) {
       ++count;
-      auto &[trace_info, book] = event;
+      [[maybe_unused]] auto &[trace_info, book] = event;
       /*
       CHECK(book.action == json::Action::UPDATE);
       CHECK(book.arg.symbol == "ETHUSDT"sv);
