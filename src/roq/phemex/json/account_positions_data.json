@@ -1,0 +1,15 @@
+{
+  "name": "roq/phemex/json/AccountPositionsData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "account",
+      "type": "roq/phemex/json/AccountPositionsDataAccount"
+    },
+    {
+      "name": "positions",
+      "type": "roq/phemex/json/AccountPositionsDataPositionsItem",
+      "array": "std/span"
+    }
+  ]
+}

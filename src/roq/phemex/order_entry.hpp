@@ -25,7 +25,7 @@
 #include "roq/phemex/shared.hpp"
 
 #include "roq/phemex/json/account_assets.hpp"
-#include "roq/phemex/json/account_info.hpp"
+#include "roq/phemex/json/account_positions.hpp"
 #include "roq/phemex/json/fill_history.hpp"
 #include "roq/phemex/json/open_orders.hpp"
 #include "roq/phemex/json/position_info.hpp"
@@ -78,7 +78,7 @@ class OrderEntry final : public web::rest::Client::Handler {
   // account_info
   void get_account_info();
   void get_account_info_ack(Trace<web::rest::Response> const &, uint32_t sequence);
-  void operator()(Trace<json::AccountInfo> const &);
+  void operator()(Trace<json::AccountPositions> const &);
 
   // account_assets
   void get_account_assets();

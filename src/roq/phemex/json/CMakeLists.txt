@@ -10,10 +10,10 @@ set(AUTOGEN_SCHEMAS
     account_assets.json
     account_data_item_coin_item.json
     account_data_item.json
-    account_info_data_coin_config_item.json
-    account_info_data.json
-    account_info_data_symbol_config_item.json
-    account_info.json
+    account_positions.json
+    account_positions_data.json
+    account_positions_data_account.json
+    account_positions_data_positions_item.json
     account.json
     account_mode.json
     ack_error.json

@@ -109,7 +109,7 @@ void DropCopy::operator()(Event<Timer> const &event) {
   if (ready()) {
     if (next_ping_ < now) {
       next_ping_ = now + shared_.settings.ws.ping_freq;
-      (*connection_).send_text(PING);
+      // (*connection_).send_text(PING);
     }
   }
 }
@@ -158,6 +158,7 @@ void DropCopy::operator()(web::socket::Client::Latency const &latency) {
 }
 
 void DropCopy::operator()(web::socket::Client::Text const &text) {
+  log::warn("DEBUG text={}"sv, text.payload);
   parse(text.payload);
 }
 
@@ -189,7 +190,7 @@ void DropCopy::operator()(ConnectionStatus status) {
 
 void DropCopy::login() {
   auto message = account_.create_ws_login();
-  log::debug("message={}"sv, message);
+  log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }
 

@@ -5,8 +5,6 @@
 #include <string>
 #include <string_view>
 
-#include "roq/web/http/method.hpp"
-
 #include "roq/phemex/config.hpp"
 
 #include "roq/phemex/tools/crypto.hpp"
@@ -22,7 +20,9 @@ class Account final {
 
   std::string create_ws_login();
 
-  std::string create_headers(web::http::Method, std::string_view const &path, std::string_view const &query, std::string_view const &body);
+  std::string_view create_headers(std::string_view const &path, std::string_view const &query, std::string_view const &body);
+  std::string_view create_headers(
+      std::string_view const &path, std::string_view const &query, std::string_view const &body, std::string_view const &request_id);
 
   std::string const name;
 

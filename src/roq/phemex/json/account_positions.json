@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex/json/AccountInfo",
+  "name": "roq/phemex/json/AccountPositions",
   "type": "dictionary",
   "values": [
     {
@@ -11,12 +11,8 @@
       "type": "std/string_view"
     },
     {
-      "name": "requestTime",
-      "type": "std/milliseconds"
-    },
-    {
       "name": "data",
-      "type": "roq/phemex/json/AccountInfoData"
+      "type": "roq/phemex/json/AccountPositionsData"
     }
   ]
 }

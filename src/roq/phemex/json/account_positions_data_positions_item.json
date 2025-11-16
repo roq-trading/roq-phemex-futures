@@ -1,0 +1,250 @@
+{
+  "name": "roq/phemex/json/AccountPositionsDataPositionsItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "userID",
+      "type": "std/int64"
+    },
+    {
+      "name": "accountID",
+      "type": "std/int64"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "currency",
+      "type": "std/string_view"
+    },
+    {
+      "name": "side",
+      "type": "std/string_view"
+    },
+    {
+      "name": "positionStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "crossMargin",
+      "type": "std/bool"
+    },
+    {
+      "name": "leverageEr",
+      "type": "std/double"
+    },
+    {
+      "name": "leverage",
+      "type": "std/double"
+    },
+    {
+      "name": "initMarginReqEr",
+      "type": "std/double"
+    },
+    {
+      "name": "initMarginReq",
+      "type": "std/double"
+    },
+    {
+      "name": "maintMarginReqEr",
+      "type": "std/double"
+    },
+    {
+      "name": "maintMarginReq",
+      "type": "std/double"
+    },
+    {
+      "name": "riskLimitEv",
+      "type": "std/double"
+    },
+    {
+      "name": "riskLimit",
+      "type": "std/double"
+    },
+    {
+      "name": "size",
+      "type": "std/double"
+    },
+    {
+      "name": "value",
+      "type": "std/double"
+    },
+    {
+      "name": "valueEv",
+      "type": "std/double"
+    },
+    {
+      "name": "avgEntryPriceEp",
+      "type": "std/double"
+    },
+    {
+      "name": "avgEntryPrice",
+      "type": "std/double"
+    },
+    {
+      "name": "posCostEv",
+      "type": "std/double"
+    },
+    {
+      "name": "posCost",
+      "type": "std/double"
+    },
+    {
+      "name": "assignedPosBalanceEv",
+      "type": "std/double"
+    },
+    {
+      "name": "assignedPosBalance",
+      "type": "std/double"
+    },
+    {
+      "name": "bankruptCommEv",
+      "type": "std/double"
+    },
+    {
+      "name": "bankruptComm",
+      "type": "std/double"
+    },
+    {
+      "name": "bankruptPriceEp",
+      "type": "std/double"
+    },
+    {
+      "name": "bankruptPrice",
+      "type": "std/double"
+    },
+    {
+      "name": "positionMarginEv",
+      "type": "std/double"
+    },
+    {
+      "name": "positionMargin",
+      "type": "std/double"
+    },
+    {
+      "name": "liquidationPriceEp",
+      "type": "std/double"
+    },
+    {
+      "name": "liquidationPrice",
+      "type": "std/double"
+    },
+    {
+      "name": "deleveragePercentileEr",
+      "type": "std/double"
+    },
+    {
+      "name": "deleveragePercentile",
+      "type": "std/double"
+    },
+    {
+      "name": "buyValueToCostEr",
+      "type": "std/double"
+    },
+    {
+      "name": "buyValueToCost",
+      "type": "std/double"
+    },
+    {
+      "name": "sellValueToCostEr",
+      "type": "std/double"
+    },
+    {
+      "name": "sellValueToCost",
+      "type": "std/double"
+    },
+    {
+      "name": "markPriceEp",
+      "type": "std/double"
+    },
+    {
+      "name": "markPrice",
+      "type": "std/double"
+    },
+    {
+      "name": "estimatedOrdLossEv",
+      "type": "std/double"
+    },
+    {
+      "name": "estimatedOrdLoss",
+      "type": "std/double"
+    },
+    {
+      "name": "usedBalanceEv",
+      "type": "std/double"
+    },
+    {
+      "name": "usedBalance",
+      "type": "std/double"
+    },
+    {
+      "name": "cumClosedPnlEv",
+      "type": "std/double"
+    },
+    {
+      "name": "cumFundingFeeEv",
+      "type": "std/double"
+    },
+    {
+      "name": "cumTransactFeeEv",
+      "type": "std/double"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "takerFeeRateEr",
+      "type": "std/double"
+    },
+    {
+      "name": "makerFeeRateEr",
+      "type": "std/double"
+    },
+    {
+      "name": "term",
+      "type": "std/uint32"
+    },
+    {
+      "name": "lastTermEndTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "lastFundingTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "curTermRealisedPnlEv",
+      "type": "std/double"
+    },
+    {
+      "name": "execSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeQty",
+      "type": "std/double"
+    },
+    {
+      "name": "freeCostEv",
+      "type": "std/double"
+    },
+    {
+      "name": "buyLeavesValueEv",
+      "type": "std/double"
+    },
+    {
+      "name": "sellLeavesValueEv",
+      "type": "std/double"
+    },
+    {
+      "name": "buyLeavesQty",
+      "type": "std/double"
+    },
+    {
+      "name": "sellLeavesQty",
+      "type": "std/double"
+    }
+  ]
+}
