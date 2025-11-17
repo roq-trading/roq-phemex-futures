@@ -1,0 +1,23 @@
+{
+  "name": "roq/phemex_futures/json/Fill",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/phemex_futures/json/Arg"
+    },
+    {
+      "name": "action",
+      "type": "roq/phemex_futures/json/Action"
+    },
+    {
+      "name": "data",
+      "type": "roq/phemex_futures/json/FillDataItem",
+      "array": "std/span"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
+    }
+  ]
+}

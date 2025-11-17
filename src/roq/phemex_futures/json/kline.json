@@ -1,0 +1,35 @@
+{
+  "name": "roq/phemex_futures/json/Kline",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "kline",
+      "type": "roq/phemex_futures/json/KlineDataItem",
+      "array": "std/span"
+    },
+    {
+      "name": "type",
+      "type": "roq/phemex_futures/json/MessageType"
+    },
+    {
+      "name": "priceScale",
+      "type": "std/int32"
+    },
+    {
+      "name": "qtyScale",
+      "type": "std/int32"
+    },
+    {
+      "name": "valueScale",
+      "type": "std/int32"
+    }
+  ]
+}

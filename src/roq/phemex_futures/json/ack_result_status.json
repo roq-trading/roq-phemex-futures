@@ -1,0 +1,9 @@
+{
+  "name": "roq/phemex_futures/json/AckResultStatus",
+  "type": "enum",
+  "values": [
+    {
+      "name": "success"
+    }
+  ]
+}

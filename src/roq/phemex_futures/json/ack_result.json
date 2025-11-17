@@ -1,0 +1,10 @@
+{
+  "name": "roq/phemex_futures/json/AckResult",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "status",
+      "type": "roq/phemex_futures/json/AckResultStatus"
+    }
+  ]
+}

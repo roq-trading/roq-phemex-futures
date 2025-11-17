@@ -1,9 +1,0 @@
-{
-  "name": "roq/phemex/json/EventType",
-  "type": "enum",
-  "values": [
-    {
-      "name": "snapshot"
-    }
-  ]
-}

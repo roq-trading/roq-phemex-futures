@@ -4,10 +4,10 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex/json/products.hpp"
+#include "roq/phemex_futures/json/products.hpp"
 
 using namespace roq;
-using namespace roq::phemex;
+using namespace roq::phemex_futures;
 
 using namespace std::literals;
 

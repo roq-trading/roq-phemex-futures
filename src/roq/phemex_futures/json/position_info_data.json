@@ -1,0 +1,11 @@
+{
+  "name": "roq/phemex_futures/json/PositionInfoData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "list",
+      "type": "roq/phemex_futures/json/PositionInfoDataListItem",
+      "array": "std/span"
+    }
+  ]
+}

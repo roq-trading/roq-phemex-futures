@@ -1,4 +1,4 @@
-# config template for the roq-phemex gateway
+# config template for the roq-phemex-futures gateway
 
 symbols = [
  "^BTCUSDT$",
@@ -9,8 +9,8 @@ symbols = [
 
   [accounts.A1]
   master = true
-  login = "YOUR_PHEMEX_API_KEY_GOES_HERE"
-  secret = "YOUR_PHEMEX_SECRET_GOES_HERE"
+  login = "YOUR_PHEMEX_FUTURES_API_KEY_GOES_HERE"
+  secret = "YOUR_PHEMEX_FUTURES_SECRET_GOES_HERE"
   symbols = [ ".*" ]
 
 [users]

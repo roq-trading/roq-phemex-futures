@@ -16,7 +16,7 @@ message("Using GIT_REPO_VERSION=${GIT_REPO_VERSION}")
 
 # project
 
-project(roq-phemex VERSION ${GIT_REPO_VERSION})
+project(roq-phemex-futures VERSION ${GIT_REPO_VERSION})
 
 # language
 
@@ -83,7 +83,7 @@ include_directories(
 
 # sub-projects
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/roq/phemex)
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/roq/phemex_futures)
 
 if(BUILD_TESTING)
   add_subdirectory(${CMAKE_SOURCE_DIR}/test)

@@ -1,0 +1,30 @@
+{
+  "name": "roq/phemex_futures/json/AccountPositionsDataAccount",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "userID",
+      "type": "std/int64"
+    },
+    {
+      "name": "accountId",
+      "type": "std/int64"
+    },
+    {
+      "name": "currency",
+      "type": "std/string_view"
+    },
+    {
+      "name": "accountBalanceEv",
+      "type": "std/double"
+    },
+    {
+      "name": "totalUsedBalanceEv",
+      "type": "std/double"
+    },
+    {
+      "name": "bonusBalanceEv",
+      "type": "std/double"
+    }
+  ]
+}
