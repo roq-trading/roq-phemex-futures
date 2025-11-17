@@ -20,7 +20,7 @@ class Crypto final {
   Crypto(Crypto &&) = delete;
   Crypto(Crypto const &) = delete;
 
-  std::string create_ws_login(std::chrono::seconds now_utc);
+  std::string create_ws_login(std::chrono::seconds now_utc, uint64_t request_id);
 
   std::string_view create_headers(
       std::string_view const &path,

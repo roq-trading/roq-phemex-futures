@@ -5,16 +5,22 @@ set(SOURCES encoder.cpp map.cpp parser.cpp utils.cpp)
 include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS
+    event_type.json
+    liq_status.json
+    user_mode.json
+    accounts_orders_positions.json
+    accounts_orders_positions_accounts_item.json
+    accounts_orders_positions_orders_item.json
+    accounts_orders_positions_positions_item.json
+    index_market24h.json
+    index_market24h_data.json
     account_assets_data_assets_item.json
     account_assets_data.json
     account_assets.json
-    account_data_item_coin_item.json
-    account_data_item.json
     account_positions.json
     account_positions_data.json
     account_positions_data_account.json
     account_positions_data_positions_item.json
-    account.json
     account_mode.json
     ack_error.json
     ack.json
@@ -47,7 +53,6 @@ set(AUTOGEN_SCHEMAS
     hold_side.json
     kline_data_item.json
     kline.json
-    login.json
     margin_mode.json
     market24h_data.json
     market24h.json
@@ -59,20 +64,15 @@ set(AUTOGEN_SCHEMAS
     open_orders_data_list_item_fee_detail_item.json
     open_orders_data_list_item.json
     open_orders.json
-    order_data_item_fee_detail_item.json
-    order_data_item.json
-    order.json
     order_source.json
     order_status.json
     order_type.json
     place_order_ack_data.json
     place_order_ack.json
     pong.json
-    position_data_item.json
     position_info_data.json
     position_info_data_list_item.json
     position_info.json
-    position.json
     position_status.json
     pos_mode.json
     pos_side.json

@@ -43,6 +43,10 @@
       "comment": "event"
     },
     {
+      "name": "index_market24h",
+      "comment": "drop copy ???"
+    },
+    {
       "name": "kline",
       "comment": "event"
     },
@@ -61,6 +65,22 @@
     {
       "name": "valueScale",
       "comment": "kline"
+    },
+    {
+      "name": "version",
+      "comment": "aop"
+    },
+    {
+      "name": "accounts",
+      "comment": "aop"
+    },
+    {
+      "name": "orders",
+      "comment": "aop"
+    },
+    {
+      "name": "positions",
+      "comment": "aop"
     }
   ]
 }

@@ -32,9 +32,9 @@ auto create_crypto(auto &config, auto &name) {
 Account::Account(Config const &config, std::string_view const &name) : name{name}, crypto_{create_crypto<decltype(crypto_)>(config, name)} {
 }
 
-std::string Account::create_ws_login() {
+std::string Account::create_ws_login(uint64_t request_id) {
   auto now_utc = clock::get_realtime<std::chrono::seconds>();
-  return crypto_.create_ws_login(now_utc);
+  return crypto_.create_ws_login(now_utc, request_id);
 }
 
 std::string_view Account::create_headers(std::string_view const &path, std::string_view const &query, std::string_view const &body) {

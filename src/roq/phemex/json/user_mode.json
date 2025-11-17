@@ -1,0 +1,9 @@
+{
+  "name": "roq/phemex/json/UserMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Classic"
+    }
+  ]
+}

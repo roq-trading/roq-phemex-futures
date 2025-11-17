@@ -18,7 +18,7 @@ class Account final {
 
   Account(Account const &) = delete;
 
-  std::string create_ws_login();
+  std::string create_ws_login(uint64_t request_id);
 
   std::string_view create_headers(std::string_view const &path, std::string_view const &query, std::string_view const &body);
   std::string_view create_headers(

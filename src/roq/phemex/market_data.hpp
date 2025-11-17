@@ -55,6 +55,7 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
   void subscribe(size_t start_from = 0);
 
  protected:
+  // web::socket::client::Client::Handler
   void operator()(web::socket::Client::Connected const &) override;
   void operator()(web::socket::Client::Disconnected const &) override;
   void operator()(web::socket::Client::Ready const &) override;
@@ -75,19 +76,18 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
 
   void parse(std::string_view const &message);
 
+  // json::Parser::Handler
+  // - admin
   void operator()(Trace<json::Pong> const &) override;
   void operator()(Trace<json::Ack> const &) override;
-
+  // - market-data
   void operator()(Trace<json::Book> const &) override;
   void operator()(Trace<json::Trades> const &) override;
   void operator()(Trace<json::Market24h> const &) override;
   void operator()(Trace<json::Kline> const &) override;
-
-  void operator()(Trace<json::Login> const &) override;
-  void operator()(Trace<json::Account> const &) override;
-  void operator()(Trace<json::Position> const &) override;
-  void operator()(Trace<json::Order> const &) override;
-  void operator()(Trace<json::Fill> const &) override;
+  // - drop-copy
+  void operator()(Trace<json::IndexMarket24h> const &) override;
+  void operator()(Trace<json::AccountsOrdersPositions> const &) override;
 
  private:
   Handler &handler_;

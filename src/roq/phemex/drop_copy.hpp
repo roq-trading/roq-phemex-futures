@@ -50,6 +50,7 @@ class DropCopy final : public web::socket::Client::Handler, json::Parser::Handle
   void operator()(metrics::Writer &) const;
 
  protected:
+  // web::socket::Client::Handler
   void operator()(web::socket::Client::Connected const &) override;
   void operator()(web::socket::Client::Disconnected const &) override;
   void operator()(web::socket::Client::Ready const &) override;
@@ -58,28 +59,29 @@ class DropCopy final : public web::socket::Client::Handler, json::Parser::Handle
   void operator()(web::socket::Client::Text const &) override;
   void operator()(web::socket::Client::Binary const &) override;
 
+  // json::Parser::Handler
+  // - admin
   void operator()(Trace<json::Pong> const &) override;
   void operator()(Trace<json::Ack> const &) override;
-
+  // - market-data
   void operator()(Trace<json::Book> const &) override;
   void operator()(Trace<json::Trades> const &) override;
   void operator()(Trace<json::Market24h> const &) override;
   void operator()(Trace<json::Kline> const &) override;
-
-  void operator()(Trace<json::Login> const &) override;
-  void operator()(Trace<json::Account> const &) override;
-  void operator()(Trace<json::Position> const &) override;
-  void operator()(Trace<json::Order> const &) override;
-  void operator()(Trace<json::Fill> const &) override;
+  // - drop-copy
+  void operator()(Trace<json::IndexMarket24h> const &) override;
+  void operator()(Trace<json::AccountsOrdersPositions> const &) override;
 
  private:
   void operator()(ConnectionStatus);
+
+  void ping(std::chrono::nanoseconds now);
 
   void login();
 
   void subscribe();
 
-  void subscribe(std::string_view const &topic);
+  void subscribe(uint64_t id, std::string_view const &method);
 
   void parse(std::string_view const &message);
 

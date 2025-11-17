@@ -139,6 +139,8 @@ void MarketData::subscribe(size_t start_from) {
   }
 }
 
+// web::socket::Client::Handler
+
 void MarketData::operator()(web::socket::Client::Connected const &) {
 }
 
@@ -293,6 +295,10 @@ void MarketData::parse(std::string_view const &message) {
   });
 }
 
+// json::Parser::Handler
+
+// - admin
+
 void MarketData::operator()(Trace<json::Pong> const &event) {
   profile_.pong([&]() {
     auto &[trace_info, pong] = event;
@@ -309,6 +315,8 @@ void MarketData::operator()(Trace<json::Ack> const &event) {
     }
   });
 }
+
+// - market-data
 
 void MarketData::operator()(Trace<json::Book> const &event) {
   profile_.book([&]() {
@@ -467,23 +475,13 @@ void MarketData::operator()(Trace<json::Kline> const &event) {
   profile_.kline([&]() { auto &[trace_info, kline] = event; });
 }
 
-void MarketData::operator()(Trace<json::Login> const &) {
+// - drop-copy
+
+void MarketData::operator()(Trace<json::IndexMarket24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::Account> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void MarketData::operator()(Trace<json::Position> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void MarketData::operator()(Trace<json::Order> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void MarketData::operator()(Trace<json::Fill> const &) {
+void MarketData::operator()(Trace<json::AccountsOrdersPositions> const &) {
   log::fatal("Unexpected"sv);
 }
 

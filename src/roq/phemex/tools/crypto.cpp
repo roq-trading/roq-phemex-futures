@@ -19,7 +19,7 @@ namespace tools {
 Crypto::Crypto(std::string_view const &key, std::string_view const &secret) : key_{key}, mac_{secret} {
 }
 
-std::string Crypto::create_ws_login(std::chrono::seconds now_utc) {
+std::string Crypto::create_ws_login(std::chrono::seconds now_utc, uint64_t request_id) {
   auto tmp = fmt::format("{}{}"sv, key_, now_utc.count());
   mac_.clear();
   mac_.update(tmp);
@@ -28,15 +28,16 @@ std::string Crypto::create_ws_login(std::chrono::seconds now_utc) {
   utils::codec::Hex::encode(signature, digest);
   auto result = fmt::format(
       R"({{)"
+      R"("id":{},)"
       R"("method":"user.auth",)"
       R"("params":[)"
       R"("API",)"
       R"("{}",)"
       R"("{}",)"
       R"({})"
-      R"(],)"
-      R"("id":0)"
+      R"(])"
       R"(}})"sv,
+      request_id,
       key_,
       signature,
       now_utc.count());

@@ -1,0 +1,26 @@
+{
+  "name": "roq/phemex/json/IndexMarket24hData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "highEp",
+      "type": "std/double"
+    },
+    {
+      "name": "lastEp",
+      "type": "std/double"
+    },
+    {
+      "name": "lowEp",
+      "type": "std/double"
+    },
+    {
+      "name": "openEp",
+      "type": "std/double"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    }
+  ]
+}

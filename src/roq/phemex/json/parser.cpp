@@ -18,10 +18,14 @@ namespace json {
 
 namespace {
 auto const BIT_ID = uint8_t{1} << 0;
+// market-data
 auto const BIT_BOOK = uint8_t{1} << 1;
 auto const BIT_TRADES = uint8_t{1} << 2;
 auto const BIT_MARKET24H = uint8_t{1} << 3;
 auto const BIT_KLINE = uint8_t{1} << 4;
+// drop-copy
+auto const BIT_INDEX_MARKET24H = uint8_t{1} << 5;
+auto const BIT_ACCOUNTS_ORDERS_POSITIONS = uint8_t{1} << 6;
 }  // namespace
 
 // === HELPERS ===
@@ -75,6 +79,9 @@ bool Parser::dispatch(
       case MARKET24H:
         mask |= BIT_MARKET24H;
         break;
+      case INDEX_MARKET24H:
+        mask |= BIT_INDEX_MARKET24H;
+        break;
       case KLINE:
         mask |= BIT_KLINE;
         break;
@@ -85,6 +92,13 @@ bool Parser::dispatch(
       case QTY_SCALE:
         break;
       case VALUE_SCALE:
+        break;
+      case VERSION:
+        break;
+      case ACCOUNTS:
+      case ORDERS:
+      case POSITIONS:
+        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS;
         break;
     }
   };
@@ -105,6 +119,7 @@ bool Parser::dispatch(
     return true;
   } else {
     assert(mask != 0);
+    // market-data
     if (mask & BIT_BOOK) {
       dispatch_helper<Book>(handler, message, buffer_stack, trace_info);
     }
@@ -116,6 +131,13 @@ bool Parser::dispatch(
     }
     if (mask & BIT_KLINE) {
       dispatch_helper<Kline>(handler, message, buffer_stack, trace_info);
+    }
+    // drop-copy
+    if (mask & BIT_INDEX_MARKET24H) {
+      dispatch_helper<IndexMarket24h>(handler, message, buffer_stack, trace_info);
+    }
+    if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS) {
+      dispatch_helper<AccountsOrdersPositions>(handler, message, buffer_stack, trace_info);
     }
     return true;
   }

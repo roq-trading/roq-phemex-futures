@@ -1,0 +1,37 @@
+{
+  "name": "roq/phemex/json/AccountsOrdersPositions",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    },
+    {
+      "name": "timestamp",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "type",
+      "type": "roq/phemex/json/EventType"
+    },
+    {
+      "name": "version",
+      "type": "std/int64"
+    },
+    {
+      "name": "accounts",
+      "type": "roq/phemex/json/AccountsOrdersPositionsAccountsItem",
+      "array": "std/span"
+    },
+    {
+      "name": "orders",
+      "type": "roq/phemex/json/AccountsOrdersPositionsOrdersItem",
+      "array": "std/span"
+    },
+    {
+      "name": "positions",
+      "type": "roq/phemex/json/AccountsOrdersPositionsPositionsItem",
+      "array": "std/span"
+    }
+  ]
+}

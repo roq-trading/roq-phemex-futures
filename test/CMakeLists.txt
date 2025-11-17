@@ -4,7 +4,9 @@ set(TARGET_NAME "${PROJECT_NAME}-test")
 
 set(SOURCES
     json_account_positions.cpp
+    json_accounts_orders_positions.cpp
     json_book.cpp
+    json_index_market24h.cpp
     json_kline.cpp
     json_market24h.cpp
     json_products.cpp
