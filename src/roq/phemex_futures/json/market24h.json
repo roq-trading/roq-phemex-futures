@@ -4,7 +4,8 @@
   "values": [
     {
       "name": "market24h",
-      "type": "roq/phemex_futures/json/Market24hData"
+      "type": "roq/phemex_futures/json/Market24hData",
+      "comment": "coin-m"
     },
     {
       "name": "timestamp",

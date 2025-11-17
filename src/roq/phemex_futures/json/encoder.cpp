@@ -19,19 +19,13 @@ namespace json {
 // reduceOnly
 // stpMode
 std::string_view Encoder::place_order(
-    std::string &buffer,
-    CreateOrder const &create_order,
-    server::oms::Order const &order,
-    std::string_view const &request_id,
-    std::string_view const &category) {
+    std::string &buffer, CreateOrder const &create_order, server::oms::Order const &order, std::string_view const &request_id) {
   buffer.clear();
   fmt::format_to(
       std::back_inserter(buffer),
       R"({{)"
-      R"("category":"{}",)"
       R"("symbol":"{}",)"
       R"("qty":"{}",)"sv,
-      category,
       create_order.symbol,
       Decimal{create_order.quantity, order.quantity_precision.precision});
   if (create_order.order_type == roq::OrderType::LIMIT) {
@@ -118,13 +112,9 @@ std::string_view Encoder::cancel_order(
 }
 
 std::string_view Encoder::cancel_all_orders(
-    std::string &buffer, CancelAllOrders const &cancel_all_orders, [[maybe_unused]] std::string_view const &request_id, std::string_view const &category) {
+    std::string &buffer, CancelAllOrders const &cancel_all_orders, [[maybe_unused]] std::string_view const &request_id) {
   buffer.clear();
-  fmt::format_to(
-      std::back_inserter(buffer),
-      R"({{)"
-      R"("category":"{}")"sv,
-      category);
+  fmt::format_to(std::back_inserter(buffer), R"({{)");
   if (!std::empty(cancel_all_orders.symbol)) {
     fmt::format_to(std::back_inserter(buffer), R"(,"symbol":"{}")"sv, cancel_all_orders.symbol);
   }

@@ -5,6 +5,7 @@
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/phemex_futures/json/accounts_orders_positions.hpp"
+#include "roq/phemex_futures/json/accounts_orders_positions2.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
@@ -63,5 +64,5 @@ TEST_CASE("simple_usd_m", "[json_accounts_orders_positions]") {
                  R"("positions_p":[])"
                  R"(})";
   core::json::BufferStack buffer{8192, 1};
-  json::AccountsOrdersPositions obj{message, buffer};
+  json::AccountsOrdersPositions2 obj{message, buffer};
 }

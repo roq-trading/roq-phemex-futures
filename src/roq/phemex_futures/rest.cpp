@@ -187,11 +187,10 @@ uint32_t Rest::download(RestState state) {
 
 void Rest::get_products() {
   profile_.products([&]() {
-    auto query = fmt::format("?category={}"sv, shared_.api.category);
     auto request = web::rest::Request{
         .method = web::http::Method::GET,
         .path = shared_.api.market_data.products,
-        .query = query,
+        .query = {},
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = {},
         .headers = {},
@@ -236,75 +235,95 @@ void Rest::get_products_ack(Trace<web::rest::Response> const &event, uint32_t se
 void Rest::operator()(Trace<json::Products> const &event) {
   auto &[trace_info, products] = event;
   log::info<4>("products={}"sv, products);
-  auto &data = products.data;
+  auto discard = [&](auto &symbol, auto type, auto status) {
+    switch (type) {
+      using enum json::Type::type_t;
+      case UNDEFINED_INTERNAL:
+      case UNKNOWN_INTERNAL:
+      case SPOT:
+        return true;
+      case PERPETUAL:
+      case PERPETUAL_V2:
+        break;
+    };
+    switch (status) {
+      using enum json::Status::type_t;
+      case UNDEFINED_INTERNAL:
+      case UNKNOWN_INTERNAL:
+      case DELISTED:
+        return true;
+      case LISTED:
+        break;
+    }
+    return shared_.discard_symbol(symbol);
+  };
   std::vector<Symbol> symbols;
-  symbols.reserve(std::size(data.products));
-  size_t counter = 0;
-  for (size_t i = 0; i < std::size(data.products); ++i) {
-    auto &item = data.products[i];
-    log::info<2>("item={}"sv, item);
-    if (shared_.discard_symbol(item.symbol)) {
-      continue;
+  auto helper = [&](auto &data) {
+    symbols.reserve(std::size(data));
+    size_t counter = 0;
+    for (size_t i = 0; i < std::size(data); ++i) {
+      auto &item = data[i];
+      log::info<2>("item={}"sv, item);
+      if (discard(item.symbol, item.type, item.status)) {
+        continue;
+      }
+      if (all_symbols_.emplace(item.symbol).second) {  // only include new
+        symbols.emplace_back(item.symbol);
+      }
+      ++counter;
+      auto reference_data = ReferenceData{
+          .stream_id = stream_id_,
+          .exchange = shared_.settings.exchange,
+          .symbol = item.symbol,
+          .description = {},
+          .security_type = {},
+          .cfi_code = {},
+          .base_currency = {},
+          .quote_currency = {},
+          .settlement_currency = {},
+          .margin_currency = {},
+          .commission_currency = {},
+          .tick_size = item.tick_size,
+          .tick_size_steps = {},
+          .multiplier = NaN,
+          .min_notional = NaN,
+          .min_trade_vol = NaN,
+          .max_trade_vol = NaN,
+          .trade_vol_step_size = NaN,
+          .option_type = {},
+          .strike_currency = {},
+          .strike_price = NaN,
+          .underlying = {},
+          .time_zone = {},
+          .issue_date = {},
+          .settlement_date = {},
+          .expiry_datetime = {},
+          .expiry_datetime_utc = {},
+          .exchange_time_utc = {},
+          .exchange_sequence = {},
+          .sending_time_utc = {},
+          .discard = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, reference_data, true);
     }
-    if (all_symbols_.emplace(item.symbol).second) {  // only include new
-      symbols.emplace_back(item.symbol);
+    if (!std::empty(symbols)) {
+      auto symbols_update = SymbolsUpdate{
+          .symbols = symbols,
+      };
+      handler_(symbols_update);
     }
-    ++counter;
-    auto reference_data = ReferenceData{
-        .stream_id = stream_id_,
-        .exchange = shared_.settings.exchange,
-        .symbol = item.symbol,
-        .description = {},
-        .security_type = {},
-        .cfi_code = {},
-        .base_currency = {},
-        .quote_currency = {},
-        .settlement_currency = {},
-        .margin_currency = {},
-        .commission_currency = {},
-        .tick_size = item.tick_size,
-        .tick_size_steps = {},
-        .multiplier = NaN,
-        .min_notional = NaN,
-        .min_trade_vol = NaN,
-        .max_trade_vol = NaN,
-        .trade_vol_step_size = NaN,
-        .option_type = {},
-        .strike_currency = {},
-        .strike_price = NaN,
-        .underlying = {},
-        .time_zone = {},
-        .issue_date = {},
-        .settlement_date = {},
-        .expiry_datetime = {},
-        .expiry_datetime_utc = {},
-        .exchange_time_utc = {},
-        .exchange_sequence = {},
-        .sending_time_utc = {},
-        .discard = {},
-    };
-    create_trace_and_dispatch(handler_, trace_info, reference_data, true);
-    /*
-    auto market_status = MarketStatus{
-        .stream_id = stream_id_,
-        .exchange = shared_.settings.exchange,
-        .symbol = item.symbol,
-        .trading_status = map(item.status),
-        .exchange_time_utc = {},
-        .exchange_sequence = {},
-        .sending_time_utc = products.request_time,
-    };
-    create_trace_and_dispatch(handler_, trace_info, market_status, true);
-    */
-  }
-  if (!std::empty(symbols)) {
-    auto symbols_update = SymbolsUpdate{
-        .symbols = symbols,
-    };
-    handler_(symbols_update);
-  }
-  if (counter > 0) [[unlikely]] {
-    log::info("Symbols {} / {}"sv, counter, std::size(data.products));
+    if (counter > 0) [[unlikely]] {
+      log::info("Symbols {} / {}"sv, counter, std::size(data));
+    }
+  };
+  switch (shared_.api.type) {
+    using enum API::Type;
+    case COIN_M:
+      helper(products.data.products);
+      break;
+    case USD_M:
+      helper(products.data.perp_products_v2);
+      break;
   }
 }
 

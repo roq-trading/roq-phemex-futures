@@ -3,10 +3,10 @@
   "type": "enum",
   "values": [
     {
-      "name": "Listed"
+      "name": "Delisted"
     },
     {
-      "name": "Delisted"
+      "name": "Listed"
     }
   ]
 }

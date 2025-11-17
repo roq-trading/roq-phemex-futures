@@ -10,13 +10,22 @@ namespace roq {
 namespace phemex_futures {
 
 struct API final {
-  std::string_view category;
-  std::string_view inst_type;
+  enum class Type {
+    COIN_M,
+    USD_M,
+  };
+
+  Type type;
   struct {
     std::string_view products;
+    std::string_view orderbook;
+    std::string_view trade;
+    std::string_view market24h;
+    std::string_view kline;
   } market_data;
 
   struct {
+    std::string_view accounts_orders_positions;
     std::string_view account_info;
     std::string_view account_assets;
     std::string_view position_info;

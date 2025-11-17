@@ -8,17 +8,17 @@ else
   PREFIX=
 fi
 
-NAME="phemex"
+NAME="phemex-futures"
 
 CONFIG="${CONFIG:-$NAME}"
 
-CONFIG_FILE="$ROQ_CONFIG_PATH/roq-phemex/$CONFIG.toml"
+CONFIG_FILE="$ROQ_CONFIG_PATH/roq-phemex-futures/$CONFIG.toml"
 
 FLAGFILE="../../../share/flags/prod/flags.cfg"
 
 API="USD-M"
 
-$PREFIX ./roq-phemex \
+$PREFIX ./roq-phemex-futures \
   --name "$NAME" \
   --config_file "$CONFIG_FILE" \
   --flagfile "$FLAGFILE" \

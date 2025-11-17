@@ -70,9 +70,9 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
   void ping(std::chrono::nanoseconds now);
 
   void subscribe(std::span<Symbol const> const &symbols);
-  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &method);
-  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &method, uint32_t depth);
-  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &method, std::chrono::seconds interval);
+  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic);
+  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, uint32_t depth);
+  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, std::chrono::seconds interval);
 
   void parse(std::string_view const &message);
 
@@ -84,10 +84,12 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
   void operator()(Trace<json::Book> const &) override;
   void operator()(Trace<json::Trades> const &) override;
   void operator()(Trace<json::Market24h> const &) override;
+  void operator()(Trace<json::Market24h2> const &) override;
   void operator()(Trace<json::Kline> const &) override;
   // - drop-copy
   void operator()(Trace<json::IndexMarket24h> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions> const &) override;
+  void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
 
  private:
   Handler &handler_;
@@ -104,7 +106,9 @@ class MarketData final : public web::socket::Client::Handler, public json::Parse
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, pong, ack, book, trades, market24h, kline;
+    utils::metrics::Profile parse,  //
+        pong, ack,                  //
+        book, trades, market24h, kline;
   } profile_;
   struct {
     utils::metrics::Latency ping;

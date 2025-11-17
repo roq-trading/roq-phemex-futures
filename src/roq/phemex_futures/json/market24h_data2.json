@@ -1,0 +1,54 @@
+{
+  "name": "roq/phemex_futures/json/Market24hData2",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "closeRp",
+      "type": "std/double"
+    },
+    {
+      "name": "fundingRateRr",
+      "type": "std/double"
+    },
+    {
+      "name": "highRp",
+      "type": "std/double"
+    },
+    {
+      "name": "indexPriceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "lowRp",
+      "type": "std/double"
+    },
+    {
+      "name": "markPriceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "openInterestRv",
+      "type": "std/double"
+    },
+    {
+      "name": "openRp",
+      "type": "std/double"
+    },
+    {
+      "name": "predFundingRateRr",
+      "type": "std/double"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "turnoverRv",
+      "type": "std/double"
+    },
+    {
+      "name": "volumeRq",
+      "type": "std/double"
+    }
+  ]
+}

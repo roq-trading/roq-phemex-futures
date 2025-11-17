@@ -308,6 +308,10 @@ Order Management
 Comments
 --------
 
+* The authentication request is sometimes rejected due to "invalid token".
+  This seems intermittent and we have not yet found a good explanation for this.
+  Upon seeing the error message, the gateway proceeds to disconnecting and trying again.
+
 
 References
 ----------

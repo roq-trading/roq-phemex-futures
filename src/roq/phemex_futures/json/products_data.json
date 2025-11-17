@@ -13,7 +13,9 @@
       "array": "std/span"
     },
     {
-      "name": "perpProductsV2"
+      "name": "perpProductsV2",
+      "type": "roq/phemex_futures/json/ProductsDataPerpProductsV2Item",
+      "array": "std/span"
     },
     {
       "name": "perpProductsPilot"

@@ -212,20 +212,19 @@ void DropCopy::login() {
 }
 
 void DropCopy::subscribe() {
-  subscribe(REQUEST_ID_AOP, "aop.subscribe"sv);      // COIN-M
-  subscribe(REQUEST_ID_AOP_P, "aop_p.subscribe"sv);  // USD-M
+  subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
 }
 
-void DropCopy::subscribe(uint64_t id, std::string_view const &method) {
-  log::info(R"(Subscribe method="{}")"sv, method);
+void DropCopy::subscribe(uint64_t id, std::string_view const &topic) {
+  log::info(R"(Subscribe topic="{}")"sv, topic);
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"
-      R"("method":"{}",)"
+      R"("method":"{}.subscribe",)"
       R"("params":[])"
       R"(}})"sv,
       id,
-      method);
+      topic);
   log::debug("message={}"sv, message);
   (*connection_).send_text(message);
 }
@@ -303,6 +302,10 @@ void DropCopy::operator()(Trace<json::Market24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
+void DropCopy::operator()(Trace<json::Market24h2> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 void DropCopy::operator()(Trace<json::Kline> const &) {
   log::fatal("Unexpected"sv);
 }
@@ -327,6 +330,30 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
         .currency = item.currency,
         .margin_mode = {},                   // ???
         .balance = item.account_balance_ev,  // TYPE CONVERSION ???
+        .hold = NaN,
+        .borrowed = NaN,
+        .external_account = {},
+        .update_type = map(accounts_orders_positions.type),
+        .exchange_time_utc = {},  // ???
+        .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
+        .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+    };
+    create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+  }
+}
+
+void DropCopy::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
+  auto &[trace_info, accounts_orders_positions] = event;
+  log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
+  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
+  for (auto &item : accounts_orders_positions.accounts_p) {
+    // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
+    auto funds_update = FundsUpdate{
+        .stream_id = stream_id_,
+        .account = account_.name,
+        .currency = item.currency,
+        .margin_mode = {},                   // ???
+        .balance = item.account_balance_rv,  // TYPE CONVERSION ???
         .hold = NaN,
         .borrowed = NaN,
         .external_account = {},

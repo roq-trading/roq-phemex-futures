@@ -5,9 +5,14 @@ set(SOURCES encoder.cpp map.cpp parser.cpp utils.cpp)
 include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS
+    products_data_perp_products_v2_item.json
     event_type.json
     liq_status.json
     user_mode.json
+    accounts_orders_positions2.json
+    accounts_orders_positions2_accounts_item.json
+    accounts_orders_positions2_orders_item.json
+    accounts_orders_positions2_positions_item.json
     accounts_orders_positions.json
     accounts_orders_positions_accounts_item.json
     accounts_orders_positions_orders_item.json
@@ -55,6 +60,8 @@ set(AUTOGEN_SCHEMAS
     kline.json
     margin_mode.json
     market24h_data.json
+    market24h_data2.json
+    market24h2.json
     market24h.json
     message_field.json
     message_type.json

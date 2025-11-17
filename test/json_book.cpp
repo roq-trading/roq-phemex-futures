@@ -66,9 +66,11 @@ TEST_CASE("snapshot", "[json_book]") {
     }
     void operator()(Trace<json::Trades> const &) { FAIL(); }
     void operator()(Trace<json::Market24h> const &) { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) { FAIL(); }
     void operator()(Trace<json::Kline> const &) { FAIL(); }
     void operator()(Trace<json::IndexMarket24h> const &) { FAIL(); }
     void operator()(Trace<json::AccountsOrdersPositions> const &) { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) { FAIL(); }
     size_t count = 0;
   } handler;
   TraceInfo trace_info;
@@ -124,9 +126,11 @@ TEST_CASE("incremental", "[json_book]") {
     }
     void operator()(Trace<json::Trades> const &) { FAIL(); }
     void operator()(Trace<json::Market24h> const &) { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) { FAIL(); }
     void operator()(Trace<json::Kline> const &) { FAIL(); }
     void operator()(Trace<json::IndexMarket24h> const &) { FAIL(); }
     void operator()(Trace<json::AccountsOrdersPositions> const &) { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) { FAIL(); }
     size_t count = 0;
   } handler;
   TraceInfo trace_info;

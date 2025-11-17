@@ -3,21 +3,38 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "sequence",
-      "type": "std/int64"
+      "name": "type",
+      "type": "roq/phemex_futures/json/MessageType"
     },
     {
       "name": "symbol",
       "type": "std/string_view"
     },
     {
-      "name": "kline",
-      "type": "roq/phemex_futures/json/KlineDataItem",
-      "array": "std/span"
+      "name": "sequence",
+      "type": "std/int64"
     },
     {
-      "name": "type",
-      "type": "roq/phemex_futures/json/MessageType"
+      "name": "kline",
+      "type": "roq/phemex_futures/json/KlineDataItem",
+      "array": "std/span",
+      "comment": "coin-m"
+    },
+    {
+      "name": "kline_p",
+      "type": "roq/phemex_futures/json/KlineDataItem",
+      "array": "std/span",
+      "comment": "usd-m"
+    },
+    {
+      "name": "dts",
+      "type": "std/nanoseconds",
+      "comment": "usd-m"
+    },
+    {
+      "name": "mts",
+      "type": "std/nanoseconds",
+      "comment": "usd-m"
     },
     {
       "name": "priceScale",

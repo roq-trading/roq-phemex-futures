@@ -1,8 +1,13 @@
 !!! THIS FILE HAS BEEN AUTO-GENERATED !!!
 roq-phemex-futures-json
+products_data_perp_products_v2_item.hpp
 event_type.hpp
 liq_status.hpp
 user_mode.hpp
+accounts_orders_positions2.hpp
+accounts_orders_positions2_accounts_item.hpp
+accounts_orders_positions2_orders_item.hpp
+accounts_orders_positions2_positions_item.hpp
 accounts_orders_positions.hpp
 accounts_orders_positions_accounts_item.hpp
 accounts_orders_positions_orders_item.hpp
@@ -50,6 +55,8 @@ kline_data_item.hpp
 kline.hpp
 margin_mode.hpp
 market24h_data.hpp
+market24h_data2.hpp
+market24h2.hpp
 market24h.hpp
 message_field.hpp
 message_type.hpp
@@ -88,9 +95,14 @@ trades.hpp
 trades_trades_item.hpp
 trading_status.hpp
 type.hpp
+products_data_perp_products_v2_item.cpp
 event_type.cpp
 liq_status.cpp
 user_mode.cpp
+accounts_orders_positions2.cpp
+accounts_orders_positions2_accounts_item.cpp
+accounts_orders_positions2_orders_item.cpp
+accounts_orders_positions2_positions_item.cpp
 accounts_orders_positions.cpp
 accounts_orders_positions_accounts_item.cpp
 accounts_orders_positions_orders_item.cpp
@@ -138,6 +150,8 @@ kline_data_item.cpp
 kline.cpp
 margin_mode.cpp
 market24h_data.cpp
+market24h_data2.cpp
+market24h2.cpp
 market24h.cpp
 message_field.cpp
 message_type.cpp

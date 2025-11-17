@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/AccountsOrdersPositions",
+  "name": "roq/phemex_futures/json/AccountsOrdersPositions2",
   "type": "dictionary",
   "values": [
     {
@@ -19,18 +19,18 @@
       "type": "std/int64"
     },
     {
-      "name": "accounts",
-      "type": "roq/phemex_futures/json/AccountsOrdersPositionsAccountsItem",
+      "name": "accounts_p",
+      "type": "roq/phemex_futures/json/AccountsOrdersPositions2AccountsItem",
       "array": "std/span"
     },
     {
-      "name": "orders",
-      "type": "roq/phemex_futures/json/AccountsOrdersPositionsOrdersItem",
+      "name": "orders_p",
+      "type": "roq/phemex_futures/json/AccountsOrdersPositions2OrdersItem",
       "array": "std/span"
     },
     {
-      "name": "positions",
-      "type": "roq/phemex_futures/json/AccountsOrdersPositionsPositionsItem",
+      "name": "positions_p",
+      "type": "roq/phemex_futures/json/AccountsOrdersPositions2PositionsItem",
       "array": "std/span"
     }
   ]

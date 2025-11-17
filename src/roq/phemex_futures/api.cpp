@@ -11,56 +11,77 @@ using namespace std::literals;
 namespace roq {
 namespace phemex_futures {
 
+// === CONSTANTS ===
+
+namespace {
+auto const API_COIN_M = API{
+    .type = API::Type::COIN_M,
+    .market_data{
+        .products = "/public/products",
+        .orderbook = "orderbook"sv,
+        .trade = "trade"sv,
+        .market24h = "market24h"sv,
+        .kline = "kline"sv,
+    },
+    .order_management{
+        .accounts_orders_positions = "aop"sv,
+        .account_info = "/api/v3/account/settings"sv,
+        .account_assets = "/api/v3/account/assets"sv,
+        .position_info = "/api/v3/position/current-position"sv,
+        .open_orders = "/api/v3/trade/unfilled-orders"sv,
+        .fill_history = "/api/v3/trade/fills"sv,
+        .place_order = "/api/v3/trade/place-order"sv,
+        .modify_order = "/api/v3/trade/modify-order"sv,
+        .cancel_order = "/api/v3/trade/cancel-order"sv,
+        .cancel_all_orders = "/api/v3/trade/cancel-symbol-order"sv,
+        .countdown_cancel_all = "/api/v3/trade/countdown-cancel-all"sv,
+    },
+};
+auto const API_USD_M = API{
+    .type = API::Type::USD_M,
+    .market_data{
+        .products = "/public/products",
+        .orderbook = "orderbook_p"sv,
+        .trade = "trade_p"sv,
+        .market24h = "market24h_p"sv,
+        .kline = "kline_p"sv,
+    },
+    .order_management{
+        .accounts_orders_positions = "aop_p"sv,
+        .account_info = "/api/v3/account/settings"sv,
+        .account_assets = "/api/v3/account/assets"sv,
+        .position_info = "/api/v3/position/current-position"sv,
+        .open_orders = "/api/v3/trade/unfilled-orders"sv,
+        .fill_history = "/api/v3/trade/fills"sv,
+        .place_order = "/api/v3/trade/place-order"sv,
+        .modify_order = "/api/v3/trade/modify-order"sv,
+        .cancel_order = "/api/v3/trade/cancel-order"sv,
+        .cancel_all_orders = "/api/v3/trade/cancel-symbol-order"sv,
+        .countdown_cancel_all = "/api/v3/trade/countdown-cancel-all"sv,
+    },
+};
+}  // namespace
+
 // === HELPERS ===
 
 namespace {
-enum class Key {
-  SPOT,
-  MARGIN,
-  USD_M,
-  COIN_M,
-};
-
 auto parse_api(auto &api) {
   std::string tmp{api};
   std::replace(tmp.begin(), tmp.end(), '-', '_');
-  return utils::parse_enum<Key>(tmp);
+  return utils::parse_enum<API::Type>(tmp);
 }
 }  // namespace
 
 // === IMPLEMENTATION ===
 
 API API::create(Settings const &settings) {
-  auto helper = [&](auto const &category, auto const &inst_type) -> API {
-    return {
-        .category = category,
-        .inst_type = inst_type,
-        .market_data{.products = "/public/products"},
-        .order_management{
-            .account_info = "/api/v3/account/settings"sv,
-            .account_assets = "/api/v3/account/assets"sv,
-            .position_info = "/api/v3/position/current-position"sv,
-            .open_orders = "/api/v3/trade/unfilled-orders"sv,
-            .fill_history = "/api/v3/trade/fills"sv,
-            .place_order = "/api/v3/trade/place-order"sv,
-            .modify_order = "/api/v3/trade/modify-order"sv,
-            .cancel_order = "/api/v3/trade/cancel-order"sv,
-            .cancel_all_orders = "/api/v3/trade/cancel-symbol-order"sv,
-            .countdown_cancel_all = "/api/v3/trade/countdown-cancel-all"sv,
-        },
-    };
-  };
   auto key = parse_api(settings.api);
   switch (key) {
-    using enum Key;
-    case SPOT:
-      return helper("SPOT"sv, "spot"sv);
-    case MARGIN:
-      return helper("MARGIN"sv, "margin"sv);
-    case USD_M:
-      return helper("USDT-FUTURES"sv, "usdt-futures"sv);
+    using enum Type;
     case COIN_M:
-      return helper("COIN-FUTURES"sv, "coin-futures"sv);
+      return API_COIN_M;
+    case USD_M:
+      return API_USD_M;
   }
   log::fatal("Unexpected"sv);
 }

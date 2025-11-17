@@ -3,8 +3,12 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "book",
-      "type": "roq/phemex_futures/json/BookData"
+      "name": "type",
+      "type": "roq/phemex_futures/json/MessageType"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
     },
     {
       "name": "depth",
@@ -15,16 +19,28 @@
       "type": "std/int64"
     },
     {
-      "name": "symbol",
-      "type": "std/string_view"
+      "name": "book",
+      "type": "roq/phemex_futures/json/BookData",
+      "comment": "coin-m"
+    },
+    {
+      "name": "orderbook_p",
+      "type": "roq/phemex_futures/json/BookData",
+      "comment": "usd-m"
     },
     {
       "name": "timestamp",
       "type": "std/milliseconds"
     },
     {
-      "name": "type",
-      "type": "roq/phemex_futures/json/MessageType"
+      "name": "dts",
+      "type": "std/nanoseconds",
+      "comment": "usd-m"
+    },
+    {
+      "name": "mts",
+      "type": "std/nanoseconds",
+      "comment": "usd-m"
     }
   ]
 }

@@ -17,15 +17,17 @@ namespace json {
 // === HELPERS ===
 
 namespace {
-auto const BIT_ID = uint8_t{1} << 0;
+auto const BIT_ID = uint16_t{1} << 0;
 // market-data
-auto const BIT_BOOK = uint8_t{1} << 1;
-auto const BIT_TRADES = uint8_t{1} << 2;
-auto const BIT_MARKET24H = uint8_t{1} << 3;
-auto const BIT_KLINE = uint8_t{1} << 4;
+auto const BIT_BOOK = uint16_t{1} << 1;
+auto const BIT_TRADES = uint16_t{1} << 2;
+auto const BIT_MARKET24H = uint16_t{1} << 3;
+auto const BIT_MARKET24H_P = uint16_t{1} << 4;
+auto const BIT_KLINE = uint16_t{1} << 5;
 // drop-copy
-auto const BIT_INDEX_MARKET24H = uint8_t{1} << 5;
-auto const BIT_ACCOUNTS_ORDERS_POSITIONS = uint8_t{1} << 6;
+auto const BIT_INDEX_MARKET24H = uint16_t{1} << 6;
+auto const BIT_ACCOUNTS_ORDERS_POSITIONS = uint16_t{1} << 7;
+auto const BIT_ACCOUNTS_ORDERS_POSITIONS_P = uint16_t{1} << 8;
 }  // namespace
 
 // === HELPERS ===
@@ -42,7 +44,7 @@ void dispatch_helper(auto &handler, auto &message, auto &buffer_stack, auto &tra
 
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info, bool allow_unknown_event_types) {
-  uint8_t mask = {};
+  uint16_t mask = {};
   auto pong = true;
   auto helper = [&](auto &key, auto &value) {
     MessageField field{key};
@@ -70,18 +72,21 @@ bool Parser::dispatch(
       case TYPE:
         break;
       case BOOK:
+      case ORDERBOOK_P:
         mask |= BIT_BOOK;
         break;
       case TRADES:
+      case TRADES_P:
         mask |= BIT_TRADES;
         break;
       case MARKET24H:
         mask |= BIT_MARKET24H;
         break;
-      case INDEX_MARKET24H:
-        mask |= BIT_INDEX_MARKET24H;
+      case MARKET24H_P:
+        mask |= BIT_MARKET24H_P;
         break;
       case KLINE:
+      case KLINE_P:
         mask |= BIT_KLINE;
         break;
       case DEPTH:
@@ -94,10 +99,22 @@ bool Parser::dispatch(
         break;
       case VERSION:
         break;
+      case INDEX_MARKET24H:
+        mask |= BIT_INDEX_MARKET24H;
+        break;
       case ACCOUNTS:
       case ORDERS:
       case POSITIONS:
         mask |= BIT_ACCOUNTS_ORDERS_POSITIONS;
+        break;
+      case ACCOUNTS_P:
+      case ORDERS_P:
+      case POSITIONS_P:
+        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS_P;
+        break;
+      case DTS:
+        break;
+      case MTS:
         break;
     }
   };
@@ -128,6 +145,9 @@ bool Parser::dispatch(
     if (mask & BIT_MARKET24H) {
       dispatch_helper<Market24h>(handler, message, buffer_stack, trace_info);
     }
+    if (mask & BIT_MARKET24H_P) {
+      dispatch_helper<Market24h2>(handler, message, buffer_stack, trace_info);
+    }
     if (mask & BIT_KLINE) {
       dispatch_helper<Kline>(handler, message, buffer_stack, trace_info);
     }
@@ -137,6 +157,9 @@ bool Parser::dispatch(
     }
     if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS) {
       dispatch_helper<AccountsOrdersPositions>(handler, message, buffer_stack, trace_info);
+    }
+    if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS_P) {
+      dispatch_helper<AccountsOrdersPositions2>(handler, message, buffer_stack, trace_info);
     }
     return true;
   }

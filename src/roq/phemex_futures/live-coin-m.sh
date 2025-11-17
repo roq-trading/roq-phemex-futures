@@ -14,9 +14,9 @@ CONFIG="${CONFIG:-$NAME}"
 
 CONFIG_FILE="$ROQ_CONFIG_PATH/roq-phemex-futures/$CONFIG.toml"
 
-FLAGFILE="../../../share/flags/test/flags.cfg"
+FLAGFILE="../../../share/flags/prod/flags.cfg"
 
-API="USD-M"
+API="COIN-M"
 
 $PREFIX ./roq-phemex-futures \
   --name "$NAME" \

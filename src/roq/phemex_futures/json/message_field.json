@@ -35,7 +35,15 @@
       "comment": "event"
     },
     {
+      "name": "orderbook_p",
+      "comment": "event"
+    },
+    {
       "name": "trades",
+      "comment": "event"
+    },
+    {
+      "name": "trades_p",
       "comment": "event"
     },
     {
@@ -43,16 +51,28 @@
       "comment": "event"
     },
     {
-      "name": "index_market24h",
-      "comment": "drop copy ???"
+      "name": "market24h_p",
+      "comment": "event"
     },
     {
       "name": "kline",
       "comment": "event"
     },
     {
+      "name": "kline_p",
+      "comment": "event"
+    },
+    {
       "name": "depth",
       "comment": "book"
+    },
+    {
+      "name": "dts",
+      "comment": "usd-m/md"
+    },
+    {
+      "name": "mts",
+      "comment": "usd-m/md"
     },
     {
       "name": "priceScale",
@@ -71,6 +91,10 @@
       "comment": "aop"
     },
     {
+      "name": "index_market24h",
+      "comment": "drop copy ???"
+    },
+    {
       "name": "accounts",
       "comment": "aop"
     },
@@ -80,6 +104,18 @@
     },
     {
       "name": "positions",
+      "comment": "aop"
+    },
+    {
+      "name": "accounts_p",
+      "comment": "aop"
+    },
+    {
+      "name": "orders_p",
+      "comment": "aop"
+    },
+    {
+      "name": "positions_p",
       "comment": "aop"
     }
   ]
