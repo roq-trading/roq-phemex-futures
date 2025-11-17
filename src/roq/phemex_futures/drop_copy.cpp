@@ -328,8 +328,8 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
         .stream_id = stream_id_,
         .account = account_.name,
         .currency = item.currency,
-        .margin_mode = {},                   // ???
-        .balance = item.account_balance_ev,  // TYPE CONVERSION ???
+        .margin_mode = {},                                     // ???
+        .balance = utils::safe_cast(item.account_balance_ev),  // TYPE CONVERSION ???
         .hold = NaN,
         .borrowed = NaN,
         .external_account = {},
@@ -352,8 +352,8 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
         .stream_id = stream_id_,
         .account = account_.name,
         .currency = item.currency,
-        .margin_mode = {},                   // ???
-        .balance = item.account_balance_rv,  // TYPE CONVERSION ???
+        .margin_mode = {},                                     // ???
+        .balance = utils::safe_cast(item.account_balance_rv),  // TYPE CONVERSION ???
         .hold = NaN,
         .borrowed = NaN,
         .external_account = {},
