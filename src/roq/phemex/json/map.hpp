@@ -18,6 +18,7 @@
 #include "roq/phemex/json/action.hpp"
 #include "roq/phemex/json/asset_mode.hpp"
 #include "roq/phemex/json/category.hpp"
+#include "roq/phemex/json/event_type.hpp"
 #include "roq/phemex/json/futures_type.hpp"
 #include "roq/phemex/json/margin_mode.hpp"
 #include "roq/phemex/json/message_type.hpp"
@@ -45,6 +46,10 @@ std::optional<MarginMode> Map<phemex::json::AssetMode>::helper() const;
 template <>
 template <>
 std::optional<SecurityType> Map<phemex::json::Category, phemex::json::FuturesType>::helper() const;
+
+template <>
+template <>
+std::optional<UpdateType> Map<phemex::json::EventType>::helper() const;
 
 template <>
 template <>

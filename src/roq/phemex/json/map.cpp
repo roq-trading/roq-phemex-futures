@@ -163,6 +163,32 @@ std::optional<roq::SecurityType> Map<phemex::json::Category, phemex::json::Futur
   return Helper{args_};
 }
 
+// phemex::json::EventType => roq::UpdateType
+
+template <>
+template <>
+constexpr Helper<phemex::json::EventType>::operator std::optional<roq::UpdateType>() const {
+  switch (std::get<0>(args_)) {
+    using enum phemex::json::EventType::type_t;
+    case UNDEFINED_INTERNAL:
+      return roq::UpdateType::UNDEFINED;
+    case UNKNOWN_INTERNAL:
+      return roq::UpdateType::UNDEFINED;
+    case SNAPSHOT:
+      return roq::UpdateType::SNAPSHOT;
+  }
+  return {};
+}
+
+static_assert(Helper{phemex::json::EventType{phemex::json::EventType::UNDEFINED_INTERNAL}} == roq::UpdateType::UNDEFINED);
+static_assert(Helper{phemex::json::EventType{phemex::json::EventType::SNAPSHOT}} == roq::UpdateType::SNAPSHOT);
+
+template <>
+template <>
+std::optional<roq::UpdateType> Map<phemex::json::EventType>::helper() const {
+  return Helper{args_};
+}
+
 // phemex::json::MarginMode => roq::MarginMode
 
 template <>

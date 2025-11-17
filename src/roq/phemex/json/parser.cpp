@@ -43,7 +43,7 @@ void dispatch_helper(auto &handler, auto &message, auto &buffer_stack, auto &tra
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info, bool allow_unknown_event_types) {
   uint8_t mask = {};
-  auto pong = false;
+  auto pong = true;
   auto helper = [&](auto &key, auto &value) {
     MessageField field{key};
     switch (field) {
@@ -56,10 +56,9 @@ bool Parser::dispatch(
         mask |= BIT_ID;
         break;
       case ERROR:
-        break;
       case RESULT:
-        if (!core::json::is_object(value)) {
-          pong = true;
+        if (core::json::is_object(value)) {
+          pong = false;
         }
         break;
       case SEQUENCE:

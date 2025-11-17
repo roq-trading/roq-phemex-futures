@@ -4,6 +4,7 @@
 
 #include "roq/mask.hpp"
 
+#include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
 #include "roq/utils/exceptions/unhandled.hpp"
@@ -34,6 +35,7 @@ size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
 uint64_t const REQUEST_ID_AUTH = 1;
 uint64_t const REQUEST_ID_AOP = 2;
+uint64_t const REQUEST_ID_AOP_P = 3;
 }  // namespace
 
 // === HELPERS ===
@@ -210,7 +212,8 @@ void DropCopy::login() {
 }
 
 void DropCopy::subscribe() {
-  subscribe(REQUEST_ID_AOP, "aop.subscribe"sv);
+  subscribe(REQUEST_ID_AOP, "aop.subscribe"sv);      // COIN-M
+  subscribe(REQUEST_ID_AOP_P, "aop_p.subscribe"sv);  // USD-M
 }
 
 void DropCopy::subscribe(uint64_t id, std::string_view const &method) {
@@ -264,7 +267,6 @@ void DropCopy::operator()(Trace<json::Ack> const &event) {
       (*this)(ConnectionStatus::READY);
     } else {
       log::error(R"(Login failed: code={}, message="{}")"sv, ack.error.code, ack.error.message);
-      log::warn("Disconnecting..."sv);
       (*connection_).close();
     }
   };
@@ -281,6 +283,7 @@ void DropCopy::operator()(Trace<json::Ack> const &event) {
       auth_helper();
       break;
     case REQUEST_ID_AOP:
+    case REQUEST_ID_AOP_P:
       aop_helper();
       break;
   }
@@ -316,6 +319,24 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
   log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
+  for (auto &item : accounts_orders_positions.accounts) {
+    // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
+    auto funds_update = FundsUpdate{
+        .stream_id = stream_id_,
+        .account = account_.name,
+        .currency = item.currency,
+        .margin_mode = {},                   // ???
+        .balance = item.account_balance_ev,  // TYPE CONVERSION ???
+        .hold = NaN,
+        .borrowed = NaN,
+        .external_account = {},
+        .update_type = map(accounts_orders_positions.type),
+        .exchange_time_utc = {},  // ???
+        .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
+        .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+    };
+    create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+  }
 }
 
 }  // namespace phemex

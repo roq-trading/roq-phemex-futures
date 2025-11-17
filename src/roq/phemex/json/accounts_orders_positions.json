@@ -21,17 +21,38 @@
     {
       "name": "accounts",
       "type": "roq/phemex/json/AccountsOrdersPositionsAccountsItem",
-      "array": "std/span"
+      "array": "std/span",
+      "comment": "COIN-M"
     },
     {
       "name": "orders",
       "type": "roq/phemex/json/AccountsOrdersPositionsOrdersItem",
-      "array": "std/span"
+      "array": "std/span",
+      "comment": "COIN-M"
     },
     {
       "name": "positions",
       "type": "roq/phemex/json/AccountsOrdersPositionsPositionsItem",
-      "array": "std/span"
+      "array": "std/span",
+      "comment": "COIN-M"
+    },
+    {
+      "name": "accounts_p",
+      "type": "roq/phemex/json/AccountsOrdersPositionsAccountsItem",
+      "array": "std/span",
+      "comment": "USD-M"
+    },
+    {
+      "name": "orders_p",
+      "type": "roq/phemex/json/AccountsOrdersPositionsOrdersItem",
+      "array": "std/span",
+      "comment": "USD-M"
+    },
+    {
+      "name": "positions_p",
+      "type": "roq/phemex/json/AccountsOrdersPositionsPositionsItem",
+      "array": "std/span",
+      "comment": "USD-M"
     }
   ]
 }
