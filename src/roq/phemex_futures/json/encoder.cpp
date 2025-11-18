@@ -6,6 +6,8 @@
 
 #include "roq/decimal.hpp"
 
+#include "roq/logging.hpp"
+
 #include "roq/phemex_futures/json/map.hpp"
 #include "roq/phemex_futures/json/utils.hpp"
 
@@ -17,13 +19,18 @@ namespace json {
 
 // no stp?
 std::string_view Encoder::create_order_coin_m(
-    std::string &buffer, CreateOrder const &create_order, server::oms::Order const &order, std::string_view const &request_id) {
+    std::string &buffer,
+    CreateOrder const &create_order,
+    server::oms::Order const &order,
+    std::string_view const &request_id,
+    tools::Security const &security) {
   buffer.clear();
   auto side = map(create_order.side).template get<json::Side>();
   auto ord_type = map(create_order.order_type).template get<json::OrderType>();
   auto time_in_force = [&]() -> json::TimeInForce { return map(create_order.time_in_force); }();
   auto reduce_only = [&]() { return create_order.execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE); }();
-  auto price = create_order.price * std::pow(10.0, 4);  // note!
+  auto price = create_order.price * security.price_factor;  // note!
+  log::warn("DEBUG scaling price {} => {}"sv, create_order.price, price);
   fmt::format_to(
       std::back_inserter(buffer),
       "?clOrdID={}"

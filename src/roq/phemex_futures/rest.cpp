@@ -326,6 +326,10 @@ void Rest::operator()(Trace<json::Products> const &event) {
           .discard = {},
       };
       create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+      // ...
+      shared_.security[item.symbol] = tools::Security{
+          .price_factor = std::pow(10.0, item.price_scale),
+      };
     }
     if (!std::empty(symbols)) {
       auto symbols_update = SymbolsUpdate{

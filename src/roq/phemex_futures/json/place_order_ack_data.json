@@ -3,11 +3,135 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "orderId",
+      "name": "bizError",
+      "type": "std/int32"
+    },
+    {
+      "name": "orderID",
       "type": "std/string_view"
     },
     {
-      "name": "clientOid",
+      "name": "clOrdID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "side",
+      "type": "std/string_view"
+    },
+    {
+      "name": "actionTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "orderType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "priceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "price",
+      "type": "std/double"
+    },
+    {
+      "name": "orderQty",
+      "type": "std/double"
+    },
+    {
+      "name": "displayQty",
+      "type": "std/double"
+    },
+    {
+      "name": "timeInForce",
+      "type": "std/string_view"
+    },
+    {
+      "name": "reduceOnly",
+      "type": "std/bool"
+    },
+    {
+      "name": "closedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "closedPnl",
+      "type": "std/double"
+    },
+    {
+      "name": "closedSize",
+      "type": "std/double"
+    },
+    {
+      "name": "cumQty",
+      "type": "std/double"
+    },
+    {
+      "name": "cumValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumValue",
+      "type": "std/double"
+    },
+    {
+      "name": "leavesQty",
+      "type": "std/double"
+    },
+    {
+      "name": "leavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "leavesValue",
+      "type": "std/double"
+    },
+    {
+      "name": "stopDirection",
+      "type": "std/string_view"
+    },
+    {
+      "name": "stopPxEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "stopPx",
+      "type": "std/double"
+    },
+    {
+      "name": "trigger",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pegOffsetValueEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "pegOffsetProportionEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "execStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pegPriceType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "execInst",
       "type": "std/string_view"
     }
   ]

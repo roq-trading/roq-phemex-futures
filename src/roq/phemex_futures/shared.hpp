@@ -17,6 +17,8 @@
 #include "roq/phemex_futures/api.hpp"
 #include "roq/phemex_futures/settings.hpp"
 
+#include "roq/phemex_futures/tools/security.hpp"
+
 namespace roq {
 namespace phemex_futures {
 
@@ -50,6 +52,18 @@ struct Shared final {
   API const api;
   core::limit::RateLimiter rate_limiter;
   core::Symbols symbols;
+
+  utils::unordered_map<std::string, tools::Security> security;
+
+  template <typename Callback>
+  bool find_security(std::string_view const &symbol, Callback callback) {
+    auto iter = security.find(symbol);
+    if (iter == std::end(security)) {
+      return false;
+    }
+    callback((*iter).second);
+    return true;
+  }
 };
 
 }  // namespace phemex_futures

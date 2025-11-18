@@ -521,6 +521,7 @@ void OrderEntry::get_open_orders_ack(Trace<web::rest::Response> const &event, ui
       download_.retry(state);
     };
     auto handle_success = [&](auto &body) {
+      log::warn(R"(DEBUG body="{}")"sv, body);
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
       } else {
@@ -748,36 +749,43 @@ void OrderEntry::create_order(Event<CreateOrder> const &event, server::oms::Orde
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, create_order] = event;
-    auto path = shared_.api.order_management.create_order;
-    auto query = [&]() {
-      switch (shared_.api.type) {
-        using enum API::Type;
-        case COIN_M:
-          return json::Encoder::create_order_coin_m(encode_buffer_, create_order, order, request_id);
-        case USD_M:
-          return json::Encoder::create_order_usd_m(encode_buffer_, create_order, order, request_id);
-      }
-      log::fatal("Unexpected"sv);
-    }();
-    auto headers = account_.create_headers(path, query, {}, request_id);
-    auto request = web::rest::Request{
-        .method = web::http::Method::PUT,
-        .path = path,
-        .query = query,
-        .accept = web::http::Accept::APPLICATION_JSON,
-        .content_type = web::http::ContentType::APPLICATION_JSON,
-        .headers = headers,
-        .body = {},
-        .quality_of_service = {},
+    auto helper = [&](auto &security) {
+      auto query = [&]() {
+        switch (shared_.api.type) {
+          using enum API::Type;
+          case COIN_M:
+            return json::Encoder::create_order_coin_m(encode_buffer_, create_order, order, request_id, security);
+          case USD_M:
+            return json::Encoder::create_order_usd_m(encode_buffer_, create_order, order, request_id);
+        }
+        log::fatal("Unexpected"sv);
+      }();
+      auto path = shared_.api.order_management.create_order;
+      auto headers = account_.create_headers(path, query, {}, request_id);
+      auto request = web::rest::Request{
+          .method = web::http::Method::PUT,
+          .path = path,
+          .query = query,
+          .accept = web::http::Accept::APPLICATION_JSON,
+          .content_type = web::http::ContentType::APPLICATION_JSON,
+          .headers = headers,
+          .body = {},
+          .quality_of_service = {},
+      };
+      log::warn("DEBUG request={}"sv, request);
+      auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
+        uint32_t version = 1;
+        TraceInfo trace_info;
+        Trace event{trace_info, response};
+        create_order_ack(event, user_id, order_id, version);
+      };
+      (*connection_)(request_id, request, callback);
     };
-    log::warn("DEBUG request={}"sv, request);
-    auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
-      uint32_t version = 1;
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      create_order_ack(event, user_id, order_id, version);
-    };
-    (*connection_)(request_id, request, callback);
+    if (shared_.find_security(create_order.symbol, helper)) {
+    } else {
+      log::warn("*** NO SECURITY INFO ***"sv);
+      throw server::oms::NotReady{"not ready"sv};  // XXX FIXME TODO
+    }
   });
 }
 
@@ -800,6 +808,7 @@ void OrderEntry::create_order_ack(Trace<web::rest::Response> const &event, uint8
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
+      log::warn(R"(DEBUG body="{}")"sv, body);
       json::PlaceOrderAck create_order_ack{body, decode_buffer_};
       if (create_order_ack.code == 0) {
         Trace event_2{event, create_order_ack};
@@ -883,6 +892,7 @@ void OrderEntry::modify_order_ack(Trace<web::rest::Response> const &event, uint8
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
+      log::warn(R"(DEBUG body="{}")"sv, body);
       json::ModifyOrderAck modify_order_ack{body, decode_buffer_};
       if (modify_order_ack.code == 0) {
         Trace event_2{event, modify_order_ack};
@@ -966,6 +976,7 @@ void OrderEntry::cancel_order_ack(Trace<web::rest::Response> const &event, uint8
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
+      log::warn(R"(DEBUG body="{}")"sv, body);
       json::CancelOrderAck cancel_order_ack{body, decode_buffer_};
       if (cancel_order_ack.code == 0) {
         Trace event_2{event, cancel_order_ack};
@@ -1045,6 +1056,7 @@ void OrderEntry::cancel_all_orders_ack(Trace<web::rest::Response> const &event, 
       shared_(event_2);
     };
     auto handle_success = [&](auto &body) {
+      log::warn(R"(DEBUG body="{}")"sv, body);
       json::CancelAllOrdersAck cancel_all_orders_ack{body, decode_buffer_};
       if (cancel_all_orders_ack.code == 0) {
         Trace event_2{event, cancel_all_orders_ack};

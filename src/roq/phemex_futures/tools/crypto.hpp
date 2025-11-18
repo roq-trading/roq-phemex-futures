@@ -13,8 +13,7 @@ namespace roq {
 namespace phemex_futures {
 namespace tools {
 
-class Crypto final {
- public:
+struct Crypto final {
   Crypto(std::string_view const &key, std::string_view const &secret);
 
   Crypto(Crypto &&) = delete;
