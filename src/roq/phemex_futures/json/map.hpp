@@ -30,6 +30,7 @@
 #include "roq/phemex_futures/json/trade_scope.hpp"
 #include "roq/phemex_futures/json/trade_side.hpp"
 #include "roq/phemex_futures/json/trading_status.hpp"
+#include "roq/phemex_futures/json/type.hpp"
 
 namespace roq {
 
@@ -37,15 +38,15 @@ namespace roq {
 
 template <>
 template <>
-std::optional<UpdateType> Map<phemex_futures::json::Action>::helper() const;
+std::optional<UpdateType> Map<phemex_futures::json::Action>::helper() const;  // ???
 
 template <>
 template <>
-std::optional<MarginMode> Map<phemex_futures::json::AssetMode>::helper() const;
+std::optional<MarginMode> Map<phemex_futures::json::AssetMode>::helper() const;  // ???
 
 template <>
 template <>
-std::optional<SecurityType> Map<phemex_futures::json::Category, phemex_futures::json::FuturesType>::helper() const;
+std::optional<SecurityType> Map<phemex_futures::json::Category, phemex_futures::json::FuturesType>::helper() const;  // ???
 
 template <>
 template <>
@@ -53,11 +54,11 @@ std::optional<UpdateType> Map<phemex_futures::json::EventType>::helper() const;
 
 template <>
 template <>
-std::optional<MarginMode> Map<phemex_futures::json::MarginMode>::helper() const;
+std::optional<MarginMode> Map<phemex_futures::json::MarginMode>::helper() const;  // ???
 
 template <>
 template <>
-std::optional<UpdateType> Map<phemex_futures::json::MessageType>::helper() const;
+std::optional<UpdateType> Map<phemex_futures::json::MessageType>::helper() const;  // ???
 
 template <>
 template <>
@@ -90,6 +91,10 @@ std::optional<PositionEffect> Map<phemex_futures::json::TradeSide>::helper() con
 template <>
 template <>
 std::optional<TradingStatus> Map<phemex_futures::json::TradingStatus>::helper() const;
+
+template <>
+template <>
+std::optional<SecurityType> Map<phemex_futures::json::Type>::helper() const;
 
 // roq => phemex_futures::json
 

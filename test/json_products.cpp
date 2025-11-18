@@ -63,30 +63,30 @@ TEST_CASE("simple", "[json_products]") {
       R"(})"
       R"(],)"
       R"("products":[{)"
-      R"("symbol":"BTCUSD",)"
+      R"("symbol":"BTCUSD",)"  // XXX
       R"("code":1,)"
-      R"("type":"Perpetual",)"
+      R"("type":"Perpetual",)"  // XXX
       R"("displaySymbol":"BTC / USD",)"
       R"("indexSymbol":".BTC",)"
       R"("markSymbol":".MBTC",)"
       R"("fundingRateSymbol":".BTCFR",)"
       R"("fundingRate8hSymbol":".BTCFR8H",)"
       R"("contractUnderlyingAssets":"USD",)"
-      R"("settleCurrency":"BTC",)"
-      R"("quoteCurrency":"USD",)"
+      R"("settleCurrency":"BTC",)"  // XXX
+      R"("quoteCurrency":"USD",)"   // XXX
       R"("contractSize":1.0,)"
-      R"("lotSize":1,)"
-      R"("tickSize":0.1,)"
-      R"("priceScale":4,)"
+      R"("lotSize":1,)"     // XXX
+      R"("tickSize":0.1,)"  // XXX
+      R"("priceScale":4,)"  // XXX
       R"("ratioScale":8,)"
       R"("pricePrecision":1,)"
       R"("minPriceEp":100000,)"
       R"("maxPriceEp":10000000000,)"
-      R"("maxOrderQty":20000000,)"
+      R"("maxOrderQty":20000000,)"  // XXX
       R"("description":"BTC/USD perpetual contracts are priced on the .BTC Index. Each contract is worth 1 USD. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",)"
-      R"("status":"Listed",)"
+      R"("status":"Listed",)"  // XXX
       R"("tipOrderQty":5000000,)"
-      R"("listTime":1574640000000,)"
+      R"("listTime":1574640000000,)"  // XXX
       R"("majorSymbol":true,)"
       R"("defaultLeverage":"-10",)"
       R"("fundingInterval":28800,)"
@@ -103,7 +103,7 @@ TEST_CASE("simple", "[json_products]") {
       R"("priceScale":4,)"
       R"("ratioScale":8,)"
       R"("pricePrecision":3,)"
-      R"("baseCurrency":"USDT",)"
+      R"("baseCurrency":"USDT",)"  // XXX
       R"("baseTickSize":"0.001 USDT",)"
       R"("baseTickSizeEv":100000,)"
       R"("quoteTickSize":"0.001 TRY",)"
@@ -131,25 +131,25 @@ TEST_CASE("simple", "[json_products]") {
       R"(})"
       R"(],)"
       R"("perpProductsV2":[{)"
-      R"("perpProductSubType":"Normal",)"
-      R"("symbol":"BTCUSDC",)"
+      R"("perpProductSubType":"Normal",)"  // ???
+      R"("symbol":"BTCUSDC",)"             // XXX
       R"("code":40041,)"
-      R"("type":"PerpetualV2",)"
+      R"("type":"PerpetualV2",)"  // XXX
       R"("displaySymbol":"BTC / USDC",)"
       R"("indexSymbol":".BTCUSDC",)"
       R"("markSymbol":".MBTCUSDC",)"
       R"("fundingRateSymbol":".BTCUSDCFR",)"
       R"("fundingRate8hSymbol":".BTCUSDCFR8H",)"
       R"("contractUnderlyingAssets":"BTC",)"
-      R"("settleCurrency":"USDC",)"
-      R"("quoteCurrency":"USDC",)"
+      R"("settleCurrency":"USDC",)"  // XXX
+      R"("quoteCurrency":"USDC",)"   // XXX
       R"("tickSize":"0.1",)"
-      R"("priceScale":0,)"
+      R"("priceScale":0,)"  // XXX
       R"("ratioScale":0,)"
       R"("pricePrecision":1,)"
-      R"("baseCurrency":"BTC",)"
+      R"("baseCurrency":"BTC",)"  // XXX
       R"("description":"BTC/USDC perpetual contracts are priced on the .BTCUSDC Index. Each contract is worth 1 BTC. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",)"
-      R"("status":"Listed",)"
+      R"("status":"Listed",)"  // XXX
       R"("tipOrderQty":0,)"
       R"("listTime":1747735200000,)"
       R"("majorSymbol":true,)"
@@ -160,10 +160,10 @@ TEST_CASE("simple", "[json_products]") {
       R"("maxOI":-1.0,)"
       R"("maxOrderQtyRq":"1000",)"
       R"("maxPriceRp":"500000",)"
-      R"("minOrderValueRv":"1",)"
+      R"("minOrderValueRv":"1",)"  // XXX
       R"("minPriceRp":"1000",)"
       R"("qtyPrecision":4,)"
-      R"("qtyStepSize":"0.0001",)"
+      R"("qtyStepSize":"0.0001",)"  // XXX
       R"("tipOrderQtyRq":"200",)"
       R"("maxOpenPosLeverage":100.0)"
       R"(})"

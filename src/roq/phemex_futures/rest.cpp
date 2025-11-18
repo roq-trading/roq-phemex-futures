@@ -7,6 +7,7 @@
 
 #include "roq/mask.hpp"
 
+#include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
 #include "roq/utils/metrics/factory.hpp"
@@ -273,12 +274,20 @@ void Rest::operator()(Trace<json::Products> const &event) {
       ++counter;
       using item_type = std::remove_cvref_t<decltype(item)>;
       auto min_trade_vol = [&]() {
-        constexpr bool has_contract_size = requires(item_type const &t) { t.contract_size; };
-        constexpr bool has_min_order_value_rv = requires(item_type const &t) { t.min_order_value_rv; };
-        if constexpr (has_contract_size) {
-          return item.contract_size;
+        constexpr bool has_lot_size = requires(item_type const &t) { t.lot_size; };                      // coin-m
+        constexpr bool has_min_order_value_rv = requires(item_type const &t) { t.min_order_value_rv; };  // usd-m
+        if constexpr (has_lot_size) {
+          return item.lot_size;
         } else if constexpr (has_min_order_value_rv) {
           return item.min_order_value_rv;
+        } else {
+          return NaN;
+        }
+      }();
+      auto trade_vol_step_size = [&]() {
+        constexpr bool has_qty_step_size = requires(item_type const &t) { t.qty_step_size; };  // coin-m
+        if constexpr (has_qty_step_size) {
+          return item.qty_step_size;
         } else {
           return NaN;
         }
@@ -287,12 +296,12 @@ void Rest::operator()(Trace<json::Products> const &event) {
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
           .symbol = item.symbol,
-          .description = {},
-          .security_type = {},
+          .description = item.description.substr(0, detail::MAX_LENGTH_DESCRIPTION),  // XXX FIXME should be member
+          .security_type = map(item.type),
           .cfi_code = {},
-          .base_currency = {},
-          .quote_currency = {},
-          .settlement_currency = {},
+          .base_currency = item.base_currency,
+          .quote_currency = item.quote_currency,
+          .settlement_currency = item.settle_currency,
           .margin_currency = {},
           .commission_currency = {},
           .tick_size = item.tick_size,
@@ -301,13 +310,13 @@ void Rest::operator()(Trace<json::Products> const &event) {
           .min_notional = NaN,
           .min_trade_vol = min_trade_vol,
           .max_trade_vol = NaN,
-          .trade_vol_step_size = NaN,
+          .trade_vol_step_size = trade_vol_step_size,
           .option_type = {},
           .strike_currency = {},
           .strike_price = NaN,
           .underlying = {},
           .time_zone = {},
-          .issue_date = {},
+          .issue_date = utils::safe_cast(item.list_time),
           .settlement_date = {},
           .expiry_datetime = {},
           .expiry_datetime_utc = {},

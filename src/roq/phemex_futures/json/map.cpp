@@ -627,6 +627,38 @@ std::optional<roq::TradingStatus> Map<phemex_futures::json::TradingStatus>::help
   return Helper{args_};
 }
 
+// phemex_futures::json::Type => roq::SecurityType
+
+template <>
+template <>
+constexpr Helper<phemex_futures::json::Type>::operator std::optional<roq::SecurityType>() const {
+  switch (std::get<0>(args_)) {
+    using enum phemex_futures::json::Type::type_t;
+    case UNDEFINED_INTERNAL:
+      return roq::SecurityType::UNDEFINED;
+    case UNKNOWN_INTERNAL:
+      return roq::SecurityType::UNDEFINED;
+    case SPOT:
+      return roq::SecurityType::SPOT;
+    case PERPETUAL:
+      return roq::SecurityType::SWAP;
+    case PERPETUAL_V2:
+      return roq::SecurityType::SWAP;
+  }
+  return {};
+}
+
+static_assert(Helper{phemex_futures::json::Type{phemex_futures::json::Type::UNDEFINED_INTERNAL}} == roq::SecurityType::UNDEFINED);
+static_assert(Helper{phemex_futures::json::Type{phemex_futures::json::Type::SPOT}} == roq::SecurityType::SPOT);
+static_assert(Helper{phemex_futures::json::Type{phemex_futures::json::Type::PERPETUAL}} == roq::SecurityType::SWAP);
+static_assert(Helper{phemex_futures::json::Type{phemex_futures::json::Type::PERPETUAL_V2}} == roq::SecurityType::SWAP);
+
+template <>
+template <>
+std::optional<roq::SecurityType> Map<phemex_futures::json::Type>::helper() const {
+  return Helper{args_};
+}
+
 // roq => phemex_futures::json
 
 // roq::MarginMode => phemex_futures::json::MarginMode
