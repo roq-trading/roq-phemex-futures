@@ -236,8 +236,12 @@ uint32_t OrderEntry::download(OrderEntryState state) {
       return 1;
     */
     case OPEN_ORDERS:
-      get_open_orders();
-      return 1;
+      if (!std::empty(shared_.settings.download.symbols)) {
+        get_open_orders();
+        return 1;  // XXX FIXME TODO countdown
+      } else {
+        return 0;
+      }
     case FILL_HISTORY:
       /*
       if (shared_.settings.rest.download_fills_begin.count()) {
@@ -486,24 +490,26 @@ void OrderEntry::get_open_orders() {
   profile_.open_orders([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.order_management.open_orders;
-    auto query = fmt::format("?symbol=BTCUSDT"sv);  // XXX FIXME TODO
-    auto headers = account_.create_headers(path, query, {});
-    auto request = web::rest::Request{
-        .method = method,
-        .path = path,
-        .query = query,
-        .accept = web::http::Accept::APPLICATION_JSON,
-        .content_type = {},
-        .headers = headers,
-        .body = {},
-        .quality_of_service = {},
-    };
-    auto sequence = download_.sequence();
-    (*connection_)("open_orders"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_open_orders_ack(event, sequence);
-    });
+    for (auto &item : shared_.settings.download.symbols) {
+      auto query = fmt::format("?symbol={}"sv, item);
+      auto headers = account_.create_headers(path, query, {});
+      auto request = web::rest::Request{
+          .method = method,
+          .path = path,
+          .query = query,
+          .accept = web::http::Accept::APPLICATION_JSON,
+          .content_type = {},
+          .headers = headers,
+          .body = {},
+          .quality_of_service = {},
+      };
+      auto sequence = download_.sequence();
+      (*connection_)("open_orders"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+        TraceInfo trace_info;
+        Trace event{trace_info, response};
+        get_open_orders_ack(event, sequence);
+      });
+    }
   });
 }
 
@@ -520,7 +526,6 @@ void OrderEntry::get_open_orders_ack(Trace<web::rest::Response> const &event, ui
         log::info("Download state={} has already been processed"sv, state);
       } else {
         json::OpenOrders open_orders{body, decode_buffer_};
-        log::warn("DEBUG open_orders={}"sv, open_orders);
         switch (open_orders.code) {
           case 0: {
             Trace event{trace_info, open_orders};

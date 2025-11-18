@@ -163,7 +163,6 @@ void DropCopy::operator()(web::socket::Client::Latency const &latency) {
 }
 
 void DropCopy::operator()(web::socket::Client::Text const &text) {
-  log::warn("DEBUG text={}"sv, text.payload);
   parse(text.payload);
 }
 
@@ -201,7 +200,6 @@ void DropCopy::ping(std::chrono::nanoseconds now) {
       R"("params":[])"
       R"(}})"sv,
       std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
-  log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }
 
@@ -251,13 +249,12 @@ void DropCopy::parse(std::string_view const &message) {
 void DropCopy::operator()(Trace<json::Pong> const &event) {
   auto &[trace_info, pong] = event;
   auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
-  log::warn("DEBUG pong={} (latency={}))"sv, pong, latency);
+  log::debug("pong={} (latency={}))"sv, pong, latency);
 }
 
 // note! sometimes seeing this: {"error":{"code":6012,"message":"invalid login token"},"id":1,"result":null}
 void DropCopy::operator()(Trace<json::Ack> const &event) {
   auto &[trace_info, ack] = event;
-  log::warn("DEBUG ack={}"sv, ack);
   auto success = ack.result.status == json::AckResultStatus::SUCCESS;
   auto auth_helper = [&]() {
     if (success) {
@@ -270,12 +267,9 @@ void DropCopy::operator()(Trace<json::Ack> const &event) {
     }
   };
   auto aop_helper = [&]() {
-    if (success) {
-      return;
+    if (!success) {
+      log::warn(R"(Subscription failed: code={}, message="{}")"sv, ack.error.code, ack.error.message);
     }
-    log::error(R"(Login failed: code={}, message="{}")"sv, ack.error.code, ack.error.message);
-    log::warn("Disconnecting..."sv);
-    (*connection_).close();
   };
   switch (ack.id) {
     case REQUEST_ID_AUTH:
@@ -315,13 +309,11 @@ void DropCopy::operator()(Trace<json::Kline> const &) {
 void DropCopy::operator()(Trace<json::IndexMarket24h> const &event) {
   auto &[trace_info, index_market24h] = event;
   log::info<2>("index_market24h={}"sv, index_market24h);
-  log::warn("DEBUG index_market24h={}"sv, index_market24h);
 }
 
 void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
   for (auto &item : accounts_orders_positions.accounts) {
     // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
     auto funds_update = FundsUpdate{
@@ -345,7 +337,6 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
 void DropCopy::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
   for (auto &item : accounts_orders_positions.accounts_p) {
     // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
     auto funds_update = FundsUpdate{

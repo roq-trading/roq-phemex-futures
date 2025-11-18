@@ -18,6 +18,8 @@ FLAGFILE="../../../share/flags/prod/flags.cfg"
 
 API="COIN-M"
 
+DOWNLOAD_SYMBOLS="BTCUSD"
+
 $PREFIX ./roq-phemex-futures \
   --name "$NAME" \
   --config_file "$CONFIG_FILE" \
@@ -27,4 +29,5 @@ $PREFIX ./roq-phemex-futures \
   --client_listen_address "$HOME/run/$NAME.sock" \
   --service_listen_address "$HOME/run/metrics/${NAME}.sock" \
   --api "$API" \
+  --download_symbols "$DOWNLOAD_SYMBOLS" \
   $@
