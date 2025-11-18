@@ -100,7 +100,7 @@
     },
     {
       "name": "execStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/ExecStatus"
     },
     {
       "name": "pegPriceType",
@@ -112,7 +112,7 @@
     },
     {
       "name": "execInst",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/ExecInst"
     },
     {
       "name": "takeProfitRp",

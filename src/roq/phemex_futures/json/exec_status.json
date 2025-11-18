@@ -1,0 +1,33 @@
+{
+  "name": "roq/phemex_futures/json/ExecStatus",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Aborted"
+    },
+    {
+      "name": "MakerFill"
+    },
+    {
+      "name": "TakerFill"
+    },
+    {
+      "name": "Expired"
+    },
+    {
+      "name": "Canceled"
+    },
+    {
+      "name": "CreateRejected"
+    },
+    {
+      "name": "New"
+    },
+    {
+      "name": "PendingNew"
+    },
+    {
+      "name": "PendingCancel"
+    }
+  ]
+}

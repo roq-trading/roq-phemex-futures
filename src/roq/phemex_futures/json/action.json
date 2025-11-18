@@ -3,10 +3,10 @@
   "type": "enum",
   "values": [
     {
-      "name": "snapshot"
+      "name": "New"
     },
     {
-      "name": "update"
+      "name": "Cancel"
     }
   ]
 }

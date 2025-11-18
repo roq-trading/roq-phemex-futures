@@ -28,6 +28,7 @@ auto const BIT_KLINE = uint16_t{1} << 5;
 auto const BIT_INDEX_MARKET24H = uint16_t{1} << 6;
 auto const BIT_ACCOUNTS_ORDERS_POSITIONS = uint16_t{1} << 7;
 auto const BIT_ACCOUNTS_ORDERS_POSITIONS_P = uint16_t{1} << 8;
+auto const BIT_POSITION_INFO = uint16_t{1} << 9;
 }  // namespace
 
 // === HELPERS ===
@@ -116,6 +117,9 @@ bool Parser::dispatch(
         break;
       case MTS:
         break;
+      case POSITION_INFO:
+        mask |= BIT_POSITION_INFO;
+        break;
     }
   };
   core::json::Parser parser{message};
@@ -160,6 +164,10 @@ bool Parser::dispatch(
     }
     if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS_P) {
       dispatch_helper<AccountsOrdersPositions2>(handler, message, buffer_stack, trace_info);
+    }
+    if (mask & BIT_POSITION_INFO) {
+      // dispatch_helper<PositionInfo>(handler, message, buffer_stack, trace_info);  // XXX FIXME TODO
+      return false;  // XXX FIXME TODO
     }
     return true;
   }

@@ -117,6 +117,10 @@
     {
       "name": "positions_p",
       "comment": "aop"
+    },
+    {
+      "name": "position_info",
+      "comment": "usdm"
     }
   ]
 }

@@ -13,7 +13,7 @@ using Helper = detail::MapHelper<Args...>;
 
 // phemex_futures::json => roq
 
-// phemex_futures::json::Action => roq::MarginMode
+// phemex_futures::json::Action => roq::UpdateType
 
 template <>
 template <>
@@ -24,157 +24,21 @@ constexpr Helper<phemex_futures::json::Action>::operator std::optional<roq::Upda
       return roq::UpdateType::UNDEFINED;
     case UNKNOWN_INTERNAL:
       return roq::UpdateType::UNDEFINED;
-    case SNAPSHOT:
+    case NEW:
       return roq::UpdateType::SNAPSHOT;
-    case UPDATE:
-      return roq::UpdateType::INCREMENTAL;
+    case CANCEL:
+      return roq::UpdateType::UNDEFINED;
   }
   return {};
 }
 
 static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::UNDEFINED_INTERNAL}} == roq::UpdateType::UNDEFINED);
-static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::SNAPSHOT}} == roq::UpdateType::SNAPSHOT);
-static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::UPDATE}} == roq::UpdateType::INCREMENTAL);
+static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::NEW}} == roq::UpdateType::SNAPSHOT);
+static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::CANCEL}} == roq::UpdateType::UNDEFINED);
 
 template <>
 template <>
 std::optional<roq::UpdateType> Map<phemex_futures::json::Action>::helper() const {
-  return Helper{args_};
-}
-
-// phemex_futures::json::AssetMode => roq::MarginMode
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::AssetMode>::operator std::optional<roq::MarginMode>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::AssetMode::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::MarginMode::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::MarginMode::UNDEFINED;
-    case SINGLE:
-      return roq::MarginMode::ISOLATED;
-    case UNION:
-      return roq::MarginMode::CROSS;
-    case MULTI_ASSETS:
-      return roq::MarginMode::CROSS;  // ???
-  }
-  return {};
-}
-
-static_assert(Helper{phemex_futures::json::AssetMode{phemex_futures::json::AssetMode::UNDEFINED_INTERNAL}} == roq::MarginMode::UNDEFINED);
-static_assert(Helper{phemex_futures::json::AssetMode{phemex_futures::json::AssetMode::SINGLE}} == roq::MarginMode::ISOLATED);
-static_assert(Helper{phemex_futures::json::AssetMode{phemex_futures::json::AssetMode::UNION}} == roq::MarginMode::CROSS);
-static_assert(Helper{phemex_futures::json::AssetMode{phemex_futures::json::AssetMode::MULTI_ASSETS}} == roq::MarginMode::CROSS);
-
-template <>
-template <>
-std::optional<roq::MarginMode> Map<phemex_futures::json::AssetMode>::helper() const {
-  return Helper{args_};
-}
-
-// {phemex_futures::json::Category, phemex_futures::json::FuturesType} => roq::SecurityType
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::Category, phemex_futures::json::FuturesType>::operator std::optional<roq::SecurityType>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::Category::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::SecurityType::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::SecurityType::UNDEFINED;
-    case SPOT:
-      return roq::SecurityType::SPOT;
-    case MARGIN:
-      return roq::SecurityType::SPOT;
-    case USDT_FUTURES:
-    case USDC_FUTURES:
-    case COIN_FUTURES:
-      switch (std::get<1>(args_)) {
-        using enum phemex_futures::json::FuturesType::type_t;
-        case UNDEFINED_INTERNAL:
-          return roq::SecurityType::UNDEFINED;
-        case UNKNOWN_INTERNAL:
-          return roq::SecurityType::UNDEFINED;
-        case PERPETUAL:
-          return roq::SecurityType::SWAP;
-        case DELIVERY:
-          return roq::SecurityType::FUTURES;
-      }
-      break;
-  }
-  return {};
-}
-
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::UNDEFINED_INTERNAL},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNDEFINED_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::SPOT},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNDEFINED_INTERNAL}} == roq::SecurityType::SPOT);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::MARGIN},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNDEFINED_INTERNAL}} == roq::SecurityType::SPOT);
-
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDT_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNDEFINED_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDT_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNKNOWN_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDT_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::PERPETUAL}} == roq::SecurityType::SWAP);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDT_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::DELIVERY}} == roq::SecurityType::FUTURES);
-
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDC_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNDEFINED_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDC_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNKNOWN_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDC_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::PERPETUAL}} == roq::SecurityType::SWAP);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::USDC_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::DELIVERY}} == roq::SecurityType::FUTURES);
-
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::COIN_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNDEFINED_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::COIN_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::UNKNOWN_INTERNAL}} == roq::SecurityType::UNDEFINED);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::COIN_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::PERPETUAL}} == roq::SecurityType::SWAP);
-static_assert(
-    Helper{
-        phemex_futures::json::Category{phemex_futures::json::Category::COIN_FUTURES},
-        phemex_futures::json::FuturesType{phemex_futures::json::FuturesType::DELIVERY}} == roq::SecurityType::FUTURES);
-
-template <>
-template <>
-std::optional<roq::SecurityType> Map<phemex_futures::json::Category, phemex_futures::json::FuturesType>::helper() const {
   return Helper{args_};
 }
 
@@ -204,35 +68,6 @@ static_assert(Helper{phemex_futures::json::EventType{phemex_futures::json::Event
 template <>
 template <>
 std::optional<roq::UpdateType> Map<phemex_futures::json::EventType>::helper() const {
-  return Helper{args_};
-}
-
-// phemex_futures::json::MarginMode => roq::MarginMode
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::MarginMode>::operator std::optional<roq::MarginMode>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::MarginMode::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::MarginMode::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::MarginMode::UNDEFINED;
-    case CROSSED:
-      return roq::MarginMode::CROSS;
-    case ISOLATED:
-      return roq::MarginMode::ISOLATED;
-  }
-  return {};
-}
-
-static_assert(Helper{phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::UNDEFINED_INTERNAL}} == roq::MarginMode::UNDEFINED);
-static_assert(Helper{phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::CROSSED}} == roq::MarginMode::CROSS);
-static_assert(Helper{phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::ISOLATED}} == roq::MarginMode::ISOLATED);
-
-template <>
-template <>
-std::optional<roq::MarginMode> Map<phemex_futures::json::MarginMode>::helper() const {
   return Helper{args_};
 }
 
@@ -276,26 +111,41 @@ constexpr Helper<phemex_futures::json::OrderStatus>::operator std::optional<roq:
       return roq::OrderStatus::UNDEFINED;
     case UNKNOWN_INTERNAL:
       return roq::OrderStatus::UNDEFINED;
-    case LIVE:
-      return roq::OrderStatus::WORKING;
+    case CREATED:
+      return roq::OrderStatus::ACCEPTED;
+    case INIT:
+      return roq::OrderStatus::ACCEPTED;
+    case UNTRIGGERED:
+      return roq::OrderStatus::UNDEFINED;
+    case TRIGGERED:
+      return roq::OrderStatus::UNDEFINED;
+    case DEACTIVATED:
+      return roq::OrderStatus::SUSPENDED;
+    case REJECTED:
+      return roq::OrderStatus::REJECTED;
     case NEW:
       return roq::OrderStatus::WORKING;
     case PARTIALLY_FILLED:
       return roq::OrderStatus::WORKING;
     case FILLED:
       return roq::OrderStatus::COMPLETED;
-    case CANCELLED:
+    case CANCELED:
       return roq::OrderStatus::CANCELED;
   }
   return {};
 }
 
 static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::UNDEFINED_INTERNAL}} == roq::OrderStatus::UNDEFINED);
-static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::LIVE}} == roq::OrderStatus::WORKING);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::CREATED}} == roq::OrderStatus::ACCEPTED);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::INIT}} == roq::OrderStatus::ACCEPTED);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::UNTRIGGERED}} == roq::OrderStatus::UNDEFINED);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::TRIGGERED}} == roq::OrderStatus::UNDEFINED);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::DEACTIVATED}} == roq::OrderStatus::SUSPENDED);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::REJECTED}} == roq::OrderStatus::REJECTED);
 static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::NEW}} == roq::OrderStatus::WORKING);
 static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::PARTIALLY_FILLED}} == roq::OrderStatus::WORKING);
 static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::FILLED}} == roq::OrderStatus::COMPLETED);
-static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::CANCELLED}} == roq::OrderStatus::CANCELED);
+static_assert(Helper{phemex_futures::json::OrderStatus{phemex_futures::json::OrderStatus::CANCELED}} == roq::OrderStatus::CANCELED);
 
 template <>
 template <>
@@ -314,17 +164,29 @@ constexpr Helper<phemex_futures::json::OrderType>::operator std::optional<roq::O
       return roq::OrderType::UNDEFINED;
     case UNKNOWN_INTERNAL:
       return roq::OrderType::UNDEFINED;
+    case LIMIT:
+      return roq::OrderType::LIMIT;
     case MARKET:
       return roq::OrderType::MARKET;
-    case LIMIT:
+    case STOP:
+      return roq::OrderType::MARKET;
+    case STOP_LIMIT:
+      return roq::OrderType::LIMIT;
+    case MARKET_IF_TOUCHED:
+      return roq::OrderType::MARKET;
+    case LIMIT_IF_TOUCHED:
       return roq::OrderType::LIMIT;
   }
   return {};
 }
 
 static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::UNDEFINED_INTERNAL}} == roq::OrderType::UNDEFINED);
-static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::MARKET}} == roq::OrderType::MARKET);
 static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::LIMIT}} == roq::OrderType::LIMIT);
+static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::MARKET}} == roq::OrderType::MARKET);
+static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::STOP}} == roq::OrderType::MARKET);
+static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::STOP_LIMIT}} == roq::OrderType::LIMIT);
+static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::MARKET_IF_TOUCHED}} == roq::OrderType::MARKET);
+static_assert(Helper{phemex_futures::json::OrderType{phemex_futures::json::OrderType::LIMIT_IF_TOUCHED}} == roq::OrderType::LIMIT);
 
 template <>
 template <>
@@ -342,6 +204,8 @@ constexpr Helper<phemex_futures::json::PosSide, phemex_futures::json::Side>::ope
     case UNDEFINED_INTERNAL:
       return roq::PositionEffect::UNDEFINED;
     case UNKNOWN_INTERNAL:
+      return roq::PositionEffect::UNDEFINED;
+    case NONE:
       return roq::PositionEffect::UNDEFINED;
     case LONG:
       switch (std::get<1>(args_)) {
@@ -369,7 +233,7 @@ constexpr Helper<phemex_futures::json::PosSide, phemex_futures::json::Side>::ope
           return roq::PositionEffect::OPEN;
       }
       break;
-    case NET:
+    case MERGED:
       return roq::PositionEffect::UNDEFINED;
   }
   return {};
@@ -379,6 +243,12 @@ static_assert(
     Helper{
         phemex_futures::json::PosSide{phemex_futures::json::PosSide::UNDEFINED_INTERNAL},
         phemex_futures::json::Side{phemex_futures::json::Side::UNDEFINED_INTERNAL}} == roq::PositionEffect::UNDEFINED);
+static_assert(
+    Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::NONE}, phemex_futures::json::Side{phemex_futures::json::Side::BUY}} ==
+    roq::PositionEffect::UNDEFINED);
+static_assert(
+    Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::NONE}, phemex_futures::json::Side{phemex_futures::json::Side::SELL}} ==
+    roq::PositionEffect::UNDEFINED);
 static_assert(
     Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::LONG}, phemex_futures::json::Side{phemex_futures::json::Side::BUY}} ==
     roq::PositionEffect::OPEN);
@@ -392,10 +262,10 @@ static_assert(
     Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::SHORT}, phemex_futures::json::Side{phemex_futures::json::Side::SELL}} ==
     roq::PositionEffect::OPEN);
 static_assert(
-    Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::NET}, phemex_futures::json::Side{phemex_futures::json::Side::BUY}} ==
+    Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::MERGED}, phemex_futures::json::Side{phemex_futures::json::Side::BUY}} ==
     roq::PositionEffect::UNDEFINED);
 static_assert(
-    Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::NET}, phemex_futures::json::Side{phemex_futures::json::Side::SELL}} ==
+    Helper{phemex_futures::json::PosSide{phemex_futures::json::PosSide::MERGED}, phemex_futures::json::Side{phemex_futures::json::Side::SELL}} ==
     roq::PositionEffect::UNDEFINED);
 
 template <>
@@ -601,44 +471,6 @@ std::optional<roq::PositionEffect> Map<phemex_futures::json::TradeSide>::helper(
   return Helper{args_};
 }
 
-// phemex_futures::json::TradingStatus => roq::TradingStatus
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::TradingStatus>::operator std::optional<roq::TradingStatus>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::TradingStatus::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::TradingStatus::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::TradingStatus::UNDEFINED;
-    case LISTED:
-      return roq::TradingStatus::UNDEFINED;
-    case ONLINE:
-      return roq::TradingStatus::OPEN;
-    case LIMIT_OPEN:
-      return roq::TradingStatus::PRE_OPEN;
-    case OFFLINE:
-      return roq::TradingStatus::CLOSE;
-    case RESTRICTED_API:
-      return roq::TradingStatus::HALT;
-  }
-  return {};
-}
-
-static_assert(Helper{phemex_futures::json::TradingStatus{phemex_futures::json::TradingStatus::UNDEFINED_INTERNAL}} == roq::TradingStatus::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradingStatus{phemex_futures::json::TradingStatus::LISTED}} == roq::TradingStatus::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradingStatus{phemex_futures::json::TradingStatus::ONLINE}} == roq::TradingStatus::OPEN);
-static_assert(Helper{phemex_futures::json::TradingStatus{phemex_futures::json::TradingStatus::LIMIT_OPEN}} == roq::TradingStatus::PRE_OPEN);
-static_assert(Helper{phemex_futures::json::TradingStatus{phemex_futures::json::TradingStatus::OFFLINE}} == roq::TradingStatus::CLOSE);
-static_assert(Helper{phemex_futures::json::TradingStatus{phemex_futures::json::TradingStatus::RESTRICTED_API}} == roq::TradingStatus::HALT);
-
-template <>
-template <>
-std::optional<roq::TradingStatus> Map<phemex_futures::json::TradingStatus>::helper() const {
-  return Helper{args_};
-}
-
 // phemex_futures::json::Type => roq::SecurityType
 
 template <>
@@ -672,36 +504,6 @@ std::optional<roq::SecurityType> Map<phemex_futures::json::Type>::helper() const
 }
 
 // roq => phemex_futures::json
-
-// roq::MarginMode => phemex_futures::json::MarginMode
-
-template <>
-template <>
-constexpr Helper<roq::MarginMode>::operator std::optional<phemex_futures::json::MarginMode>() const {
-  switch (std::get<0>(args_)) {
-    using enum roq::MarginMode;
-    case UNDEFINED:
-      return phemex_futures::json::MarginMode::UNDEFINED_INTERNAL;
-    case CROSS:
-      return phemex_futures::json::MarginMode::CROSSED;
-    case ISOLATED:
-      return phemex_futures::json::MarginMode::ISOLATED;
-    case PORTFOLIO:
-      return phemex_futures::json::MarginMode::UNDEFINED_INTERNAL;
-  }
-  return {};
-}
-
-static_assert(Helper{roq::MarginMode::UNDEFINED} == phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::UNDEFINED_INTERNAL});
-static_assert(Helper{roq::MarginMode::CROSS} == phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::CROSSED});
-static_assert(Helper{roq::MarginMode::ISOLATED} == phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::ISOLATED});
-static_assert(Helper{roq::MarginMode::PORTFOLIO} == phemex_futures::json::MarginMode{phemex_futures::json::MarginMode::UNDEFINED_INTERNAL});
-
-template <>
-template <>
-std::optional<phemex_futures::json::MarginMode> Map<roq::MarginMode>::helper() const {
-  return Helper{args_};
-}
 
 // roq::OrderType => phemex_futures::json::OrderType
 
@@ -738,7 +540,7 @@ constexpr Helper<roq::PositionEffect, roq::Side>::operator std::optional<phemex_
   switch (std::get<0>(args_)) {
     using enum roq::PositionEffect;
     case UNDEFINED:
-      return phemex_futures::json::PosSide::UNDEFINED_INTERNAL;
+      return phemex_futures::json::PosSide::NONE;
     case OPEN:
       switch (std::get<1>(args_)) {
         using enum roq::Side;
@@ -765,7 +567,7 @@ constexpr Helper<roq::PositionEffect, roq::Side>::operator std::optional<phemex_
   return {};
 }
 
-static_assert(Helper{roq::PositionEffect::UNDEFINED, roq::Side::UNDEFINED} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::UNDEFINED_INTERNAL});
+static_assert(Helper{roq::PositionEffect::UNDEFINED, roq::Side::UNDEFINED} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::NONE});
 static_assert(Helper{roq::PositionEffect::OPEN, roq::Side::BUY} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::LONG});
 static_assert(Helper{roq::PositionEffect::OPEN, roq::Side::SELL} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::SHORT});
 static_assert(Helper{roq::PositionEffect::CLOSE, roq::Side::BUY} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::SHORT});
@@ -848,9 +650,9 @@ constexpr Helper<roq::TimeInForce>::operator std::optional<phemex_futures::json:
     case OPG:
       return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case IOC:
-      return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
+      return phemex_futures::json::TimeInForce::IMMEDIATE_OR_CANCEL;
     case FOK:
-      return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
+      return phemex_futures::json::TimeInForce::FILL_OR_KILL;
     case GTX:
       return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case GTD:
@@ -875,8 +677,8 @@ static_assert(Helper{roq::TimeInForce::UNDEFINED} == phemex_futures::json::TimeI
 static_assert(Helper{roq::TimeInForce::GFD} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::GTC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GOOD_TILL_CANCEL});
 static_assert(Helper{roq::TimeInForce::OPG} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
-static_assert(Helper{roq::TimeInForce::IOC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
-static_assert(Helper{roq::TimeInForce::FOK} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
+static_assert(Helper{roq::TimeInForce::IOC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::IMMEDIATE_OR_CANCEL});
+static_assert(Helper{roq::TimeInForce::FOK} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::FILL_OR_KILL});
 static_assert(Helper{roq::TimeInForce::GTX} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::GTD} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::AT_THE_CLOSE} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});

@@ -8,7 +8,7 @@
     },
     {
       "name": "action",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/Action"
     },
     {
       "name": "actionBy",
@@ -40,8 +40,7 @@
     },
     {
       "name": "closedSize",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "code",
@@ -49,8 +48,7 @@
     },
     {
       "name": "cumQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "cumValueEv",
@@ -74,12 +72,11 @@
     },
     {
       "name": "curPosSide",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/PosSide"
     },
     {
       "name": "curPosSize",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "curPosTerm",
@@ -95,8 +92,7 @@
     },
     {
       "name": "displayQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "execFeeEv",
@@ -112,8 +108,7 @@
     },
     {
       "name": "execQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "execSeq",
@@ -121,7 +116,7 @@
     },
     {
       "name": "execStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/ExecStatus"
     },
     {
       "name": "execValueEv",
@@ -133,8 +128,7 @@
     },
     {
       "name": "leavesQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "leavesValueEv",
@@ -146,11 +140,11 @@
     },
     {
       "name": "ordStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/OrderStatus"
     },
     {
       "name": "ordType",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/OrderType"
     },
     {
       "name": "orderID",
@@ -158,8 +152,7 @@
     },
     {
       "name": "orderQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "pegOffsetValueEp",
@@ -211,7 +204,7 @@
     },
     {
       "name": "timeInForce",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/TimeInForce"
     },
     {
       "name": "tpPxEp",

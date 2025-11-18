@@ -3,10 +3,10 @@
   "type": "enum",
   "values": [
     {
-      "name": "one_way_mode"
+      "name": "OneWay"
     },
     {
-      "name": "hedge_mode"
+      "name": "Hedged"
     }
   ]
 }

@@ -3,13 +3,16 @@
   "type": "enum",
   "values": [
     {
-      "name": "long"
+      "name": "None"
     },
     {
-      "name": "short"
+      "name": "Long"
     },
     {
-      "name": "net"
+      "name": "Short"
+    },
+    {
+      "name": "Merged"
     }
   ]
 }

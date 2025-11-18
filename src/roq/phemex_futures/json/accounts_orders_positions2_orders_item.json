@@ -8,7 +8,7 @@
     },
     {
       "name": "action",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/Action"
     },
     {
       "name": "actionBy",
@@ -40,8 +40,7 @@
     },
     {
       "name": "closedSize",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "code",
@@ -57,8 +56,7 @@
     },
     {
       "name": "cumQty",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "cumValueRv",
@@ -66,8 +64,7 @@
     },
     {
       "name": "curAccBalanceRv",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/int64"
     },
     {
       "name": "curAssignedPosBalanceRv",
@@ -83,12 +80,11 @@
     },
     {
       "name": "curPosSide",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/PosSide"
     },
     {
       "name": "curPosSize",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "curPosTerm",
@@ -112,8 +108,7 @@
     },
     {
       "name": "displayQty",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "execFeeRv",
@@ -129,8 +124,7 @@
     },
     {
       "name": "execQty",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "execSeq",
@@ -138,7 +132,7 @@
     },
     {
       "name": "execStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/ExecStatus"
     },
     {
       "name": "execValueRv",
@@ -150,8 +144,7 @@
     },
     {
       "name": "leavesQty",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "leavesValueRv",
@@ -163,7 +156,7 @@
     },
     {
       "name": "ordStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/OrderStatus"
     },
     {
       "name": "orderID",
@@ -171,12 +164,11 @@
     },
     {
       "name": "orderQty",
-      "type": "std/double",
-      "comment": "TODO type"
+      "type": "std/double"
     },
     {
       "name": "ordType",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/OrderType"
     },
     {
       "name": "pegOffsetProportionRr",
@@ -188,7 +180,7 @@
     },
     {
       "name": "posSide",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/PosSide"
     },
     {
       "name": "posTpSlPattern",
@@ -216,7 +208,7 @@
     },
     {
       "name": "side",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/Side"
     },
     {
       "name": "slPxRp",
@@ -224,7 +216,7 @@
     },
     {
       "name": "slTimeInForce",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/TimeInForce"
     },
     {
       "name": "slTrigger",
@@ -248,7 +240,7 @@
     },
     {
       "name": "timeInForce",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/TimeInForce"
     },
     {
       "name": "tpPxRp",
@@ -256,7 +248,7 @@
     },
     {
       "name": "tpTimeInForce",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/TimeInForce"
     },
     {
       "name": "tpTrigger",

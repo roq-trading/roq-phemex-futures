@@ -26,6 +26,7 @@ std::string_view Encoder::create_order_coin_m(
     tools::Security const &security) {
   buffer.clear();
   auto side = map(create_order.side).template get<json::Side>();
+  auto pos_side = map(create_order.position_effect, create_order.side).template get<json::PosSide>();
   auto ord_type = map(create_order.order_type).template get<json::OrderType>();
   auto time_in_force = [&]() -> json::TimeInForce { return map(create_order.time_in_force); }();
   auto reduce_only = [&]() { return create_order.execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE); }();
@@ -36,7 +37,7 @@ std::string_view Encoder::create_order_coin_m(
       "?clOrdID={}"
       "&symbol={}"
       "&side={}"
-      "&posSide=Long"  // XXX FIXME TODO
+      "&posSide={}"
       "&ordType={}"
       "&timeInForce={}"
       "&reduceOnly={}"
@@ -44,6 +45,7 @@ std::string_view Encoder::create_order_coin_m(
       request_id,
       create_order.symbol,
       side.as_raw_text(),
+      pos_side.as_raw_text(),
       ord_type.as_raw_text(),
       time_in_force.as_raw_text(),
       reduce_only,
@@ -62,6 +64,7 @@ std::string_view Encoder::create_order_usd_m(
     std::string &buffer, CreateOrder const &create_order, server::oms::Order const &order, std::string_view const &request_id) {
   buffer.clear();
   auto side = map(create_order.side).template get<json::Side>();
+  auto pos_side = map(create_order.position_effect, create_order.side).template get<json::PosSide>();
   auto ord_type = map(create_order.order_type).template get<json::OrderType>();
   auto time_in_force = map(create_order.time_in_force).template get<json::TimeInForce>();
   auto reduce_only = [&]() { return create_order.execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE); }();
@@ -78,6 +81,7 @@ std::string_view Encoder::create_order_usd_m(
       request_id,
       create_order.symbol,
       side.as_raw_text(),
+      // pos_side.as_raw_text(),
       ord_type.as_raw_text(),
       time_in_force.as_raw_text(),
       reduce_only,

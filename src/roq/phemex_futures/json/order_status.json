@@ -3,19 +3,34 @@
   "type": "enum",
   "values": [
     {
-      "name": "live"
+      "name": "Created"
     },
     {
-      "name": "new"
+      "name": "Init"
     },
     {
-      "name": "partially_filled"
+      "name": "Untriggered"
     },
     {
-      "name": "filled"
+      "name": "Triggered"
     },
     {
-      "name": "cancelled"
+      "name": "Deactivated"
+    },
+    {
+      "name": "Rejected"
+    },
+    {
+      "name": "New"
+    },
+    {
+      "name": "PartiallyFilled"
+    },
+    {
+      "name": "Filled"
+    },
+    {
+      "name": "Canceled"
     }
   ]
 }

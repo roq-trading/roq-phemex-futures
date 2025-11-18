@@ -20,7 +20,7 @@
     },
     {
       "name": "side",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/Side"
     },
     {
       "name": "actionTimeNs",
@@ -32,7 +32,7 @@
     },
     {
       "name": "orderType",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/OrderType"
     },
     {
       "name": "priceEp",
@@ -52,7 +52,7 @@
     },
     {
       "name": "timeInForce",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/TimeInForce"
     },
     {
       "name": "reduceOnly",
@@ -120,7 +120,7 @@
     },
     {
       "name": "execStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/ExecStatus"
     },
     {
       "name": "pegPriceType",
@@ -128,11 +128,11 @@
     },
     {
       "name": "ordStatus",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/OrderStatus"
     },
     {
       "name": "execInst",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/ExecInst"
     }
   ]
 }

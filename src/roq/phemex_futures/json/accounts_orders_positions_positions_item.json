@@ -24,8 +24,7 @@
     },
     {
       "name": "buyLeavesQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "buyLeavesValueEv",
@@ -93,8 +92,7 @@
     },
     {
       "name": "freeQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "initMarginReqEr",
@@ -158,8 +156,7 @@
     },
     {
       "name": "sellLeavesQty",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "sellLeavesValueEv",
@@ -179,8 +176,7 @@
     },
     {
       "name": "size",
-      "type": "std/double",
-      "comment": "TODO type?"
+      "type": "std/double"
     },
     {
       "name": "symbol",

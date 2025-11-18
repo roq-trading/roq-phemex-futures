@@ -3,10 +3,22 @@
   "type": "enum",
   "values": [
     {
+      "name": "Limit"
+    },
+    {
       "name": "Market"
     },
     {
-      "name": "Limit"
+      "name": "Stop"
+    },
+    {
+      "name": "StopLimit"
+    },
+    {
+      "name": "MarketIfTouched"
+    },
+    {
+      "name": "LimitIfTouched"
     }
   ]
 }

@@ -265,6 +265,7 @@ void Rest::operator()(Trace<json::Products> const &event) {
     for (size_t i = 0; i < std::size(data); ++i) {
       auto &item = data[i];
       log::info<2>("item={}"sv, item);
+      log::warn("DEBUG item={}"sv, item);
       if (discard(item.symbol, item.type, item.status)) {
         continue;
       }

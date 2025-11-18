@@ -5,60 +5,53 @@ set(SOURCES encoder.cpp map.cpp parser.cpp utils.cpp)
 include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS
-    products_data_perp_products_v2_item.json
-    event_type.json
-    liq_status.json
-    user_mode.json
-    accounts_orders_positions2.json
-    accounts_orders_positions2_accounts_item.json
-    accounts_orders_positions2_orders_item.json
-    accounts_orders_positions2_positions_item.json
-    accounts_orders_positions.json
-    accounts_orders_positions_accounts_item.json
-    accounts_orders_positions_orders_item.json
-    accounts_orders_positions_positions_item.json
-    index_market24h.json
-    index_market24h_data.json
     account_assets_data_assets_item.json
     account_assets_data.json
     account_assets.json
-    account_positions.json
-    account_positions_data.json
     account_positions_data_account.json
+    account_positions_data.json
     account_positions_data_positions_item.json
-    account_mode.json
+    account_positions.json
+    accounts_orders_positions2_accounts_item.json
+    accounts_orders_positions2.json
+    accounts_orders_positions2_orders_item.json
+    accounts_orders_positions2_positions_item.json
+    accounts_orders_positions_accounts_item.json
+    accounts_orders_positions.json
+    accounts_orders_positions_orders_item.json
+    accounts_orders_positions_positions_item.json
     ack_error.json
     ack.json
     ack_result.json
     ack_result_status.json
     action.json
-    arg.json
-    asset_mode.json
+    arg.json # XXX
     book_data_item.json
     book_data.json
     book.json
     cancel_all_orders_ack.json
     cancel_order_ack_data.json
     cancel_order_ack.json
-    category.json
-    category_ws.json
-    delivery_period.json
+    category.json # XXX
     event.json
+    event_type.json
+    exec_inst.json
+    exec_status.json
     fill_data_item.json
     fill_history_data.json
     fill_history_data_list_item_fee_detail_item.json
     fill_history_data_list_item.json
     fill_history.json
     fill.json
-    futures_type.json
-    hold_mode.json
-    hold_side.json
+    hold_side.json # XXX
+    index_market24h_data.json
+    index_market24h.json
     kline_data_item.json
     kline.json
-    margin_mode.json
-    market24h_data.json
-    market24h_data2.json
+    liq_status.json
     market24h2.json
+    market24h_data2.json
+    market24h_data.json
     market24h.json
     message_field.json
     message_type.json
@@ -67,35 +60,29 @@ set(AUTOGEN_SCHEMAS
     open_orders_data.json
     open_orders_data_rows_item.json
     open_orders.json
-    order_source.json
     order_status.json
     order_type.json
     place_order_ack_data.json
     place_order_ack.json
     pong.json
-    position_info_data.json
-    position_info_data_list_item.json
-    position_info.json
-    position_status.json
     pos_mode.json
     pos_side.json
     products_data_currencies_item.json
     products_data.json
+    products_data_perp_products_v2_item.json
     products_data_products_item.json
     products.json
     side.json
     status.json
-    stp_mode.json
-    symbol_status.json
-    symbol_type.json
+    stp_instruction.json
     time_in_force.json
-    topic.json
-    trade_scope.json
-    trade_side.json
+    topic.json # XXX
+    trade_scope.json # XXX
+    trade_side.json # XXX
     trades.json
     trades_trades_item.json
-    trading_status.json
-    type.json)
+    type.json
+    user_mode.json)
 
 roq_autogen_hpp(
   OUTPUT
