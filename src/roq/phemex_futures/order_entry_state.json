@@ -3,15 +3,6 @@
   "type": "enum",
   "values": [
     {
-      "name": "account_info"
-    },
-    {
-      "name": "account_assets"
-    },
-    {
-      "name": "position_info"
-    },
-    {
       "name": "open_orders"
     },
     {

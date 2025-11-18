@@ -46,7 +46,6 @@ set(AUTOGEN_SCHEMAS
     category_ws.json
     delivery_period.json
     event.json
-    fill_data_item_fee_detail_item.json
     fill_data_item.json
     fill_history_data.json
     fill_history_data_list_item_fee_detail_item.json
@@ -68,8 +67,7 @@ set(AUTOGEN_SCHEMAS
     modify_order_ack_data.json
     modify_order_ack.json
     open_orders_data.json
-    open_orders_data_list_item_fee_detail_item.json
-    open_orders_data_list_item.json
+    open_orders_data_rows_item.json
     open_orders.json
     order_source.json
     order_status.json

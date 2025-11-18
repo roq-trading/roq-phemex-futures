@@ -90,26 +90,18 @@ OrderEntry::OrderEntry(Handler &handler, io::Context &context, uint16_t stream_i
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
-          .account_info = create_metrics(shared.settings, name_, "account_info"sv),
-          .account_info_ack = create_metrics(shared.settings, name_, "account_info_ack"sv),
-          .account_assets = create_metrics(shared.settings, name_, "account_assets"sv),
-          .account_assets_ack = create_metrics(shared.settings, name_, "account_assets_ack"sv),
-          .position_info = create_metrics(shared.settings, name_, "position_info"sv),
-          .position_info_ack = create_metrics(shared.settings, name_, "position_info_ack"sv),
           .open_orders = create_metrics(shared.settings, name_, "open_orders"sv),
           .open_orders_ack = create_metrics(shared.settings, name_, "open_orders_ack"sv),
           .fill_history = create_metrics(shared.settings, name_, "fill_history"sv),
           .fill_history_ack = create_metrics(shared.settings, name_, "fill_history_ack"sv),
-          .place_order = create_metrics(shared.settings, name_, "place_order"sv),
-          .place_order_ack = create_metrics(shared.settings, name_, "place_order_ack"sv),
+          .create_order = create_metrics(shared.settings, name_, "create_order"sv),
+          .create_order_ack = create_metrics(shared.settings, name_, "create_order_ack"sv),
           .modify_order = create_metrics(shared.settings, name_, "modify_order"sv),
           .modify_order_ack = create_metrics(shared.settings, name_, "modify_order_ack"sv),
           .cancel_order = create_metrics(shared.settings, name_, "cancel_order"sv),
           .cancel_order_ack = create_metrics(shared.settings, name_, "cancel_order_ack"sv),
           .cancel_all_orders = create_metrics(shared.settings, name_, "cancel_all_orders"sv),
           .cancel_all_orders_ack = create_metrics(shared.settings, name_, "cancel_all_orders_ack"sv),
-          .countdown_cancel_all = create_metrics(shared.settings, name_, "countdown_cancel_all"sv),
-          .countdown_cancel_all_ack = create_metrics(shared.settings, name_, "countdown_cancel_all_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
@@ -138,32 +130,24 @@ void OrderEntry::operator()(metrics::Writer &writer) const {
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
       // profile
-      .write(profile_.account_info, metrics::Type::PROFILE)
-      .write(profile_.account_info_ack, metrics::Type::PROFILE)
-      .write(profile_.account_assets, metrics::Type::PROFILE)
-      .write(profile_.account_assets_ack, metrics::Type::PROFILE)
-      .write(profile_.position_info, metrics::Type::PROFILE)
-      .write(profile_.position_info_ack, metrics::Type::PROFILE)
       .write(profile_.open_orders, metrics::Type::PROFILE)
       .write(profile_.open_orders_ack, metrics::Type::PROFILE)
       .write(profile_.fill_history, metrics::Type::PROFILE)
       .write(profile_.fill_history_ack, metrics::Type::PROFILE)
-      .write(profile_.place_order, metrics::Type::PROFILE)
-      .write(profile_.place_order_ack, metrics::Type::PROFILE)
+      .write(profile_.create_order, metrics::Type::PROFILE)
+      .write(profile_.create_order_ack, metrics::Type::PROFILE)
       .write(profile_.modify_order, metrics::Type::PROFILE)
       .write(profile_.modify_order_ack, metrics::Type::PROFILE)
       .write(profile_.cancel_order, metrics::Type::PROFILE)
       .write(profile_.cancel_order_ack, metrics::Type::PROFILE)
       .write(profile_.cancel_all_orders, metrics::Type::PROFILE)
       .write(profile_.cancel_all_orders_ack, metrics::Type::PROFILE)
-      .write(profile_.countdown_cancel_all, metrics::Type::PROFILE)
-      .write(profile_.countdown_cancel_all_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
 uint16_t OrderEntry::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
-  place_order(event, order, request_id);
+  create_order(event, order, request_id);
   return stream_id_;
 }
 
@@ -240,6 +224,7 @@ uint32_t OrderEntry::download(OrderEntryState state) {
     case UNDEFINED:
       assert(false);
       break;
+    /*
     case ACCOUNT_INFO:
       get_account_info();
       return 1;
@@ -249,16 +234,20 @@ uint32_t OrderEntry::download(OrderEntryState state) {
     case POSITION_INFO:  // skip
       get_position_info();
       return 1;
+    */
     case OPEN_ORDERS:
       get_open_orders();
       return 1;
     case FILL_HISTORY:
+      /*
       if (shared_.settings.rest.download_fills_begin.count()) {
         get_fill_history();
         return 1;
       } else {
         return 0;
       }
+      */
+      return 0;
     case DONE:
       (*this)(ConnectionStatus::READY);
       return 0;
@@ -266,7 +255,7 @@ uint32_t OrderEntry::download(OrderEntryState state) {
   assert(false);
   return 0;
 }
-
+/*
 // account_info
 
 void OrderEntry::get_account_info() {
@@ -490,18 +479,19 @@ void OrderEntry::operator()(Trace<json::PositionInfo> const &event) {
     create_trace_and_dispatch(handler_, trace_info, position_update, true);
   }
 }
-
+*/
 // open_orders
 
 void OrderEntry::get_open_orders() {
   profile_.open_orders([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.order_management.open_orders;
-    auto headers = account_.create_headers(path, {}, {});
+    auto query = fmt::format("?symbol=BTCUSDT"sv);  // XXX FIXME TODO
+    auto headers = account_.create_headers(path, query, {});
     auto request = web::rest::Request{
         .method = method,
         .path = path,
-        .query = {},
+        .query = query,
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = {},
         .headers = headers,
@@ -530,12 +520,19 @@ void OrderEntry::get_open_orders_ack(Trace<web::rest::Response> const &event, ui
         log::info("Download state={} has already been processed"sv, state);
       } else {
         json::OpenOrders open_orders{body, decode_buffer_};
-        if (open_orders.code == 0) {
-          Trace event{trace_info, open_orders};
-          (*this)(event);
-          download_.check(state);
-        } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(open_orders.code), open_orders.msg);
+        log::warn("DEBUG open_orders={}"sv, open_orders);
+        switch (open_orders.code) {
+          case 0: {
+            Trace event{trace_info, open_orders};
+            (*this)(event);
+            download_.check(state);
+            break;
+          }
+          case 10002:  // no orders
+            download_.check(state);
+            break;
+          default:
+            handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(open_orders.code), open_orders.msg);
         }
       }
     };
@@ -546,8 +543,9 @@ void OrderEntry::get_open_orders_ack(Trace<web::rest::Response> const &event, ui
 void OrderEntry::operator()(Trace<json::OpenOrders> const &event) {
   auto &[trace_info, open_orders] = event;
   log::info<4>("open_orders={}"sv, open_orders);
-  for (auto &item : open_orders.data.list) {
+  for (auto &item : open_orders.data.rows) {
     log::warn("DEBUG item={}"sv, item);
+    /*
     auto remaining_quantity = item.qty - item.cum_exec_qty;
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
@@ -586,16 +584,19 @@ void OrderEntry::operator()(Trace<json::OpenOrders> const &event) {
     log::warn("DEBUG order_update={}"sv, order_update);
     Trace event_2{trace_info, order_update};
     (*this)(event_2, item.client_oid);
+    */
   }
 }
-
+/*
 // fill_history
+
 void OrderEntry::get_fill_history() {
   assert(shared_.settings.rest.download_fills_begin.count() > 0);
   profile_.fill_history([&]() {
     auto now = clock::get_realtime();
     auto start_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - shared_.settings.rest.download_fills_begin);
     auto method = web::http::Method::GET;
+    auto query = fmt::format("?symbol=BTCUSDT"sv); // XXX FIXME TODO
     auto path = shared_.api.order_management.fill_history;
     auto query = fmt::format("?startTime={}"sv, start_time.count());
     log::warn("DEBUG query={}"sv, query);
@@ -734,18 +735,18 @@ void OrderEntry::operator()(Trace<json::FillHistory> const &event) {
   }
   dispatch();
 }
-
+*/
 // place_order
 
-void OrderEntry::place_order(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
-  profile_.place_order([&]() {
+void OrderEntry::create_order(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
+  profile_.create_order([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, create_order] = event;
     auto method = web::http::Method::POST;
-    auto path = shared_.api.order_management.place_order;
-    auto body = json::Encoder::place_order(encode_buffer_, create_order, order, request_id);
+    auto path = shared_.api.order_management.create_order;
+    auto body = json::Encoder::create_order(encode_buffer_, create_order, order, request_id);
     log::warn(R"(DEBUG body="{}")"sv, body);
     auto headers = account_.create_headers(path, {}, body, request_id);
     auto request = web::rest::Request{
@@ -762,14 +763,14 @@ void OrderEntry::place_order(Event<CreateOrder> const &event, server::oms::Order
       uint32_t version = 1;
       TraceInfo trace_info;
       Trace event{trace_info, response};
-      place_order_ack(event, user_id, order_id, version);
+      create_order_ack(event, user_id, order_id, version);
     };
     (*connection_)(request_id, request, callback);
   });
 }
 
-void OrderEntry::place_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
-  profile_.place_order_ack([&]() {
+void OrderEntry::create_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+  profile_.create_order_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -787,12 +788,12 @@ void OrderEntry::place_order_ack(Trace<web::rest::Response> const &event, uint8_
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      json::PlaceOrderAck place_order_ack{body, decode_buffer_};
-      if (place_order_ack.code == 0) {
-        Trace event_2{event, place_order_ack};
+      json::PlaceOrderAck create_order_ack{body, decode_buffer_};
+      if (create_order_ack.code == 0) {
+        Trace event_2{event, create_order_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(place_order_ack.code), place_order_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(create_order_ack.code), create_order_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -801,9 +802,9 @@ void OrderEntry::place_order_ack(Trace<web::rest::Response> const &event, uint8_
 
 void OrderEntry::operator()(
     Trace<json::PlaceOrderAck> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
-  auto &[trace_info, place_order_ack] = event;
-  log::info<2>("place_order_ack={}"sv, place_order_ack);
-  log::warn("DEBUG place_order_ack={}"sv, place_order_ack);
+  auto &[trace_info, create_order_ack] = event;
+  log::info<2>("create_order_ack={}"sv, create_order_ack);
+  log::warn("DEBUG create_order_ack={}"sv, create_order_ack);
 }
 
 // modify_order

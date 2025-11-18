@@ -18,7 +18,7 @@ namespace json {
 // TimeInForce POST_ONLY
 // reduceOnly
 // stpMode
-std::string_view Encoder::place_order(
+std::string_view Encoder::create_order(
     std::string &buffer, CreateOrder const &create_order, server::oms::Order const &order, std::string_view const &request_id) {
   buffer.clear();
   fmt::format_to(
@@ -30,9 +30,11 @@ std::string_view Encoder::place_order(
       Decimal{create_order.quantity, order.quantity_precision.precision});
   if (create_order.order_type == roq::OrderType::LIMIT) {
     auto time_in_force = [&]() -> json::TimeInForce {
+      /*
       if (create_order.execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE)) {
         return json::TimeInForce::POST_ONLY;
       }
+      */
       return map(create_order.time_in_force).template get<json::TimeInForce>();
     }();
     fmt::format_to(
@@ -119,19 +121,6 @@ std::string_view Encoder::cancel_all_orders(
     fmt::format_to(std::back_inserter(buffer), R"(,"symbol":"{}")"sv, cancel_all_orders.symbol);
   }
   fmt::format_to(std::back_inserter(buffer), R"(}})"sv);
-  return buffer;
-}
-
-std::string_view Encoder::countdown_cancel_all(std::string &buffer, std::chrono::seconds countdown) {
-  buffer.clear();
-  int64_t count = countdown.count();
-  auto tmp = std::min<int64_t>(std::max<int64_t>(count, 5), 60);  // note! docs say allowed range is [5;60]
-  fmt::format_to(
-      std::back_inserter(buffer),
-      R"({{)"
-      R"("countdown":"{}")"
-      R"(}})"sv,
-      tmp);
   return buffer;
 }
 

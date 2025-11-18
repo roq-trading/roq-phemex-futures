@@ -441,23 +441,14 @@ constexpr Helper<phemex_futures::json::TimeInForce>::operator std::optional<roq:
       return roq::TimeInForce::UNDEFINED;
     case UNKNOWN_INTERNAL:
       return roq::TimeInForce::UNDEFINED;
-    case IOC:
-      return roq::TimeInForce::IOC;
-    case FOK:
-      return roq::TimeInForce::FOK;
-    case GTC:
-      return roq::TimeInForce::GTC;
-    case POST_ONLY:
+    case GOOD_TILL_CANCEL:
       return roq::TimeInForce::GTC;
   }
   return {};
 }
 
 static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL}} == roq::TimeInForce::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::IOC}} == roq::TimeInForce::IOC);
-static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::FOK}} == roq::TimeInForce::FOK);
-static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GTC}} == roq::TimeInForce::GTC);
-static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::POST_ONLY}} == roq::TimeInForce::GTC);
+static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GOOD_TILL_CANCEL}} == roq::TimeInForce::GTC);
 
 template <>
 template <>
@@ -806,13 +797,13 @@ constexpr Helper<roq::TimeInForce>::operator std::optional<phemex_futures::json:
     case GFD:
       return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case GTC:
-      return phemex_futures::json::TimeInForce::GTC;
+      return phemex_futures::json::TimeInForce::GOOD_TILL_CANCEL;
     case OPG:
       return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case IOC:
-      return phemex_futures::json::TimeInForce::IOC;
+      return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case FOK:
-      return phemex_futures::json::TimeInForce::FOK;
+      return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case GTX:
       return phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL;
     case GTD:
@@ -835,10 +826,10 @@ constexpr Helper<roq::TimeInForce>::operator std::optional<phemex_futures::json:
 
 static_assert(Helper{roq::TimeInForce::UNDEFINED} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::GFD} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
-static_assert(Helper{roq::TimeInForce::GTC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GTC});
+static_assert(Helper{roq::TimeInForce::GTC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GOOD_TILL_CANCEL});
 static_assert(Helper{roq::TimeInForce::OPG} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
-static_assert(Helper{roq::TimeInForce::IOC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::IOC});
-static_assert(Helper{roq::TimeInForce::FOK} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::FOK});
+static_assert(Helper{roq::TimeInForce::IOC} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
+static_assert(Helper{roq::TimeInForce::FOK} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::GTX} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::GTD} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});
 static_assert(Helper{roq::TimeInForce::AT_THE_CLOSE} == phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL});

@@ -74,7 +74,7 @@ class OrderEntry final : public web::rest::Client::Handler {
   void operator()(ConnectionStatus);
 
   uint32_t download(OrderEntryState state);
-
+  /*
   // account_info
   void get_account_info();
   void get_account_info_ack(Trace<web::rest::Response> const &, uint32_t sequence);
@@ -89,20 +89,20 @@ class OrderEntry final : public web::rest::Client::Handler {
   void get_position_info();
   void get_position_info_ack(Trace<web::rest::Response> const &, uint32_t sequence);
   void operator()(Trace<json::PositionInfo> const &);
-
+  */
   // open_orders
   void get_open_orders();
   void get_open_orders_ack(Trace<web::rest::Response> const &, uint32_t sequence);
   void operator()(Trace<json::OpenOrders> const &);
-
+  /*
   // fill_history
   void get_fill_history();
   void get_fill_history_ack(Trace<web::rest::Response> const &, uint32_t sequence);
   void operator()(Trace<json::FillHistory> const &);
-
+  */
   // place_order
-  void place_order(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
-  void place_order_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void create_order(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
+  void create_order_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
   void operator()(Trace<json::PlaceOrderAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // modify_order
@@ -143,16 +143,14 @@ class OrderEntry final : public web::rest::Client::Handler {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile account_info, account_info_ack,  //
-        account_assets, account_assets_ack,                  //
-        position_info, position_info_ack,                    //
-        open_orders, open_orders_ack,                        //
-        fill_history, fill_history_ack,                      //
-        place_order, place_order_ack,                        //
-        modify_order, modify_order_ack,                      //
-        cancel_order, cancel_order_ack,                      //
-        cancel_all_orders, cancel_all_orders_ack,            //
-        countdown_cancel_all, countdown_cancel_all_ack;
+    utils::metrics::Profile  //
+        open_orders,
+        open_orders_ack,                 //
+        fill_history, fill_history_ack,  //
+        create_order, create_order_ack,  //
+        modify_order, modify_order_ack,  //
+        cancel_order, cancel_order_ack,  //
+        cancel_all_orders, cancel_all_orders_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;

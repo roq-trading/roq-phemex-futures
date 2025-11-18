@@ -63,11 +63,6 @@
       "type": "roq/phemex_futures/json/TradeScope"
     },
     {
-      "name": "feeDetail",
-      "type": "roq/phemex_futures/json/FillDataItemFeeDetailItem",
-      "array": "std/span"
-    },
-    {
       "name": "execTime",
       "type": "std/milliseconds"
     },

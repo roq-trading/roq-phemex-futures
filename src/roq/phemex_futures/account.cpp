@@ -37,6 +37,10 @@ std::string Account::create_ws_login(uint64_t request_id) {
   return crypto_.create_ws_login(now_utc, request_id);
 }
 
+std::string_view Account::create_headers(std::string_view const &path, std::string_view const &query) {
+  return create_headers(path, query, {}, {});
+}
+
 std::string_view Account::create_headers(std::string_view const &path, std::string_view const &query, std::string_view const &body) {
   return create_headers(path, query, body, {});
 }

@@ -1,0 +1,126 @@
+{
+  "name": "roq/phemex_futures/json/OpenOrdersDataRowsItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "bizError",
+      "type": "std/int32"
+    },
+    {
+      "name": "orderID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "clOrdID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "side",
+      "type": "roq/phemex_futures/json/Side"
+    },
+    {
+      "name": "actionTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "orderType",
+      "type": "roq/phemex_futures/json/OrderType"
+    },
+    {
+      "name": "priceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "orderQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "displayQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "timeInForce",
+      "type": "roq/phemex_futures/json/TimeInForce"
+    },
+    {
+      "name": "reduceOnly",
+      "type": "std/bool"
+    },
+    {
+      "name": "closedPnlRv",
+      "type": "std/double"
+    },
+    {
+      "name": "closedSizeRq",
+      "type": "std/double"
+    },
+    {
+      "name": "cumQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "cumValueRv",
+      "type": "std/double"
+    },
+    {
+      "name": "leavesQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "leavesValueRv",
+      "type": "std/double"
+    },
+    {
+      "name": "stopDirection",
+      "type": "std/string_view"
+    },
+    {
+      "name": "stopPxRp",
+      "type": "std/double"
+    },
+    {
+      "name": "trigger",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pegOffsetValueRp",
+      "type": "std/double"
+    },
+    {
+      "name": "pegOffsetProportionRr",
+      "type": "std/double"
+    },
+    {
+      "name": "execStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pegPriceType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordStatus",
+      "type": "roq/phemex_futures/json/OrderStatus"
+    },
+    {
+      "name": "execInst",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takeProfitRp",
+      "type": "std/double"
+    },
+    {
+      "name": "stopLossRp",
+      "type": "std/double"
+    }
+  ]
+}

@@ -41,7 +41,6 @@ category.hpp
 category_ws.hpp
 delivery_period.hpp
 event.hpp
-fill_data_item_fee_detail_item.hpp
 fill_data_item.hpp
 fill_history_data.hpp
 fill_history_data_list_item_fee_detail_item.hpp
@@ -63,8 +62,7 @@ message_type.hpp
 modify_order_ack_data.hpp
 modify_order_ack.hpp
 open_orders_data.hpp
-open_orders_data_list_item_fee_detail_item.hpp
-open_orders_data_list_item.hpp
+open_orders_data_rows_item.hpp
 open_orders.hpp
 order_source.hpp
 order_status.hpp
@@ -136,7 +134,6 @@ category.cpp
 category_ws.cpp
 delivery_period.cpp
 event.cpp
-fill_data_item_fee_detail_item.cpp
 fill_data_item.cpp
 fill_history_data.cpp
 fill_history_data_list_item_fee_detail_item.cpp
@@ -158,8 +155,7 @@ message_type.cpp
 modify_order_ack_data.cpp
 modify_order_ack.cpp
 open_orders_data.cpp
-open_orders_data_list_item_fee_detail_item.cpp
-open_orders_data_list_item.cpp
+open_orders_data_rows_item.cpp
 open_orders.cpp
 order_source.cpp
 order_status.cpp

@@ -26,16 +26,12 @@ struct API final {
 
   struct {
     std::string_view accounts_orders_positions;
-    std::string_view account_info;
-    std::string_view account_assets;
-    std::string_view position_info;
     std::string_view open_orders;
     std::string_view fill_history;
-    std::string_view place_order;
+    std::string_view create_order;
     std::string_view modify_order;
     std::string_view cancel_order;
     std::string_view cancel_all_orders;
-    std::string_view countdown_cancel_all;
   } order_management;
 
   // factory

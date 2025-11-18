@@ -18,15 +18,13 @@ namespace phemex_futures {
 namespace json {
 
 struct Encoder final {
-  static std::string_view place_order(std::string &buffer, CreateOrder const &, server::oms::Order const &, std::string_view const &request_id);
+  static std::string_view create_order(std::string &buffer, CreateOrder const &, server::oms::Order const &, std::string_view const &request_id);
 
   static std::string_view modify_order(std::string &buffer, ModifyOrder const &, server::oms::Order const &, std::string_view const &request_id);
 
   static std::string_view cancel_order(std::string &buffer, CancelOrder const &, server::oms::Order const &, std::string_view const &request_id);
 
   static std::string_view cancel_all_orders(std::string &buffer, CancelAllOrders const &, std::string_view const &request_id);
-
-  static std::string_view countdown_cancel_all(std::string &buffer, std::chrono::seconds countdown);
 };
 
 }  // namespace json

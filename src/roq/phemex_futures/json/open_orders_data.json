@@ -3,13 +3,13 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "list",
-      "type": "roq/phemex_futures/json/OpenOrdersDataListItem",
+      "name": "rows",
+      "type": "roq/phemex_futures/json/OpenOrdersDataRowsItem",
       "array": "std/span"
     },
     {
-      "name": "cursor",
-      "type": "std/int64"
+      "name": "nextPageArg",
+      "type": "std/string_view"
     }
   ]
 }

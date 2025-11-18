@@ -3,16 +3,7 @@
   "type": "enum",
   "values": [
     {
-      "name": "ioc"
-    },
-    {
-      "name": "fok"
-    },
-    {
-      "name": "gtc"
-    },
-    {
-      "name": "post_only"
+      "name": "GoodTillCancel"
     }
   ]
 }

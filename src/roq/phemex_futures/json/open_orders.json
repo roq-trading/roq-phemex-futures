@@ -11,10 +11,6 @@
       "type": "std/string_view"
     },
     {
-      "name": "requestTime",
-      "type": "std/milliseconds"
-    },
-    {
       "name": "data",
       "type": "roq/phemex_futures/json/OpenOrdersData"
     }
