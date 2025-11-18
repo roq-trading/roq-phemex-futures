@@ -77,7 +77,7 @@ TEST_CASE("simple", "[json_products]") {
       R"("contractSize":1.0,)"
       R"("lotSize":1,)"     // XXX
       R"("tickSize":0.1,)"  // XXX
-      R"("priceScale":4,)"  // XXX
+      R"("priceScale":4,)"  // XXX  <<====
       R"("ratioScale":8,)"
       R"("pricePrecision":1,)"
       R"("minPriceEp":100000,)"
@@ -144,7 +144,7 @@ TEST_CASE("simple", "[json_products]") {
       R"("settleCurrency":"USDC",)"  // XXX
       R"("quoteCurrency":"USDC",)"   // XXX
       R"("tickSize":"0.1",)"
-      R"("priceScale":0,)"  // XXX
+      R"("priceScale":0,)"  // XXX  <<====
       R"("ratioScale":0,)"
       R"("pricePrecision":1,)"
       R"("baseCurrency":"BTC",)"  // XXX
