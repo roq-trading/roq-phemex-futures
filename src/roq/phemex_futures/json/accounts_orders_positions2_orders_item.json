@@ -3,15 +3,99 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "accountBalanceEv",
-      "type": "std/int64"
-    },
-    {
       "name": "accountID",
       "type": "std/int64"
     },
     {
-      "name": "bonusBalanceEv",
+      "name": "action",
+      "type": "std/string_view"
+    },
+    {
+      "name": "actionBy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "actionTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "addedSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "bonusChangedAmountRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "clOrdID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "cl_req_code",
+      "type": "std/int32"
+    },
+    {
+      "name": "closedPnlRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "closedSize",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "cumFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumPtFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "cumValueRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curAccBalanceRv",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "curAssignedPosBalanceRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curBonusBalanceRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curLeverageRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "curPosSide",
+      "type": "std/string_view"
+    },
+    {
+      "name": "curPosSize",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "curPosTerm",
+      "type": "std/int32"
+    },
+    {
+      "name": "curPosValueRv",
       "type": "std/int64"
     },
     {
@@ -19,31 +103,171 @@
       "type": "std/string_view"
     },
     {
-      "name": "liqStatus",
+      "name": "curRiskLimitRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cxlRejReason",
+      "type": "std/int32"
+    },
+    {
+      "name": "displayQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "execFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "execID",
       "type": "std/string_view"
     },
     {
-      "name": "marginRatioEr",
+      "name": "execPriceRp",
       "type": "std/int64"
     },
     {
-      "name": "status",
+      "name": "execQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "execSeq",
       "type": "std/int64"
     },
     {
-      "name": "totalUsedBalanceEv",
+      "name": "execStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "execValueRv",
       "type": "std/int64"
+    },
+    {
+      "name": "feeRateRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "leavesQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "leavesValueRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "message",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "orderID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "orderQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "ordType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pegOffsetProportionRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "pegOffsetValueRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "posSide",
+      "type": "std/string_view"
+    },
+    {
+      "name": "posTpSlPattern",
+      "type": "std/string_view"
+    },
+    {
+      "name": "priceRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "ptFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "ptPriceRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "relatedPosTerm",
+      "type": "std/int32"
+    },
+    {
+      "name": "relatedReqNum",
+      "type": "std/int64"
+    },
+    {
+      "name": "side",
+      "type": "std/string_view"
+    },
+    {
+      "name": "slPxRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "slTimeInForce",
+      "type": "std/string_view"
+    },
+    {
+      "name": "slTrigger",
+      "type": "std/string_view"
+    },
+    {
+      "name": "stopLossRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "stopPxRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takeProfitRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "timeInForce",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tpPxRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "tpTimeInForce",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tpTrigger",
+      "type": "std/string_view"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
     },
     {
       "name": "userID",
-      "type": "std/int64"
-    },
-    {
-      "name": "userMode",
-      "type": "std/string_view"
-    },
-    {
-      "name": "ver",
       "type": "std/int64"
     }
   ]

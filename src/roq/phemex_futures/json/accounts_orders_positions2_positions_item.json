@@ -3,15 +3,64 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "accountBalanceEv",
-      "type": "std/int64"
-    },
-    {
       "name": "accountID",
       "type": "std/int64"
     },
     {
-      "name": "bonusBalanceEv",
+      "name": "assignedPosBalanceRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "avgEntryPriceRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "bankruptCommRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "bankruptPriceRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyLeavesQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "buyLeavesValueRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyValueToCostRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "createdAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "crossMarginWeightRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "crossSharedBalanceRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumClosedPnlRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumFundingFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumPtFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumTransactFeeRv",
       "type": "std/int64"
     },
     {
@@ -19,19 +68,162 @@
       "type": "std/string_view"
     },
     {
-      "name": "liqStatus",
+      "name": "curTermDiscountFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curTermPtFeeRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curTermRealisedPnlRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "dataVer",
+      "type": "std/int32"
+    },
+    {
+      "name": "deleveragePercentileRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "displayLeverageRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "estimatedOrdLossRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "execSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeCostRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "initMarginReqRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "lastFundingTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "lastTermEndTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "leverageRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "liquidationPriceRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "maintMarginReqRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "makerFeeRateRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "markPriceRp",
+      "type": "std/int64"
+    },
+    {
+      "name": "minPosCostRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "orderCostRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "posCostRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "posMode",
       "type": "std/string_view"
     },
     {
-      "name": "marginRatioEr",
+      "name": "posSide",
+      "type": "std/string_view"
+    },
+    {
+      "name": "positionMarginRv",
       "type": "std/int64"
     },
     {
-      "name": "status",
+      "name": "positionStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "riskLimitIndexId",
+      "type": "std/int32"
+    },
+    {
+      "name": "riskLimitRv",
       "type": "std/int64"
     },
     {
-      "name": "totalUsedBalanceEv",
+      "name": "sellLeavesQty",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "sellLeavesValueRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "sellValueToCostRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "side",
+      "type": "std/string_view"
+    },
+    {
+      "name": "size",
+      "type": "std/double",
+      "comment": "TODO type"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takerFeeRateRr",
+      "type": "std/int64"
+    },
+    {
+      "name": "term",
+      "type": "std/int32"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "unrealisedPnlRv",
+      "type": "std/int64"
+    },
+    {
+      "name": "updatedAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "usedBalanceRv",
       "type": "std/int64"
     },
     {
@@ -39,11 +231,7 @@
       "type": "std/int64"
     },
     {
-      "name": "userMode",
-      "type": "std/string_view"
-    },
-    {
-      "name": "ver",
+      "name": "valueRv",
       "type": "std/int64"
     }
   ]

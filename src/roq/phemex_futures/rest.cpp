@@ -271,6 +271,18 @@ void Rest::operator()(Trace<json::Products> const &event) {
         symbols.emplace_back(item.symbol);
       }
       ++counter;
+      using item_type = std::remove_cvref_t<decltype(item)>;
+      auto min_trade_vol = [&]() {
+        constexpr bool has_contract_size = requires(item_type const &t) { t.contract_size; };
+        constexpr bool has_min_order_value_rv = requires(item_type const &t) { t.min_order_value_rv; };
+        if constexpr (has_contract_size) {
+          return item.contract_size;
+        } else if constexpr (has_min_order_value_rv) {
+          return item.min_order_value_rv;
+        } else {
+          return NaN;
+        }
+      }();
       auto reference_data = ReferenceData{
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
@@ -287,7 +299,7 @@ void Rest::operator()(Trace<json::Products> const &event) {
           .tick_size_steps = {},
           .multiplier = NaN,
           .min_notional = NaN,
-          .min_trade_vol = NaN,
+          .min_trade_vol = min_trade_vol,
           .max_trade_vol = NaN,
           .trade_vol_step_size = NaN,
           .option_type = {},

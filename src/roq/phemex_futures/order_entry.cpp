@@ -488,13 +488,12 @@ void OrderEntry::operator()(Trace<json::PositionInfo> const &event) {
 
 void OrderEntry::get_open_orders() {
   profile_.open_orders([&]() {
-    auto method = web::http::Method::GET;
     auto path = shared_.api.order_management.open_orders;
     for (auto &item : shared_.settings.download.symbols) {
       auto query = fmt::format("?symbol={}"sv, item);
       auto headers = account_.create_headers(path, query, {});
       auto request = web::rest::Request{
-          .method = method,
+          .method = web::http::Method::GET,
           .path = path,
           .query = query,
           .accept = web::http::Accept::APPLICATION_JSON,
@@ -749,21 +748,20 @@ void OrderEntry::create_order(Event<CreateOrder> const &event, server::oms::Orde
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, create_order] = event;
-    auto method = web::http::Method::POST;
     auto path = shared_.api.order_management.create_order;
-    auto body = json::Encoder::create_order(encode_buffer_, create_order, order, request_id);
-    log::warn(R"(DEBUG body="{}")"sv, body);
-    auto headers = account_.create_headers(path, {}, body, request_id);
+    auto query = json::Encoder::create_order(encode_buffer_, create_order, order, request_id);
+    auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
-        .method = method,
+        .method = web::http::Method::PUT,
         .path = path,
-        .query = {},
+        .query = query,
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = web::http::ContentType::APPLICATION_JSON,
         .headers = headers,
-        .body = body,
+        .body = {},
         .quality_of_service = {},
     };
+    log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
       uint32_t version = 1;
       TraceInfo trace_info;
@@ -824,21 +822,20 @@ void OrderEntry::modify_order(
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, modify_order] = event;
-    auto method = web::http::Method::POST;
     auto path = shared_.api.order_management.modify_order;
-    auto body = json::Encoder::modify_order(encode_buffer_, modify_order, order, request_id);
-    log::warn(R"(DEBUG body="{}")"sv, body);
-    auto headers = account_.create_headers(path, {}, body, request_id);
+    auto query = json::Encoder::modify_order(encode_buffer_, modify_order, order, request_id);
+    auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
-        .method = method,
+        .method = web::http::Method::PUT,
         .path = path,
-        .query = {},
+        .query = query,
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = web::http::ContentType::APPLICATION_JSON,
         .headers = headers,
-        .body = body,
+        .body = {},
         .quality_of_service = {},
     };
+    log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = modify_order.order_id, version = modify_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
@@ -899,21 +896,20 @@ void OrderEntry::cancel_order(
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, cancel_order] = event;
-    auto method = web::http::Method::POST;
     auto path = shared_.api.order_management.cancel_order;
-    auto body = json::Encoder::cancel_order(encode_buffer_, cancel_order, order, request_id);
-    log::warn(R"(DEBUG body="{}")"sv, body);
-    auto headers = account_.create_headers(path, {}, body, request_id);
+    auto query = json::Encoder::cancel_order(encode_buffer_, cancel_order, order, request_id);
+    auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
-        .method = method,
+        .method = web::http::Method::DELETE,
         .path = path,
-        .query = {},
+        .query = query,
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = web::http::ContentType::APPLICATION_JSON,
         .headers = headers,
-        .body = body,
+        .body = {},
         .quality_of_service = {},
     };
+    log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = cancel_order.order_id, version = cancel_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
@@ -970,26 +966,28 @@ void OrderEntry::cancel_all_orders(Event<CancelAllOrders> const &event, std::str
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, cancel_all_orders] = event;
-    auto method = web::http::Method::POST;
     auto path = shared_.api.order_management.cancel_all_orders;
-    auto body = json::Encoder::cancel_all_orders(encode_buffer_, cancel_all_orders, request_id);
-    auto headers = account_.create_headers(path, {}, body, request_id);
-    auto request = web::rest::Request{
-        .method = method,
-        .path = path,
-        .query = {},
-        .accept = web::http::Accept::APPLICATION_JSON,
-        .content_type = web::http::ContentType::APPLICATION_JSON,
-        .headers = headers,
-        .body = body,
-        .quality_of_service = {},
-    };
-    auto callback = [this, user_id = message_info.source]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      cancel_all_orders_ack(event, user_id);
-    };
-    (*connection_)(request_id, request, callback);
+    for (auto &item : shared_.settings.download.symbols) {  // XXX FIXME TODO
+      auto query = json::Encoder::cancel_all_orders(encode_buffer_, cancel_all_orders, item, request_id);
+      auto headers = account_.create_headers(path, query, {}, request_id);
+      auto request = web::rest::Request{
+          .method = web::http::Method::DELETE,
+          .path = path,
+          .query = query,
+          .accept = web::http::Accept::APPLICATION_JSON,
+          .content_type = web::http::ContentType::APPLICATION_JSON,
+          .headers = headers,
+          .body = {},
+          .quality_of_service = {},
+      };
+      log::warn("DEBUG request={}"sv, request);
+      auto callback = [this, user_id = message_info.source]([[maybe_unused]] auto &request_id, auto &response) {
+        TraceInfo trace_info;
+        Trace event{trace_info, response};
+        cancel_all_orders_ack(event, user_id);
+      };
+      (*connection_)(request_id, request, callback);
+    }
   });
 }
 

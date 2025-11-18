@@ -3,15 +3,60 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "accountBalanceEv",
-      "type": "std/int64"
-    },
-    {
       "name": "accountID",
       "type": "std/int64"
     },
     {
-      "name": "bonusBalanceEv",
+      "name": "assignedPosBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "avgEntryPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "bankruptCommEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "bankruptPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyLeavesQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "buyLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyROLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyValueToCostEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "createdAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "crossSharedBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumClosedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumFundingFeeEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumTransactFeeEv",
       "type": "std/int64"
     },
     {
@@ -19,19 +64,150 @@
       "type": "std/string_view"
     },
     {
-      "name": "liqStatus",
+      "name": "curTermRealisedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "dataVer",
+      "type": "std/int32"
+    },
+    {
+      "name": "deleveragePercentileEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "displayLeverageEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "estimatedOrdLossEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "execSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "initMarginReqEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "lastFundingTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "lastTermEndTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "leverageEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "liquidationPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "maintMarginReqEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "makerFeeRateEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "markPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "minPosCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "orderCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "posCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "positionMarginEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "positionStatus",
       "type": "std/string_view"
     },
     {
-      "name": "marginRatioEr",
+      "name": "riskLimitEv",
       "type": "std/int64"
     },
     {
-      "name": "status",
+      "name": "riskLimitIndexId",
+      "type": "std/int32"
+    },
+    {
+      "name": "sellLeavesQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "sellLeavesValueEv",
       "type": "std/int64"
     },
     {
-      "name": "totalUsedBalanceEv",
+      "name": "sellROLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "sellValueToCostEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "side",
+      "type": "std/string_view"
+    },
+    {
+      "name": "size",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takerFeeRateEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "term",
+      "type": "std/int32"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "unrealisedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "updatedAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "usedBalanceEv",
       "type": "std/int64"
     },
     {
@@ -39,11 +215,7 @@
       "type": "std/int64"
     },
     {
-      "name": "userMode",
-      "type": "std/string_view"
-    },
-    {
-      "name": "ver",
+      "name": "valueEv",
       "type": "std/int64"
     }
   ]

@@ -191,12 +191,15 @@ constexpr Helper<phemex_futures::json::EventType>::operator std::optional<roq::U
       return roq::UpdateType::UNDEFINED;
     case SNAPSHOT:
       return roq::UpdateType::SNAPSHOT;
+    case INCREMENTAL:
+      return roq::UpdateType::INCREMENTAL;
   }
   return {};
 }
 
 static_assert(Helper{phemex_futures::json::EventType{phemex_futures::json::EventType::UNDEFINED_INTERNAL}} == roq::UpdateType::UNDEFINED);
 static_assert(Helper{phemex_futures::json::EventType{phemex_futures::json::EventType::SNAPSHOT}} == roq::UpdateType::SNAPSHOT);
+static_assert(Helper{phemex_futures::json::EventType{phemex_futures::json::EventType::INCREMENTAL}} == roq::UpdateType::INCREMENTAL);
 
 template <>
 template <>

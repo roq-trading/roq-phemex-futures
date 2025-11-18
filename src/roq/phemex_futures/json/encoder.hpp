@@ -24,7 +24,7 @@ struct Encoder final {
 
   static std::string_view cancel_order(std::string &buffer, CancelOrder const &, server::oms::Order const &, std::string_view const &request_id);
 
-  static std::string_view cancel_all_orders(std::string &buffer, CancelAllOrders const &, std::string_view const &request_id);
+  static std::string_view cancel_all_orders(std::string &buffer, CancelAllOrders const &, std::string_view const &symbol, std::string_view const &request_id);
 };
 
 }  // namespace json

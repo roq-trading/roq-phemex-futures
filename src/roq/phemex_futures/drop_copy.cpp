@@ -314,6 +314,7 @@ void DropCopy::operator()(Trace<json::IndexMarket24h> const &event) {
 void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
+  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
   for (auto &item : accounts_orders_positions.accounts) {
     // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
     auto funds_update = FundsUpdate{
@@ -337,6 +338,7 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
 void DropCopy::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
+  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
   for (auto &item : accounts_orders_positions.accounts_p) {
     // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
     auto funds_update = FundsUpdate{

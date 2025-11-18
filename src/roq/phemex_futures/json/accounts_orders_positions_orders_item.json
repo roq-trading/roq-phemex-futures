@@ -3,15 +3,27 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "accountBalanceEv",
-      "type": "std/int64"
-    },
-    {
       "name": "accountID",
       "type": "std/int64"
     },
     {
-      "name": "bonusBalanceEv",
+      "name": "action",
+      "type": "std/string_view"
+    },
+    {
+      "name": "actionBy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "actionTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "addedSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "bonusChangedAmountEv",
       "type": "std/int64"
     },
     {
@@ -19,31 +31,202 @@
       "type": "std/string_view"
     },
     {
-      "name": "liqStatus",
+      "name": "clOrdID",
       "type": "std/string_view"
     },
     {
-      "name": "marginRatioEr",
+      "name": "closedPnlEv",
       "type": "std/int64"
     },
     {
-      "name": "status",
+      "name": "closedSize",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "cumQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "cumValueEv",
       "type": "std/int64"
     },
     {
-      "name": "totalUsedBalanceEv",
+      "name": "curAccBalanceEv",
       "type": "std/int64"
+    },
+    {
+      "name": "curAssignedPosBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curBonusBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "curLeverageEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "curPosSide",
+      "type": "std/string_view"
+    },
+    {
+      "name": "curPosSize",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "curPosTerm",
+      "type": "std/int32"
+    },
+    {
+      "name": "curPosValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cxlRejReason",
+      "type": "std/int32"
+    },
+    {
+      "name": "displayQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "execFeeEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "execID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "execPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "execQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "execSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "execStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "execValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "feeRateEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "leavesQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "leavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "message",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "orderID",
+      "type": "std/string_view"
+    },
+    {
+      "name": "orderQty",
+      "type": "std/double",
+      "comment": "TODO type?"
+    },
+    {
+      "name": "pegOffsetValueEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "priceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "relatedPosTerm",
+      "type": "std/int32"
+    },
+    {
+      "name": "relatedReqNum",
+      "type": "std/int64"
+    },
+    {
+      "name": "side",
+      "type": "std/string_view"
+    },
+    {
+      "name": "slPxEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "slTrigger",
+      "type": "std/string_view"
+    },
+    {
+      "name": "slippageEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "stopLossEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "stopPxEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takeProfitEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "timeInForce",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tpPxEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "tpTrigger",
+      "type": "std/string_view"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
     },
     {
       "name": "userID",
-      "type": "std/int64"
-    },
-    {
-      "name": "userMode",
-      "type": "std/string_view"
-    },
-    {
-      "name": "ver",
       "type": "std/int64"
     }
   ]

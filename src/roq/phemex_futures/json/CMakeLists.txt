@@ -37,8 +37,6 @@ set(AUTOGEN_SCHEMAS
     book_data_item.json
     book_data.json
     book.json
-    cancel_all_orders_ack_data.json
-    cancel_all_orders_ack_data_list_item.json
     cancel_all_orders_ack.json
     cancel_order_ack_data.json
     cancel_order_ack.json
