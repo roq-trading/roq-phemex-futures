@@ -366,7 +366,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .price = item.price_rp,
         .stop_price = item.stop_px_rp,
         .leverage = NaN,
-        .remaining_quantity = item.leaves_value_rv,
+        .remaining_quantity = item.leaves_qty,
         .traded_quantity = item.cum_qty,  // cum_value_rv ???
         .average_traded_price = NaN,
         .last_traded_quantity = NaN,  // exec_qty, exec_value_rv ???

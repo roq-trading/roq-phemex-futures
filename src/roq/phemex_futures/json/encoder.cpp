@@ -73,7 +73,7 @@ std::string_view Encoder::create_order_usd_m(
       "?clOrdID={}"
       "&symbol={}"
       "&side={}"
-      "&posSide=Long"  // XXX FIXME TODO
+      "&posSide={}"
       "&ordType={}"
       "&timeInForce={}"
       "&reduceOnly={}"
@@ -81,7 +81,7 @@ std::string_view Encoder::create_order_usd_m(
       request_id,
       create_order.symbol,
       side.as_raw_text(),
-      // pos_side.as_raw_text(),
+      pos_side.as_raw_text(),
       ord_type.as_raw_text(),
       time_in_force.as_raw_text(),
       reduce_only,
@@ -121,11 +121,13 @@ std::string_view Encoder::modify_order_usd_m(
   } else {
     fmt::format_to(std::back_inserter(buffer), "?orderID={}"sv, order.external_order_id);
   }
+  auto pos_side = map(order.position_effect, order.side).template get<json::PosSide>();
   fmt::format_to(
       std::back_inserter(buffer),
       "&symbol={}"
-      "&posSide=Long"sv,  // XXX FIXME TODO
-      order.symbol);
+      "&posSide={}"sv,
+      order.symbol,
+      pos_side.as_raw_text());
   if (!std::isnan(modify_order.quantity)) {
     fmt::format_to(std::back_inserter(buffer), "&orderQtyRq={}"sv, Decimal{modify_order.quantity, order.quantity_precision.precision});
   }
@@ -157,11 +159,13 @@ std::string_view Encoder::cancel_order_usd_m(
   } else {
     fmt::format_to(std::back_inserter(buffer), "?orderID={}"sv, order.external_order_id);
   }
+  auto pos_side = map(order.position_effect, order.side).template get<json::PosSide>();
   fmt::format_to(
       std::back_inserter(buffer),
       "&symbol={}"
-      "&posSide=Long"sv,  // XXX FIXME TODO
-      order.symbol);
+      "&posSide={}"sv,
+      order.symbol,
+      pos_side.as_raw_text());
   return buffer;
 }
 
