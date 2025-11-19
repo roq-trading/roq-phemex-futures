@@ -11,6 +11,8 @@ using namespace std::literals;
 namespace roq {
 namespace phemex_futures {
 
+// === HELPERS ===
+
 namespace {
 auto create_gateway_settings(auto &settings) -> GatewaySettings {
   return {
@@ -38,6 +40,8 @@ auto create_gateway_settings(auto &settings) -> GatewaySettings {
   };
 }
 }  // namespace
+
+// === IMPLEMENTATION ===
 
 Config::Config(Settings const &settings) : exchange_{settings.exchange}, gateway_settings_{create_gateway_settings(settings)} {
   server::config::Reader::parse_file(*this, settings);

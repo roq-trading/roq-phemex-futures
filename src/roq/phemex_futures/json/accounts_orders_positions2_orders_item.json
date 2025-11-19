@@ -24,7 +24,7 @@
     },
     {
       "name": "bonusChangedAmountRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "clOrdID",
@@ -36,7 +36,7 @@
     },
     {
       "name": "closedPnlRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "closedSize",
@@ -48,11 +48,11 @@
     },
     {
       "name": "cumFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cumPtFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cumQty",
@@ -60,23 +60,23 @@
     },
     {
       "name": "cumValueRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curAccBalanceRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curAssignedPosBalanceRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curBonusBalanceRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curLeverageRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curPosSide",
@@ -92,7 +92,7 @@
     },
     {
       "name": "curPosValueRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "currency",
@@ -100,7 +100,7 @@
     },
     {
       "name": "curRiskLimitRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cxlRejReason",
@@ -112,7 +112,7 @@
     },
     {
       "name": "execFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "execID",
@@ -120,7 +120,7 @@
     },
     {
       "name": "execPriceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "execQty",
@@ -136,11 +136,11 @@
     },
     {
       "name": "execValueRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "feeRateRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "leavesQty",
@@ -148,7 +148,7 @@
     },
     {
       "name": "leavesValueRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "message",
@@ -172,11 +172,11 @@
     },
     {
       "name": "pegOffsetProportionRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "pegOffsetValueRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "posSide",
@@ -188,15 +188,15 @@
     },
     {
       "name": "priceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "ptFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "ptPriceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "relatedPosTerm",
@@ -212,7 +212,7 @@
     },
     {
       "name": "slPxRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "slTimeInForce",
@@ -224,11 +224,11 @@
     },
     {
       "name": "stopLossRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "stopPxRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "symbol",
@@ -236,7 +236,7 @@
     },
     {
       "name": "takeProfitRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "timeInForce",
@@ -244,7 +244,7 @@
     },
     {
       "name": "tpPxRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "tpTimeInForce",
@@ -261,6 +261,10 @@
     {
       "name": "userID",
       "type": "std/int64"
+    },
+    {
+      "name": "tradeType",
+      "type": "roq/phemex_futures/json/TradeType"
     }
   ]
 }

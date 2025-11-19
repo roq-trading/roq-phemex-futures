@@ -312,6 +312,11 @@ Comments
   This seems intermittent and we have not yet found a good explanation for this.
   Upon seeing the error message, the gateway proceeds to disconnecting and trying again.
 
+* The REST connection will only report the "pending" order status.
+  The final confirmation will arrive on the WS connection.
+
+* The exchange only support cancel-replace (not modify)
+
 
 References
 ----------

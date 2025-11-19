@@ -19,8 +19,7 @@
 namespace roq {
 namespace phemex_futures {
 
-class Config final : public server::config::Dispatcher, public server::config::Reader::Handler {
- public:
+struct Config final : public server::config::Dispatcher, public server::config::Reader::Handler {
   explicit Config(Settings const &);
 
   Config(Config const &) = delete;

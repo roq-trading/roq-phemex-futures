@@ -12,7 +12,6 @@
 #include "roq/time_in_force.hpp"
 #include "roq/update_type.hpp"
 
-#include "roq/phemex_futures/json/action.hpp"
 #include "roq/phemex_futures/json/event_type.hpp"
 #include "roq/phemex_futures/json/message_type.hpp"
 #include "roq/phemex_futures/json/order_status.hpp"
@@ -25,10 +24,6 @@
 namespace roq {
 
 // phemex_futures::json => roq
-
-template <>
-template <>
-std::optional<UpdateType> Map<phemex_futures::json::Action>::helper() const;
 
 template <>
 template <>

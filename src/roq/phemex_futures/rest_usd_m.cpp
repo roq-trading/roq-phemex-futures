@@ -242,8 +242,8 @@ void RestUsdM::operator()(Trace<json::Products> const &event) {
       case UNDEFINED_INTERNAL:
       case UNKNOWN_INTERNAL:
       case SPOT:
-        return true;
       case PERPETUAL:
+        return true;
       case PERPETUAL_V2:
         break;
     };
@@ -259,96 +259,62 @@ void RestUsdM::operator()(Trace<json::Products> const &event) {
     return shared_.discard_symbol(symbol);
   };
   std::vector<Symbol> symbols;
-  auto helper = [&](auto &data) {
-    symbols.reserve(std::size(data));
-    size_t counter = 0;
-    for (size_t i = 0; i < std::size(data); ++i) {
-      auto &item = data[i];
-      log::info<2>("item={}"sv, item);
-      if (discard(item.symbol, item.type, item.status)) {
-        continue;
-      }
-      if (all_symbols_.emplace(item.symbol).second) {  // only include new
-        symbols.emplace_back(item.symbol);
-      }
-      ++counter;
-      using item_type = std::remove_cvref_t<decltype(item)>;
-      auto min_trade_vol = [&]() {
-        constexpr bool has_lot_size = requires(item_type const &t) { t.lot_size; };                      // coin-m
-        constexpr bool has_min_order_value_rv = requires(item_type const &t) { t.min_order_value_rv; };  // usd-m
-        if constexpr (has_lot_size) {
-          return item.lot_size;
-        } else if constexpr (has_min_order_value_rv) {
-          return item.min_order_value_rv;
-        } else {
-          return NaN;
-        }
-      }();
-      auto trade_vol_step_size = [&]() {
-        constexpr bool has_qty_step_size = requires(item_type const &t) { t.qty_step_size; };  // coin-m
-        if constexpr (has_qty_step_size) {
-          return item.qty_step_size;
-        } else {
-          return NaN;
-        }
-      }();
-      auto reference_data = ReferenceData{
-          .stream_id = stream_id_,
-          .exchange = shared_.settings.exchange,
-          .symbol = item.symbol,
-          .description = item.description.substr(0, detail::MAX_LENGTH_DESCRIPTION),  // XXX FIXME should be member
-          .security_type = map(item.type),
-          .cfi_code = {},
-          .base_currency = item.base_currency,
-          .quote_currency = item.quote_currency,
-          .settlement_currency = item.settle_currency,
-          .margin_currency = {},
-          .commission_currency = {},
-          .tick_size = item.tick_size,
-          .tick_size_steps = {},
-          .multiplier = NaN,
-          .min_notional = NaN,
-          .min_trade_vol = min_trade_vol,
-          .max_trade_vol = NaN,
-          .trade_vol_step_size = trade_vol_step_size,
-          .option_type = {},
-          .strike_currency = {},
-          .strike_price = NaN,
-          .underlying = {},
-          .time_zone = {},
-          .issue_date = utils::safe_cast(item.list_time),
-          .settlement_date = {},
-          .expiry_datetime = {},
-          .expiry_datetime_utc = {},
-          .exchange_time_utc = {},
-          .exchange_sequence = {},
-          .sending_time_utc = {},
-          .discard = {},
-      };
-      create_trace_and_dispatch(handler_, trace_info, reference_data, true);
-      // ...
-      shared_.security[item.symbol] = tools::Security{
-          .price_factor = std::pow(10.0, item.price_scale),
-      };
+  auto &data = products.data.perp_products_v2;
+  symbols.reserve(std::size(data));
+  size_t counter = 0;
+  for (size_t i = 0; i < std::size(data); ++i) {
+    auto &item = data[i];
+    log::info<2>("item={}"sv, item);
+    if (discard(item.symbol, item.type, item.status)) {
+      continue;
     }
-    if (!std::empty(symbols)) {
-      auto symbols_update = SymbolsUpdate{
-          .symbols = symbols,
-      };
-      handler_(symbols_update);
+    if (all_symbols_.emplace(item.symbol).second) {  // only include new
+      symbols.emplace_back(item.symbol);
     }
-    if (counter > 0) [[unlikely]] {
-      log::info("Symbols {} / {}"sv, counter, std::size(data));
-    }
-  };
-  switch (shared_.api.type) {
-    using enum API::Type;
-    case COIN_M:
-      helper(products.data.products);
-      break;
-    case USD_M:
-      helper(products.data.perp_products_v2);
-      break;
+    ++counter;
+    auto reference_data = ReferenceData{
+        .stream_id = stream_id_,
+        .exchange = shared_.settings.exchange,
+        .symbol = item.symbol,
+        .description = item.description.substr(0, detail::MAX_LENGTH_DESCRIPTION),  // XXX FIXME
+        .security_type = map(item.type),
+        .cfi_code = {},
+        .base_currency = item.base_currency,
+        .quote_currency = item.quote_currency,
+        .settlement_currency = item.settle_currency,
+        .margin_currency = {},
+        .commission_currency = {},
+        .tick_size = item.tick_size,
+        .tick_size_steps = {},
+        .multiplier = NaN,
+        .min_notional = NaN,
+        .min_trade_vol = item.min_order_value_rv,
+        .max_trade_vol = NaN,
+        .trade_vol_step_size = item.qty_step_size,
+        .option_type = {},
+        .strike_currency = {},
+        .strike_price = NaN,
+        .underlying = {},
+        .time_zone = {},
+        .issue_date = utils::safe_cast(item.list_time),
+        .settlement_date = {},
+        .expiry_datetime = {},
+        .expiry_datetime_utc = {},
+        .exchange_time_utc = {},
+        .exchange_sequence = {},
+        .sending_time_utc = {},
+        .discard = {},
+    };
+    create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+  }
+  if (!std::empty(symbols)) {
+    auto symbols_update = SymbolsUpdate{
+        .symbols = symbols,
+    };
+    handler_(symbols_update);
+  }
+  if (counter > 0) [[unlikely]] {
+    log::info("Symbols {} / {}"sv, counter, std::size(data));
   }
 }
 

@@ -9,6 +9,7 @@ set(SOURCES
     json_index_market24h.cpp
     json_kline.cpp
     json_market24h.cpp
+    json_modify_order_ack.cpp
     json_open_orders.cpp
     json_place_order_ack.cpp
     json_products.cpp

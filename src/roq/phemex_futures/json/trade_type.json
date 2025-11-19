@@ -1,0 +1,9 @@
+{
+  "name": "roq/phemex_futures/json/TradeType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Replace"
+    }
+  ]
+}

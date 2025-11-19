@@ -225,12 +225,15 @@ uint32_t OrderEntryUsdM::download(OrderEntryState state) {
       assert(false);
       break;
     case OPEN_ORDERS:
+      /*
       if (!std::empty(shared_.settings.download.symbols)) {
         get_open_orders();
         return 1;  // XXX FIXME TODO countdown
       } else {
         return 0;
       }
+      */
+      return 0;
     case FILL_HISTORY:
       /*
       if (shared_.settings.rest.download_fills_begin.count()) {
@@ -248,7 +251,7 @@ uint32_t OrderEntryUsdM::download(OrderEntryState state) {
   assert(false);
   return 0;
 }
-
+/*
 // open_orders
 
 void OrderEntryUsdM::get_open_orders() {
@@ -286,7 +289,7 @@ void OrderEntryUsdM::get_open_orders_ack(Trace<web::rest::Response> const &event
       download_.retry(state);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
+      // log::warn(R"(DEBUG body="{}")"sv, body);
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
       } else {
@@ -314,8 +317,8 @@ void OrderEntryUsdM::operator()(Trace<json::OpenOrders> const &event) {
   auto &[trace_info, open_orders] = event;
   log::info<4>("open_orders={}"sv, open_orders);
   for (auto &item : open_orders.data.rows) {
-    log::warn("DEBUG item={}"sv, item);
-    /*
+    // log::warn("DEBUG item={}"sv, item);
+
     auto remaining_quantity = item.qty - item.cum_exec_qty;
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
@@ -354,9 +357,10 @@ void OrderEntryUsdM::operator()(Trace<json::OpenOrders> const &event) {
     log::warn("DEBUG order_update={}"sv, order_update);
     Trace event_2{trace_info, order_update};
     (*this)(event_2, item.client_oid);
-    */
+
   }
 }
+*/
 /*
 // fill_history
 
@@ -514,50 +518,34 @@ void OrderEntryUsdM::create_order(Event<CreateOrder> const &event, server::oms::
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, create_order] = event;
-    auto helper = [&](auto &security) {
-      auto query = [&]() {
-        switch (shared_.api.type) {
-          using enum API::Type;
-          case COIN_M:
-            return json::Encoder::create_order_coin_m(encode_buffer_, create_order, order, request_id, security);
-          case USD_M:
-            return json::Encoder::create_order_usd_m(encode_buffer_, create_order, order, request_id);
-        }
-        log::fatal("Unexpected"sv);
-      }();
-      auto path = shared_.api.order_management.create_order;
-      auto headers = account_.create_headers(path, query, {}, request_id);
-      auto request = web::rest::Request{
-          .method = web::http::Method::PUT,
-          .path = path,
-          .query = query,
-          .accept = web::http::Accept::APPLICATION_JSON,
-          .content_type = web::http::ContentType::APPLICATION_JSON,
-          .headers = headers,
-          .body = {},
-          .quality_of_service = {},
-      };
-      log::warn("DEBUG request={}"sv, request);
-      auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
-        uint32_t version = 1;
-        TraceInfo trace_info;
-        Trace event{trace_info, response};
-        create_order_ack(event, user_id, order_id, version);
-      };
-      (*connection_)(request_id, request, callback);
+    auto path = shared_.api.order_management.create_order;
+    auto query = json::Encoder::create_order_usd_m(encode_buffer_, create_order, order, request_id);
+    auto headers = account_.create_headers(path, query, {}, request_id);
+    auto request = web::rest::Request{
+        .method = web::http::Method::PUT,
+        .path = path,
+        .query = query,
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = web::http::ContentType::APPLICATION_JSON,
+        .headers = headers,
+        .body = {},
+        .quality_of_service = {},
     };
-    if (shared_.find_security(create_order.symbol, helper)) {
-    } else {
-      log::warn("*** NO SECURITY INFO ***"sv);
-      throw server::oms::NotReady{"not ready"sv};  // XXX FIXME TODO
-    }
+    // log::warn("DEBUG request={}"sv, request);
+    auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
+      uint32_t version = 1;
+      TraceInfo trace_info;
+      Trace event{trace_info, response};
+      create_order_ack(event, user_id, order_id, version);
+    };
+    (*connection_)(request_id, request, callback);
   });
 }
 
 void OrderEntryUsdM::create_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.create_order_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
           .request_type = RequestType::CREATE_ORDER,
           .origin = origin,
@@ -573,7 +561,7 @@ void OrderEntryUsdM::create_order_ack(Trace<web::rest::Response> const &event, u
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
+      // log::warn(R"(DEBUG body="{}")"sv, body);
       json::PlaceOrderAck2 create_order_ack{body, decode_buffer_};
       if (create_order_ack.code == 0) {
         Trace event_2{event, create_order_ack};
@@ -586,11 +574,58 @@ void OrderEntryUsdM::create_order_ack(Trace<web::rest::Response> const &event, u
   });
 }
 
-void OrderEntryUsdM::operator()(
-    Trace<json::PlaceOrderAck2> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
+void OrderEntryUsdM::operator()(Trace<json::PlaceOrderAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, create_order_ack] = event;
   log::info<2>("create_order_ack={}"sv, create_order_ack);
-  log::warn("DEBUG create_order_ack={}"sv, create_order_ack);
+  // log::warn("DEBUG create_order_ack={}"sv, create_order_ack);
+  auto &data = create_order_ack.data;
+  auto response = server::oms::Response{
+      .request_type = RequestType::CREATE_ORDER,
+      .origin = Origin::EXCHANGE,
+      .request_status = RequestStatus::ACCEPTED,
+      .error = {},
+      .text = {},
+      .version = version,
+      .request_id = {},
+      .quantity = data.order_qty_rq,
+      .price = data.price_rp,
+  };
+  auto order_update = server::oms::OrderUpdate{
+      .account = account_.name,
+      .exchange = shared_.settings.exchange,
+      .symbol = data.symbol,
+      .side = map(data.side),
+      .position_effect = {},
+      .margin_mode = {},
+      .max_show_quantity = NaN,
+      .order_type = map(data.order_type),
+      .time_in_force = map(data.time_in_force),
+      .execution_instructions = {},  // ???
+      .create_time_utc = data.transact_time_ns,
+      .update_time_utc = data.transact_time_ns,
+      .external_account = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
+      .order_status = map(data.ord_status),
+      .quantity = data.order_qty_rq,
+      .price = data.price_rp,
+      .stop_price = data.stop_px_rp,
+      .leverage = NaN,
+      .remaining_quantity = data.leaves_qty_rq,
+      .traded_quantity = data.cum_qty_rq,
+      .average_traded_price = NaN,
+      .last_traded_quantity = NaN,
+      .last_traded_price = NaN,
+      .last_liquidity = {},
+      .routing_id = {},
+      .max_request_version = {},
+      .max_response_version = {},
+      .max_accepted_version = {},
+      .update_type = UpdateType::INCREMENTAL,
+      .sending_time_utc = create_order_ack.request_time,  // ???
+  };
+  Trace event_2{trace_info, response};
+  (*this)(event_2, user_id, order_id, order_update);
 }
 
 // modify_order
@@ -606,16 +641,7 @@ void OrderEntryUsdM::modify_order(
     }
     auto &[message_info, modify_order] = event;
     auto path = shared_.api.order_management.modify_order;
-    auto query = [&]() {
-      switch (shared_.api.type) {
-        using enum API::Type;
-        case COIN_M:
-          return json::Encoder::modify_order_coin_m(encode_buffer_, modify_order, order, request_id);
-        case USD_M:
-          return json::Encoder::modify_order_usd_m(encode_buffer_, modify_order, order, request_id);
-      }
-      log::fatal("Unexpected"sv);
-    }();
+    auto query = json::Encoder::modify_order_usd_m(encode_buffer_, modify_order, order, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -658,7 +684,7 @@ void OrderEntryUsdM::modify_order_ack(Trace<web::rest::Response> const &event, u
     };
     auto handle_success = [&](auto &body) {
       log::warn(R"(DEBUG body="{}")"sv, body);
-      json::ModifyOrderAck modify_order_ack{body, decode_buffer_};
+      json::ModifyOrderAck2 modify_order_ack{body, decode_buffer_};
       if (modify_order_ack.code == 0) {
         Trace event_2{event, modify_order_ack};
         (*this)(event_2, user_id, order_id, version);
@@ -670,11 +696,58 @@ void OrderEntryUsdM::modify_order_ack(Trace<web::rest::Response> const &event, u
   });
 }
 
-void OrderEntryUsdM::operator()(
-    Trace<json::ModifyOrderAck> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
+void OrderEntryUsdM::operator()(Trace<json::ModifyOrderAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, modify_order_ack] = event;
   log::info<2>("modify_order_ack={}"sv, modify_order_ack);
   log::warn("DEBUG modify_order_ack={}"sv, modify_order_ack);
+  auto &data = modify_order_ack.data;
+  auto response = server::oms::Response{
+      .request_type = RequestType::MODIFY_ORDER,
+      .origin = Origin::EXCHANGE,
+      .request_status = RequestStatus::ACCEPTED,
+      .error = {},
+      .text = {},
+      .version = version,
+      .request_id = {},
+      .quantity = data.order_qty_rq,
+      .price = data.price_rp,
+  };
+  auto order_update = server::oms::OrderUpdate{
+      .account = account_.name,
+      .exchange = shared_.settings.exchange,
+      .symbol = data.symbol,
+      .side = map(data.side),
+      .position_effect = {},
+      .margin_mode = {},
+      .max_show_quantity = NaN,
+      .order_type = map(data.order_type),
+      .time_in_force = map(data.time_in_force),
+      .execution_instructions = {},  // ???
+      .create_time_utc = {},
+      .update_time_utc = data.transact_time_ns,
+      .external_account = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
+      .order_status = map(data.ord_status),
+      .quantity = data.order_qty_rq,
+      .price = data.price_rp,
+      .stop_price = data.stop_px_rp,
+      .leverage = NaN,
+      .remaining_quantity = data.leaves_qty_rq,
+      .traded_quantity = data.cum_qty_rq,
+      .average_traded_price = NaN,
+      .last_traded_quantity = NaN,
+      .last_traded_price = NaN,
+      .last_liquidity = {},
+      .routing_id = {},
+      .max_request_version = {},
+      .max_response_version = {},
+      .max_accepted_version = {},
+      .update_type = UpdateType::INCREMENTAL,
+      .sending_time_utc = modify_order_ack.request_time,
+  };
+  Trace event_2{trace_info, response};
+  (*this)(event_2, user_id, order_id, order_update);
 }
 
 // cancel_order
@@ -690,16 +763,7 @@ void OrderEntryUsdM::cancel_order(
     }
     auto &[message_info, cancel_order] = event;
     auto path = shared_.api.order_management.cancel_order;
-    auto query = [&]() {
-      switch (shared_.api.type) {
-        using enum API::Type;
-        case COIN_M:
-          return json::Encoder::cancel_order_coin_m(encode_buffer_, cancel_order, order, request_id);
-        case USD_M:
-          return json::Encoder::cancel_order_usd_m(encode_buffer_, cancel_order, order, request_id);
-      }
-      log::fatal("Unexpected"sv);
-    }();
+    auto query = json::Encoder::cancel_order_usd_m(encode_buffer_, cancel_order, order, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,
@@ -711,7 +775,7 @@ void OrderEntryUsdM::cancel_order(
         .body = {},
         .quality_of_service = {},
     };
-    log::warn("DEBUG request={}"sv, request);
+    // log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = cancel_order.order_id, version = cancel_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
@@ -725,7 +789,7 @@ void OrderEntryUsdM::cancel_order(
 void OrderEntryUsdM::cancel_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.cancel_order_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
           .request_type = RequestType::CANCEL_ORDER,
           .origin = origin,
@@ -741,7 +805,7 @@ void OrderEntryUsdM::cancel_order_ack(Trace<web::rest::Response> const &event, u
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
+      // log::warn(R"(DEBUG body="{}")"sv, body);
       json::CancelOrderAck2 cancel_order_ack{body, decode_buffer_};
       if (cancel_order_ack.code == 0) {
         Trace event_2{event, cancel_order_ack};
@@ -754,11 +818,58 @@ void OrderEntryUsdM::cancel_order_ack(Trace<web::rest::Response> const &event, u
   });
 }
 
-void OrderEntryUsdM::operator()(
-    Trace<json::CancelOrderAck2> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
+void OrderEntryUsdM::operator()(Trace<json::CancelOrderAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, cancel_order_ack] = event;
   log::info<2>("cancel_order_ack={}"sv, cancel_order_ack);
-  log::warn("DEBUG cancel_order_ack={}"sv, cancel_order_ack);
+  // log::warn("DEBUG cancel_order_ack={}"sv, cancel_order_ack);
+  auto &data = cancel_order_ack.data;
+  auto response = server::oms::Response{
+      .request_type = RequestType::CANCEL_ORDER,
+      .origin = Origin::EXCHANGE,
+      .request_status = RequestStatus::ACCEPTED,
+      .error = {},
+      .text = {},
+      .version = version,
+      .request_id = {},
+      .quantity = data.order_qty_rq,
+      .price = data.price_rp,
+  };
+  auto order_update = server::oms::OrderUpdate{
+      .account = account_.name,
+      .exchange = shared_.settings.exchange,
+      .symbol = data.symbol,
+      .side = map(data.side),
+      .position_effect = {},
+      .margin_mode = {},
+      .max_show_quantity = NaN,
+      .order_type = map(data.order_type),
+      .time_in_force = map(data.time_in_force),
+      .execution_instructions = {},  // ???
+      .create_time_utc = {},
+      .update_time_utc = data.transact_time_ns,
+      .external_account = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
+      .order_status = map(data.ord_status),
+      .quantity = data.order_qty_rq,
+      .price = data.price_rp,
+      .stop_price = data.stop_px_rp,
+      .leverage = NaN,
+      .remaining_quantity = data.leaves_qty_rq,
+      .traded_quantity = data.cum_qty_rq,
+      .average_traded_price = NaN,
+      .last_traded_quantity = NaN,
+      .last_traded_price = NaN,
+      .last_liquidity = {},
+      .routing_id = {},
+      .max_request_version = {},
+      .max_response_version = {},
+      .max_accepted_version = {},
+      .update_type = UpdateType::INCREMENTAL,
+      .sending_time_utc = cancel_order_ack.request_time,
+  };
+  Trace event_2{trace_info, response};
+  (*this)(event_2, user_id, order_id, order_update);
 }
 
 // cancel_all_orders

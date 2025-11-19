@@ -8,19 +8,19 @@
     },
     {
       "name": "assignedPosBalanceRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "avgEntryPriceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "bankruptCommRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "bankruptPriceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "buyLeavesQty",
@@ -28,11 +28,11 @@
     },
     {
       "name": "buyLeavesValueRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "buyValueToCostRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "createdAtNs",
@@ -40,27 +40,27 @@
     },
     {
       "name": "crossMarginWeightRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "crossSharedBalanceRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cumClosedPnlRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cumFundingFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cumPtFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "cumTransactFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "currency",
@@ -68,31 +68,31 @@
     },
     {
       "name": "curTermDiscountFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curTermPtFeeRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "curTermRealisedPnlRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "dataVer",
-      "type": "std/int32"
+      "type": "std/int64"
     },
     {
       "name": "deleveragePercentileRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "displayLeverageRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "estimatedOrdLossRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "execSeq",
@@ -100,7 +100,7 @@
     },
     {
       "name": "freeCostRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "freeQty",
@@ -108,7 +108,7 @@
     },
     {
       "name": "initMarginReqRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "lastFundingTime",
@@ -120,35 +120,35 @@
     },
     {
       "name": "leverageRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "liquidationPriceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "maintMarginReqRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "makerFeeRateRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "markPriceRp",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "minPosCostRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "orderCostRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "posCostRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "posMode",
@@ -160,7 +160,7 @@
     },
     {
       "name": "positionMarginRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "positionStatus",
@@ -172,7 +172,7 @@
     },
     {
       "name": "riskLimitRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "sellLeavesQty",
@@ -180,11 +180,11 @@
     },
     {
       "name": "sellLeavesValueRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "sellValueToCostRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "side",
@@ -200,7 +200,7 @@
     },
     {
       "name": "takerFeeRateRr",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "term",
@@ -212,7 +212,7 @@
     },
     {
       "name": "unrealisedPnlRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "updatedAtNs",
@@ -220,7 +220,7 @@
     },
     {
       "name": "usedBalanceRv",
-      "type": "std/int64"
+      "type": "std/double"
     },
     {
       "name": "userID",
@@ -228,7 +228,7 @@
     },
     {
       "name": "valueRv",
-      "type": "std/int64"
+      "type": "std/double"
     }
   ]
 }

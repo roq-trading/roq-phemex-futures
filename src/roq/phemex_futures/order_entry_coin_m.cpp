@@ -515,17 +515,8 @@ void OrderEntryCoinM::create_order(Event<CreateOrder> const &event, server::oms:
     }
     auto &[message_info, create_order] = event;
     auto helper = [&](auto &security) {
-      auto query = [&]() {
-        switch (shared_.api.type) {
-          using enum API::Type;
-          case COIN_M:
-            return json::Encoder::create_order_coin_m(encode_buffer_, create_order, order, request_id, security);
-          case USD_M:
-            return json::Encoder::create_order_usd_m(encode_buffer_, create_order, order, request_id);
-        }
-        log::fatal("Unexpected"sv);
-      }();
       auto path = shared_.api.order_management.create_order;
+      auto query = json::Encoder::create_order_coin_m(encode_buffer_, create_order, order, request_id, security);
       auto headers = account_.create_headers(path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::PUT,
@@ -606,16 +597,7 @@ void OrderEntryCoinM::modify_order(
     }
     auto &[message_info, modify_order] = event;
     auto path = shared_.api.order_management.modify_order;
-    auto query = [&]() {
-      switch (shared_.api.type) {
-        using enum API::Type;
-        case COIN_M:
-          return json::Encoder::modify_order_coin_m(encode_buffer_, modify_order, order, request_id);
-        case USD_M:
-          return json::Encoder::modify_order_usd_m(encode_buffer_, modify_order, order, request_id);
-      }
-      log::fatal("Unexpected"sv);
-    }();
+    auto query = json::Encoder::modify_order_coin_m(encode_buffer_, modify_order, order, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -690,16 +672,7 @@ void OrderEntryCoinM::cancel_order(
     }
     auto &[message_info, cancel_order] = event;
     auto path = shared_.api.order_management.cancel_order;
-    auto query = [&]() {
-      switch (shared_.api.type) {
-        using enum API::Type;
-        case COIN_M:
-          return json::Encoder::cancel_order_coin_m(encode_buffer_, cancel_order, order, request_id);
-        case USD_M:
-          return json::Encoder::cancel_order_usd_m(encode_buffer_, cancel_order, order, request_id);
-      }
-      log::fatal("Unexpected"sv);
-    }();
+    auto query = json::Encoder::cancel_order_coin_m(encode_buffer_, cancel_order, order, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,

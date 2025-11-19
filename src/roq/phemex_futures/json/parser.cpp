@@ -21,13 +21,13 @@ auto const BIT_ID = uint16_t{1} << 0;
 // market-data
 auto const BIT_BOOK = uint16_t{1} << 1;
 auto const BIT_TRADES = uint16_t{1} << 2;
-auto const BIT_MARKET24H = uint16_t{1} << 3;
-auto const BIT_MARKET24H_P = uint16_t{1} << 4;
+auto const BIT_MARKET24H_COIN_M = uint16_t{1} << 3;
+auto const BIT_MARKET24H_USD_M = uint16_t{1} << 4;
 auto const BIT_KLINE = uint16_t{1} << 5;
 // drop-copy
 auto const BIT_INDEX_MARKET24H = uint16_t{1} << 6;
-auto const BIT_ACCOUNTS_ORDERS_POSITIONS = uint16_t{1} << 7;
-auto const BIT_ACCOUNTS_ORDERS_POSITIONS_P = uint16_t{1} << 8;
+auto const BIT_ACCOUNTS_ORDERS_POSITIONS_COIN_M = uint16_t{1} << 7;
+auto const BIT_ACCOUNTS_ORDERS_POSITIONS_USD_M = uint16_t{1} << 8;
 auto const BIT_POSITION_INFO = uint16_t{1} << 9;
 }  // namespace
 
@@ -81,10 +81,10 @@ bool Parser::dispatch(
         mask |= BIT_TRADES;
         break;
       case MARKET24H:
-        mask |= BIT_MARKET24H;
+        mask |= BIT_MARKET24H_COIN_M;
         break;
       case MARKET24H_P:
-        mask |= BIT_MARKET24H_P;
+        mask |= BIT_MARKET24H_USD_M;
         break;
       case KLINE:
       case KLINE_P:
@@ -106,12 +106,12 @@ bool Parser::dispatch(
       case ACCOUNTS:
       case ORDERS:
       case POSITIONS:
-        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS;
+        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS_COIN_M;
         break;
       case ACCOUNTS_P:
       case ORDERS_P:
       case POSITIONS_P:
-        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS_P;
+        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS_USD_M;
         break;
       case DTS:
         break;
@@ -146,10 +146,10 @@ bool Parser::dispatch(
     if (mask & BIT_TRADES) {
       dispatch_helper<Trades>(handler, message, buffer_stack, trace_info);
     }
-    if (mask & BIT_MARKET24H) {
+    if (mask & BIT_MARKET24H_COIN_M) {
       dispatch_helper<Market24h>(handler, message, buffer_stack, trace_info);
     }
-    if (mask & BIT_MARKET24H_P) {
+    if (mask & BIT_MARKET24H_USD_M) {
       dispatch_helper<Market24h2>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_KLINE) {
@@ -159,10 +159,10 @@ bool Parser::dispatch(
     if (mask & BIT_INDEX_MARKET24H) {
       dispatch_helper<IndexMarket24h>(handler, message, buffer_stack, trace_info);
     }
-    if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS) {
+    if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS_COIN_M) {
       dispatch_helper<AccountsOrdersPositions>(handler, message, buffer_stack, trace_info);
     }
-    if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS_P) {
+    if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS_USD_M) {
       dispatch_helper<AccountsOrdersPositions2>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_POSITION_INFO) {

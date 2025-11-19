@@ -42,6 +42,8 @@ set(AUTOGEN_SCHEMAS
     market24h.json
     message_field.json
     message_type.json
+    modify_order_ack2_data.json
+    modify_order_ack2.json
     modify_order_ack_data.json
     modify_order_ack.json
     open_orders_data.json
@@ -65,6 +67,7 @@ set(AUTOGEN_SCHEMAS
     status.json
     stp_instruction.json
     time_in_force.json
+    trade_type.json
     trades.json
     trades_trades_item.json
     type.json

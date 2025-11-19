@@ -35,7 +35,6 @@ size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
 uint64_t const REQUEST_ID_AUTH = 1;
 uint64_t const REQUEST_ID_AOP = 2;
-uint64_t const REQUEST_ID_AOP_P = 3;
 }  // namespace
 
 // === HELPERS ===
@@ -276,7 +275,6 @@ void DropCopyCoinM::operator()(Trace<json::Ack> const &event) {
       auth_helper();
       break;
     case REQUEST_ID_AOP:
-    case REQUEST_ID_AOP_P:
       aop_helper();
       break;
   }
@@ -314,8 +312,9 @@ void DropCopyCoinM::operator()(Trace<json::IndexMarket24h> const &event) {
 void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
+  log::warn("DEBUG accounts:"sv);
   for (auto &item : accounts_orders_positions.accounts) {
+    log::warn("DEBUG item={}"sv, item);
     // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
     auto funds_update = FundsUpdate{
         .stream_id = stream_id_,
@@ -333,30 +332,18 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
     };
     create_trace_and_dispatch(handler_, trace_info, funds_update, true);
   }
+  log::warn("DEBUG orders:"sv);
+  for (auto &item : accounts_orders_positions.orders) {
+    log::warn("DEBUG item={}"sv, item);
+  }
+  log::warn("DEBUG positions:"sv);
+  for (auto &item : accounts_orders_positions.positions) {
+    log::warn("DEBUG item={}"sv, item);
+  }
 }
 
-void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
-  auto &[trace_info, accounts_orders_positions] = event;
-  log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
-  for (auto &item : accounts_orders_positions.accounts_p) {
-    // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
-    auto funds_update = FundsUpdate{
-        .stream_id = stream_id_,
-        .account = account_.name,
-        .currency = item.currency,
-        .margin_mode = {},                                     // ???
-        .balance = utils::safe_cast(item.account_balance_rv),  // TYPE CONVERSION ???
-        .hold = NaN,
-        .borrowed = NaN,
-        .external_account = {},
-        .update_type = map(accounts_orders_positions.type),
-        .exchange_time_utc = {},  // ???
-        .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
-        .sending_time_utc = accounts_orders_positions.timestamp,  // ???
-    };
-    create_trace_and_dispatch(handler_, trace_info, funds_update, true);
-  }
+void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &) {
+  log::fatal("Unexpected"sv);
 }
 
 }  // namespace phemex_futures

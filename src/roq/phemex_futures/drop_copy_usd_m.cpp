@@ -4,6 +4,7 @@
 
 #include "roq/mask.hpp"
 
+#include "roq/utils/common.hpp"
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
@@ -35,7 +36,6 @@ size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
 uint64_t const REQUEST_ID_AUTH = 1;
 uint64_t const REQUEST_ID_AOP = 2;
-uint64_t const REQUEST_ID_AOP_P = 3;
 }  // namespace
 
 // === HELPERS ===
@@ -276,7 +276,6 @@ void DropCopyUsdM::operator()(Trace<json::Ack> const &event) {
       auth_helper();
       break;
     case REQUEST_ID_AOP:
-    case REQUEST_ID_AOP_P:
       aop_helper();
       break;
   }
@@ -311,51 +310,110 @@ void DropCopyUsdM::operator()(Trace<json::IndexMarket24h> const &event) {
   log::info<2>("index_market24h={}"sv, index_market24h);
 }
 
-void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions> const &event) {
+void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
-  for (auto &item : accounts_orders_positions.accounts) {
-    // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
+  auto update_type = map(accounts_orders_positions.type).template get<UpdateType>();
+  for (auto &item : accounts_orders_positions.accounts_p) {
+    log::info<2>("item={}"sv, item);
+    // XXX FIXME TODO hold = account_balance_rv - total_used_balance_rv ???
+    auto external_account = fmt::format("{}"sv, item.account_id);
     auto funds_update = FundsUpdate{
         .stream_id = stream_id_,
         .account = account_.name,
         .currency = item.currency,
-        .margin_mode = {},                                     // ???
-        .balance = utils::safe_cast(item.account_balance_ev),  // TYPE CONVERSION ???
+        .margin_mode = {},
+        .balance = item.account_balance_rv,
         .hold = NaN,
         .borrowed = NaN,
-        .external_account = {},
-        .update_type = map(accounts_orders_positions.type),
+        .external_account = external_account,
+        .update_type = update_type,
         .exchange_time_utc = {},  // ???
         .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
         .sending_time_utc = accounts_orders_positions.timestamp,  // ???
     };
     create_trace_and_dispatch(handler_, trace_info, funds_update, true);
   }
-}
-
-void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
-  auto &[trace_info, accounts_orders_positions] = event;
-  log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
-  for (auto &item : accounts_orders_positions.accounts_p) {
-    // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
-    auto funds_update = FundsUpdate{
+  for (auto &item : accounts_orders_positions.orders_p) {
+    log::info<2>("item={}"sv, item);
+    auto order_status = map(item.ord_status).template get<OrderStatus>();
+    if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
+      continue;
+    }
+    auto external_account = fmt::format("{}"sv, item.account_id);
+    auto order_update = server::oms::OrderUpdate{
+        .account = account_.name,
+        .exchange = shared_.settings.exchange,
+        .symbol = item.symbol,
+        .side = map(item.side),
+        .position_effect = {},
+        .margin_mode = {},
+        .max_show_quantity = NaN,
+        .order_type = map(item.ord_type),
+        .time_in_force = map(item.time_in_force),
+        .execution_instructions = {},
+        .create_time_utc = {},
+        .update_time_utc = item.transact_time_ns,
+        .external_account = external_account,
+        .external_order_id = item.order_id,
+        .client_order_id = item.cl_ord_id,
+        .order_status = order_status,
+        .quantity = item.order_qty,
+        .price = item.price_rp,
+        .stop_price = item.stop_px_rp,
+        .leverage = NaN,
+        .remaining_quantity = item.leaves_value_rv,
+        .traded_quantity = item.cum_qty,  // cum_value_rv ???
+        .average_traded_price = NaN,
+        .last_traded_quantity = NaN,  // item.exec_qty,  // exec_value_rv ???
+        .last_traded_price = NaN,     // item.exec_price_rp,
+        .last_liquidity = {},
+        .routing_id = {},
+        .max_request_version = {},
+        .max_response_version = {},
+        .max_accepted_version = {},
+        .update_type = update_type,
+        .sending_time_utc = accounts_orders_positions.timestamp,
+    };
+    auto user_id = SOURCE_NONE;
+    auto order_id = ORDER_ID_NONE;
+    auto strategy_id = STRATEGY_ID_NONE;
+    if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&](auto &order) {
+          user_id = order.user_id;
+          order_id = order.order_id;
+          strategy_id = order.strategy_id;
+        })) {
+    } else {
+      log::warn("*** EXTERNAL ORDER ***"sv);
+      log::warn("item={}"sv, item);
+    }
+    // XXX FIXME TODO fills ???
+  }
+  for (auto &item : accounts_orders_positions.positions_p) {
+    log::info<2>("item={}"sv, item);
+    auto external_account = fmt::format("{}"sv, item.account_id);
+    auto long_quantity = std::max(0.0, item.assigned_pos_balance_rv);  // side / size ???
+    auto short_quantity = std::max(0.0, item.assigned_pos_balance_rv);
+    // cross_shared_balance_rv ???
+    auto position_update = PositionUpdate{
         .stream_id = stream_id_,
         .account = account_.name,
-        .currency = item.currency,
-        .margin_mode = {},                                     // ???
-        .balance = utils::safe_cast(item.account_balance_rv),  // TYPE CONVERSION ???
-        .hold = NaN,
-        .borrowed = NaN,
-        .external_account = {},
-        .update_type = map(accounts_orders_positions.type),
-        .exchange_time_utc = {},  // ???
-        .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
-        .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+        .exchange = shared_.settings.exchange,
+        .symbol = item.symbol,
+        .margin_mode = {},
+        .external_account = external_account,
+        .long_quantity = long_quantity,
+        .short_quantity = short_quantity,
+        .update_type = update_type,
+        .exchange_time_utc = item.transact_time_ns,
+        // execSeq ???
+        .sending_time_utc = item.updated_at_ns,
     };
-    create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+    create_trace_and_dispatch(handler_, trace_info, position_update, true);
   }
 }
 

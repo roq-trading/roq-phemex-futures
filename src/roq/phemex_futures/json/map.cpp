@@ -13,35 +13,6 @@ using Helper = detail::MapHelper<Args...>;
 
 // phemex_futures::json => roq
 
-// phemex_futures::json::Action => roq::UpdateType
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::Action>::operator std::optional<roq::UpdateType>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::Action::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::UpdateType::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::UpdateType::UNDEFINED;
-    case NEW:
-      return roq::UpdateType::SNAPSHOT;
-    case CANCEL:
-      return roq::UpdateType::UNDEFINED;
-  }
-  return {};
-}
-
-static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::UNDEFINED_INTERNAL}} == roq::UpdateType::UNDEFINED);
-static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::NEW}} == roq::UpdateType::SNAPSHOT);
-static_assert(Helper{phemex_futures::json::Action{phemex_futures::json::Action::CANCEL}} == roq::UpdateType::UNDEFINED);
-
-template <>
-template <>
-std::optional<roq::UpdateType> Map<phemex_futures::json::Action>::helper() const {
-  return Helper{args_};
-}
-
 // phemex_futures::json::EventType => roq::UpdateType
 
 template <>
