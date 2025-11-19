@@ -56,7 +56,6 @@ class Gateway final : public server::Handler, public Rest::Handler, public Order
   void operator()(Trace<StreamStatus> const &) override;
   void operator()(Trace<ExternalLatency> const &) override;
   void operator()(Trace<ReferenceData> const &, bool is_last) override;
-  void operator()(Trace<MarketStatus> const &, bool is_last) override;
   void operator()(Trace<MarketByPriceUpdate> const &, bool is_last) override;
   void operator()(Trace<TradeSummary> const &, bool is_last) override;
   void operator()(Trace<StatisticsUpdate> const &, bool is_last) override;
@@ -91,7 +90,7 @@ class Gateway final : public server::Handler, public Rest::Handler, public Order
   // seed
   uint16_t stream_id_ = {};
   // streams
-  Rest rest_;
+  std::unique_ptr<Rest> rest_;
   utils::unordered_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   utils::unordered_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::vector<std::unique_ptr<MarketData>> market_data_;

@@ -7,11 +7,15 @@ set(SOURCES
     api.cpp
     application.cpp
     config.cpp
-    drop_copy.cpp
+    drop_copy_coin_m.cpp
+    drop_copy_usd_m.cpp
     gateway.cpp
-    market_data.cpp
-    order_entry.cpp
-    rest.cpp
+    market_data_coin_m.cpp
+    market_data_usd_m.cpp
+    order_entry_coin_m.cpp
+    order_entry_usd_m.cpp
+    rest_coin_m.cpp
+    rest_usd_m.cpp
     settings.cpp
     shared.cpp
     main.cpp)

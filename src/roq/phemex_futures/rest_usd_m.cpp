@@ -1,0 +1,406 @@
+/* Copyright (c) 2017-2025, Hans Erik Thrane */
+
+#include "roq/phemex_futures/rest_usd_m.hpp"
+
+#include <algorithm>
+#include <utility>
+
+#include "roq/mask.hpp"
+
+#include "roq/utils/safe_cast.hpp"
+#include "roq/utils/update.hpp"
+
+#include "roq/utils/metrics/factory.hpp"
+
+#include "roq/phemex_futures/json/map.hpp"
+#include "roq/phemex_futures/json/utils.hpp"
+
+using namespace std::literals;
+
+namespace roq {
+namespace phemex_futures {
+
+// === CONSTANTS ===
+
+namespace {
+auto const NAME = "rest"sv;
+
+auto const SUPPORTS = Mask{
+    SupportType::REFERENCE_DATA,
+    SupportType::MARKET_STATUS,
+};
+
+size_t const MAX_DECODE_BUFFER_DEPTH = 2;
+}  // namespace
+
+// === HELPERS ===
+
+namespace {
+auto create_name(auto stream_id) {
+  return fmt::format("{}:{}"sv, stream_id, NAME);
+}
+
+auto create_connection(auto &handler, auto &settings, auto &context) {
+  auto uri = settings.rest.uri;
+  auto config = web::rest::Client::Config{
+      // connection
+      .interface = {},
+      .proxy = settings.rest.proxy,
+      .uris = {&uri, 1},
+      .host = {},
+      .validate_certificate = settings.net.tls_validate_certificate,
+      // connection manager
+      .connection_timeout = {},
+      .disconnect_on_idle_timeout = {},
+      .connection = web::http::Connection::KEEP_ALIVE,
+      // request
+      .allow_pipelining = true,
+      .request_timeout = settings.rest.request_timeout,
+      // response
+      .suspend_on_retry_after = {},
+      // http
+      .query = {},
+      .user_agent = ROQ_PACKAGE_NAME,
+      .ping_frequency = settings.rest.ping_freq,
+      .ping_path = settings.rest.ping_path,
+      // implementation
+      .decode_buffer_size = settings.misc.decode_buffer_size,
+      .encode_buffer_size = settings.misc.encode_buffer_size,
+  };
+  return web::rest::Client::create(handler, context, config);
+}
+
+struct create_metrics final : public utils::metrics::Factory {
+  create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory{settings.app.name, group, function} {}
+};
+}  // namespace
+
+// === IMPLEMENTATION ===
+
+RestUsdM::RestUsdM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context)},
+      decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
+      counter_{
+          .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
+      },
+      profile_{
+          .products = create_metrics(shared.settings, name_, "products"sv),
+          .products_ack = create_metrics(shared.settings, name_, "products_ack"sv),
+      },
+      latency_{
+          .ping = create_metrics(shared.settings, name_, "ping"sv),
+      },
+      shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
+}
+
+void RestUsdM::operator()(Event<Start> const &) {
+  (*connection_).start();
+}
+
+void RestUsdM::operator()(Event<Stop> const &) {
+  (*connection_).stop();
+}
+
+void RestUsdM::operator()(Event<Timer> const &event) {
+  auto now = event.value.now;
+  (*connection_).refresh(now);
+}
+
+void RestUsdM::operator()(metrics::Writer &writer) const {
+  writer
+      // counter
+      .write(counter_.disconnect, metrics::Type::COUNTER)
+      // profile
+      .write(profile_.products, metrics::Type::PROFILE)
+      .write(profile_.products_ack, metrics::Type::PROFILE)
+      // latency
+      .write(latency_.ping, metrics::Type::LATENCY);
+}
+
+void RestUsdM::operator()(ConnectionStatus status) {
+  if (utils::update(status_, status)) {
+    TraceInfo trace_info;
+    auto stream_status = StreamStatus{
+        .stream_id = stream_id_,
+        .account = {},
+        .supports = SUPPORTS,
+        .transport = Transport::TCP,
+        .protocol = Protocol::HTTP,
+        .encoding = {Encoding::JSON},
+        .priority = Priority::PRIMARY,
+        .connection_status = status_,
+        .interface = (*connection_).get_interface(),
+        .authority = (*connection_).get_current_authority(),
+        .path = (*connection_).get_current_path(),
+        .proxy = (*connection_).get_proxy(),
+    };
+    log::info("stream_status={}"sv, stream_status);
+    create_trace_and_dispatch(handler_, trace_info, stream_status);
+  }
+}
+
+void RestUsdM::operator()(Trace<web::rest::Client::Connected> const &) {
+  if (download_.downloading()) {
+    download_.bump();
+  } else {
+    (*this)(ConnectionStatus::DOWNLOADING);
+    download_.begin();
+  }
+}
+
+void RestUsdM::operator()(Trace<web::rest::Client::Disconnected> const &) {
+  ++counter_.disconnect;
+  (*this)(ConnectionStatus::DISCONNECTED);
+  if (!download_.downloading()) {
+    download_.reset();
+  }
+}
+
+void RestUsdM::operator()(Trace<web::rest::Client::Latency> const &event) {
+  auto &[trace_info, latency] = event;
+  auto external_latency = ExternalLatency{
+      .stream_id = stream_id_,
+      .account = {},
+      .latency = latency.sample,
+  };
+  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  latency_.ping.update(latency.sample);
+}
+
+uint32_t RestUsdM::download(RestState state) {
+  switch (state) {
+    using enum RestState;
+    case UNDEFINED:
+      assert(false);
+      break;
+    case PRODUCTS:
+      get_products();
+      return 1;
+    case DONE:
+      (*this)(ConnectionStatus::READY);
+      return 0;
+  }
+  assert(false);
+  return 0;
+}
+
+// products
+
+void RestUsdM::get_products() {
+  profile_.products([&]() {
+    auto request = web::rest::Request{
+        .method = web::http::Method::GET,
+        .path = shared_.api.market_data.products,
+        .query = {},
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = {},
+        .headers = {},
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto sequence = download_.sequence();
+    (*connection_)("products"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+      TraceInfo trace_info;
+      Trace event{trace_info, response};
+      get_products_ack(event, sequence);
+    });
+  });
+}
+
+void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
+  auto const state = RestState::PRODUCTS;
+  profile_.products_ack([&]() {
+    auto &[trace_info, response] = event;
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      download_.retry(state);
+    };
+    auto handle_success = [&](auto &body) {
+      if (download_.skip(sequence, state)) {
+        log::info("Download state={} has already been processed"sv, state);
+      } else {
+        json::Products products{body, decode_buffer_};
+        if (products.code == 0) {
+          Trace event{trace_info, products};
+          (*this)(event);
+          download_.check(state);
+        } else {
+          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products.code), products.msg);
+        }
+      }
+    };
+    process_response(event, handle_error, handle_success);
+  });
+}
+
+void RestUsdM::operator()(Trace<json::Products> const &event) {
+  auto &[trace_info, products] = event;
+  log::info<4>("products={}"sv, products);
+  auto discard = [&](auto &symbol, auto type, auto status) {
+    switch (type) {
+      using enum json::Type::type_t;
+      case UNDEFINED_INTERNAL:
+      case UNKNOWN_INTERNAL:
+      case SPOT:
+        return true;
+      case PERPETUAL:
+      case PERPETUAL_V2:
+        break;
+    };
+    switch (status) {
+      using enum json::Status::type_t;
+      case UNDEFINED_INTERNAL:
+      case UNKNOWN_INTERNAL:
+      case DELISTED:
+        return true;
+      case LISTED:
+        break;
+    }
+    return shared_.discard_symbol(symbol);
+  };
+  std::vector<Symbol> symbols;
+  auto helper = [&](auto &data) {
+    symbols.reserve(std::size(data));
+    size_t counter = 0;
+    for (size_t i = 0; i < std::size(data); ++i) {
+      auto &item = data[i];
+      log::info<2>("item={}"sv, item);
+      if (discard(item.symbol, item.type, item.status)) {
+        continue;
+      }
+      if (all_symbols_.emplace(item.symbol).second) {  // only include new
+        symbols.emplace_back(item.symbol);
+      }
+      ++counter;
+      using item_type = std::remove_cvref_t<decltype(item)>;
+      auto min_trade_vol = [&]() {
+        constexpr bool has_lot_size = requires(item_type const &t) { t.lot_size; };                      // coin-m
+        constexpr bool has_min_order_value_rv = requires(item_type const &t) { t.min_order_value_rv; };  // usd-m
+        if constexpr (has_lot_size) {
+          return item.lot_size;
+        } else if constexpr (has_min_order_value_rv) {
+          return item.min_order_value_rv;
+        } else {
+          return NaN;
+        }
+      }();
+      auto trade_vol_step_size = [&]() {
+        constexpr bool has_qty_step_size = requires(item_type const &t) { t.qty_step_size; };  // coin-m
+        if constexpr (has_qty_step_size) {
+          return item.qty_step_size;
+        } else {
+          return NaN;
+        }
+      }();
+      auto reference_data = ReferenceData{
+          .stream_id = stream_id_,
+          .exchange = shared_.settings.exchange,
+          .symbol = item.symbol,
+          .description = item.description.substr(0, detail::MAX_LENGTH_DESCRIPTION),  // XXX FIXME should be member
+          .security_type = map(item.type),
+          .cfi_code = {},
+          .base_currency = item.base_currency,
+          .quote_currency = item.quote_currency,
+          .settlement_currency = item.settle_currency,
+          .margin_currency = {},
+          .commission_currency = {},
+          .tick_size = item.tick_size,
+          .tick_size_steps = {},
+          .multiplier = NaN,
+          .min_notional = NaN,
+          .min_trade_vol = min_trade_vol,
+          .max_trade_vol = NaN,
+          .trade_vol_step_size = trade_vol_step_size,
+          .option_type = {},
+          .strike_currency = {},
+          .strike_price = NaN,
+          .underlying = {},
+          .time_zone = {},
+          .issue_date = utils::safe_cast(item.list_time),
+          .settlement_date = {},
+          .expiry_datetime = {},
+          .expiry_datetime_utc = {},
+          .exchange_time_utc = {},
+          .exchange_sequence = {},
+          .sending_time_utc = {},
+          .discard = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+      // ...
+      shared_.security[item.symbol] = tools::Security{
+          .price_factor = std::pow(10.0, item.price_scale),
+      };
+    }
+    if (!std::empty(symbols)) {
+      auto symbols_update = SymbolsUpdate{
+          .symbols = symbols,
+      };
+      handler_(symbols_update);
+    }
+    if (counter > 0) [[unlikely]] {
+      log::info("Symbols {} / {}"sv, counter, std::size(data));
+    }
+  };
+  switch (shared_.api.type) {
+    using enum API::Type;
+    case COIN_M:
+      helper(products.data.products);
+      break;
+    case USD_M:
+      helper(products.data.perp_products_v2);
+      break;
+  }
+}
+
+// helpers
+
+void RestUsdM::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
+  try {
+    auto [status, category, body] = response.result();
+    switch (category) {
+      using enum web::http::Category;
+      case UNKNOWN:
+      case INFORMATIONAL_RESPONSE:
+        response.expect(web::http::Status::OK);  // throws
+        break;
+      case SUCCESS:
+        success_handler(body);
+        break;
+      case REDIRECTION:
+        log::fatal("Unexpected: URL is being redirected"sv);
+      case CLIENT_ERROR:
+        switch (status) {
+          using enum web::http::Status;
+          case FORBIDDEN:            // 403
+          case I_AM_A_TEAPOT:        // 418
+          case TOO_MANY_REQUESTS: {  // 429
+            auto message = fmt::format("{}"sv, status);
+            error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::REQUEST_RATE_LIMIT_REACHED, message);
+            break;
+          }
+          case CONFLICT:  // 409
+            assert(false);
+            [[fallthrough]];
+          default: {
+            // json::Message error{body};
+            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
+          }
+        }
+        break;
+      case SERVER_ERROR: {
+        auto message = fmt::format("{}"sv, status);
+        error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::UNKNOWN, message);
+        break;
+      }
+    }
+  } catch (NetworkError &e) {
+    log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
+    error_handler(Origin::GATEWAY, e.request_status(), e.error(), e.what());
+  } catch (std::exception &e) {
+    log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
+    error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, e.what());
+  }
+}
+
+}  // namespace phemex_futures
+}  // namespace roq

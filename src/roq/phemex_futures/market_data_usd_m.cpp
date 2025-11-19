@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2025, Hans Erik Thrane */
 
-#include "roq/phemex_futures/market_data.hpp"
+#include "roq/phemex_futures/market_data_usd_m.hpp"
 
 #include <algorithm>
 
@@ -79,7 +79,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, size_t index)
+MarketDataUsdM::MarketDataUsdM(MarketData::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, size_t index)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, index_{index}, connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -100,15 +100,15 @@ MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_i
       shared_{shared} {
 }
 
-void MarketData::operator()(Event<Start> const &) {
+void MarketDataUsdM::operator()(Event<Start> const &) {
   (*connection_).start();
 }
 
-void MarketData::operator()(Event<Stop> const &) {
+void MarketDataUsdM::operator()(Event<Stop> const &) {
   (*connection_).stop();
 }
 
-void MarketData::operator()(Event<Timer> const &event) {
+void MarketDataUsdM::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   (*connection_).refresh(now);
   if (ready()) {
@@ -119,7 +119,7 @@ void MarketData::operator()(Event<Timer> const &event) {
   }
 }
 
-void MarketData::operator()(metrics::Writer &writer) const {
+void MarketDataUsdM::operator()(metrics::Writer &writer) const {
   writer
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
@@ -135,7 +135,7 @@ void MarketData::operator()(metrics::Writer &writer) const {
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
-void MarketData::subscribe(size_t start_from) {
+void MarketDataUsdM::subscribe(size_t start_from) {
   if (ready()) {
     subscribe(shared_.symbols.get_slice(index_, start_from));
   }
@@ -143,23 +143,23 @@ void MarketData::subscribe(size_t start_from) {
 
 // web::socket::Client::Handler
 
-void MarketData::operator()(web::socket::Client::Connected const &) {
+void MarketDataUsdM::operator()(web::socket::Client::Connected const &) {
 }
 
-void MarketData::operator()(web::socket::Client::Disconnected const &) {
+void MarketDataUsdM::operator()(web::socket::Client::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
 }
 
-void MarketData::operator()(web::socket::Client::Ready const &) {
+void MarketDataUsdM::operator()(web::socket::Client::Ready const &) {
   (*this)(ConnectionStatus::READY);
   subscribe();
 }
 
-void MarketData::operator()(web::socket::Client::Close const &) {
+void MarketDataUsdM::operator()(web::socket::Client::Close const &) {
 }
 
-void MarketData::operator()(web::socket::Client::Latency const &latency) {
+void MarketDataUsdM::operator()(web::socket::Client::Latency const &latency) {
   TraceInfo trace_info;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
@@ -170,15 +170,15 @@ void MarketData::operator()(web::socket::Client::Latency const &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void MarketData::operator()(web::socket::Client::Text const &text) {
+void MarketDataUsdM::operator()(web::socket::Client::Text const &text) {
   parse(text.payload);
 }
 
-void MarketData::operator()(web::socket::Client::Binary const &) {
+void MarketDataUsdM::operator()(web::socket::Client::Binary const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(ConnectionStatus status) {
+void MarketDataUsdM::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     TraceInfo trace_info;
     auto stream_status = StreamStatus{
@@ -200,7 +200,7 @@ void MarketData::operator()(ConnectionStatus status) {
   }
 }
 
-void MarketData::ping(std::chrono::nanoseconds now) {
+void MarketDataUsdM::ping(std::chrono::nanoseconds now) {
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"
@@ -211,7 +211,7 @@ void MarketData::ping(std::chrono::nanoseconds now) {
   (*connection_).send_text(message);
 }
 
-void MarketData::subscribe(std::span<Symbol const> const &symbols) {
+void MarketDataUsdM::subscribe(std::span<Symbol const> const &symbols) {
   if (std::empty(symbols)) {
     return;
   }
@@ -221,7 +221,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   subscribe(symbols, shared_.api.market_data.kline, DEFAULT_KLINE_PERIOD);
 }
 
-void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic) {
+void MarketDataUsdM::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic) {
   assert(!std::empty(symbols));
   for (auto &item : symbols) {
     auto message = fmt::format(
@@ -241,7 +241,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_v
 }
 
 // note! book
-void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, uint32_t depth) {
+void MarketDataUsdM::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, uint32_t depth) {
   assert(!std::empty(symbols));
   for (auto &item : symbols) {
     auto message = fmt::format(
@@ -264,7 +264,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_v
 }
 
 // note! kline
-void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, std::chrono::seconds interval) {
+void MarketDataUsdM::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, std::chrono::seconds interval) {
   assert(!std::empty(symbols));
   for (auto &item : symbols) {
     auto message = fmt::format(
@@ -285,7 +285,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols, std::string_v
   }
 }
 
-void MarketData::parse(std::string_view const &message) {
+void MarketDataUsdM::parse(std::string_view const &message) {
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
@@ -304,7 +304,7 @@ void MarketData::parse(std::string_view const &message) {
 
 // - admin
 
-void MarketData::operator()(Trace<json::Pong> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Pong> const &event) {
   profile_.pong([&]() {
     auto &[trace_info, pong] = event;
     auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
@@ -312,7 +312,7 @@ void MarketData::operator()(Trace<json::Pong> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Ack> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Ack> const &event) {
   profile_.ack([&]() {
     auto &[trace_info, ack] = event;
     if (ack.result.status != json::AckResultStatus::SUCCESS) {
@@ -323,7 +323,7 @@ void MarketData::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void MarketData::operator()(Trace<json::Book> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Book> const &event) {
   profile_.book([&]() {
     auto &[trace_info, book] = event;
     log::info<3>("book={}"sv, book);
@@ -391,7 +391,7 @@ void MarketData::operator()(Trace<json::Book> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Trades> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Trades> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
     log::info<3>("trades={}"sv, trades);
@@ -446,7 +446,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Market24h> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Market24h> const &event) {
   profile_.market24h([&]() {
     auto &[trace_info, market24h] = event;
     log::info<3>("market24h={}"sv, market24h);
@@ -514,7 +514,7 @@ void MarketData::operator()(Trace<json::Market24h> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Market24h2> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Market24h2> const &event) {
   profile_.market24h([&]() {
     auto &[trace_info, market24h] = event;
     log::info<3>("market24h_p={}"sv, market24h);
@@ -582,7 +582,7 @@ void MarketData::operator()(Trace<json::Market24h2> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Kline> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Kline> const &event) {
   profile_.kline([&]() {
     auto &[trace_info, kline] = event;
     log::info<3>("kline={}"sv, kline);
@@ -591,15 +591,15 @@ void MarketData::operator()(Trace<json::Kline> const &event) {
 
 // - drop-copy
 
-void MarketData::operator()(Trace<json::IndexMarket24h> const &) {
+void MarketDataUsdM::operator()(Trace<json::IndexMarket24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::AccountsOrdersPositions> const &) {
+void MarketDataUsdM::operator()(Trace<json::AccountsOrdersPositions> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::AccountsOrdersPositions2> const &) {
+void MarketDataUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &) {
   log::fatal("Unexpected"sv);
 }
 

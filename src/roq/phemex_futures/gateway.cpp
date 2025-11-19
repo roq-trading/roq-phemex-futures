@@ -12,6 +12,16 @@
 
 #include "roq/server/oms/exceptions.hpp"
 
+#include "roq/phemex_futures/drop_copy_coin_m.hpp"
+#include "roq/phemex_futures/market_data_coin_m.hpp"
+#include "roq/phemex_futures/order_entry_coin_m.hpp"
+#include "roq/phemex_futures/rest_coin_m.hpp"
+
+#include "roq/phemex_futures/drop_copy_usd_m.hpp"
+#include "roq/phemex_futures/market_data_usd_m.hpp"
+#include "roq/phemex_futures/order_entry_usd_m.hpp"
+#include "roq/phemex_futures/rest_usd_m.hpp"
+
 #include "roq/phemex_futures/json/utils.hpp"
 
 using namespace std::literals;
@@ -23,9 +33,9 @@ namespace phemex_futures {
 
 namespace {
 template <typename R>
-R create_accounts(auto &config) {
-  using value_type = std::remove_cvref_t<R>;
-  value_type result;
+auto create_accounts(auto &config) {
+  using result_type = std::remove_cvref_t<R>;
+  result_type result;
   for (auto &[_, iter] : config.accounts) {
     result.try_emplace(static_cast<std::string_view>(iter.name), std::make_unique<Account>(config, iter.name));
   }
@@ -33,19 +43,57 @@ R create_accounts(auto &config) {
 }
 
 template <typename R>
-R create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
-  R result;
-  for (auto &[name, account] : accounts) {
-    result.try_emplace(static_cast<std::string_view>(name), std::make_unique<OrderEntry>(gateway, context, ++stream_id, *account, shared));
+auto create_rest(auto &gateway, auto &context, auto &stream_id, auto &shared) {
+  using result_type = std::remove_cvref_t<R>;
+  result_type result;
+  switch (shared.api.type) {
+    using enum API::Type;
+    case COIN_M:
+      result = std::make_unique<RestCoinM>(gateway, context, ++stream_id, shared);
+      break;
+    case USD_M:
+      result = std::make_unique<RestUsdM>(gateway, context, ++stream_id, shared);
+      break;
   }
   return result;
 }
 
 template <typename R>
-R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
-  R result;
-  for (auto &[name, account] : accounts) {
-    result.try_emplace(static_cast<std::string_view>(name), std::make_unique<DropCopy>(gateway, context, ++stream_id, *account, shared));
+auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
+  using result_type = std::remove_cvref_t<R>;
+  result_type result;
+  switch (shared.api.type) {
+    using enum API::Type;
+    case COIN_M:
+      for (auto &[name, account] : accounts) {
+        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, *account, shared));
+      }
+      break;
+    case USD_M:
+      for (auto &[name, account] : accounts) {
+        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, *account, shared));
+      }
+      break;
+  }
+  return result;
+}
+
+template <typename R>
+auto create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
+  using result_type = std::remove_cvref_t<R>;
+  result_type result;
+  switch (shared.api.type) {
+    using enum API::Type;
+    case COIN_M:
+      for (auto &[name, account] : accounts) {
+        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<DropCopyCoinM>(gateway, context, ++stream_id, *account, shared));
+      }
+      break;
+    case USD_M:
+      for (auto &[name, account] : accounts) {
+        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<DropCopyUsdM>(gateway, context, ++stream_id, *account, shared));
+      }
+      break;
   }
   return result;
 }
@@ -54,10 +102,10 @@ R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts
 // === IMPLEMENTATION ===
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
-    : dispatcher_(dispatcher), master_account_(config.get_master_account()), accounts_(create_accounts<decltype(accounts_)>(config)), context_(context),
-      shared_(dispatcher, settings), rest_(*this, context_, ++stream_id_, shared_),
-      order_entry_(create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_)),
-      drop_copy_(create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_)) {
+    : dispatcher_{dispatcher}, master_account_{config.get_master_account()}, accounts_{create_accounts<decltype(accounts_)>(config)}, context_{context},
+      shared_{dispatcher, settings}, rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, shared_)},
+      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_)},
+      drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_)} {
 }
 
 void Gateway::operator()(Event<Start> const &event) {
@@ -109,10 +157,6 @@ void Gateway::operator()(Trace<ReferenceData> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<MarketStatus> const &event, bool is_last) {
-  dispatcher_(event, is_last);
-}
-
 void Gateway::operator()(Trace<MarketByPriceUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last, shared_.final_bids, shared_.final_asks, []([[maybe_unused]] auto &market_by_price) {});
 }
@@ -148,11 +192,25 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
 void Gateway::ensure_symbol_slices(size_t size) {
   while (std::size(market_data_) < size) {
     log::debug("Create market-data (user-stream)"sv);
-    auto market_data = std::make_unique<MarketData>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
-    MessageInfo message_info;
-    Start start;
-    create_event_and_dispatch(*market_data, message_info, start);
-    market_data_.emplace_back(std::move(market_data));
+    switch (shared_.api.type) {
+      using enum API::Type;
+      case COIN_M: {
+        auto market_data = std::make_unique<MarketDataCoinM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
+        MessageInfo message_info;
+        Start start;
+        create_event_and_dispatch(*market_data, message_info, start);
+        market_data_.emplace_back(std::move(market_data));
+        break;
+      }
+      case USD_M: {
+        auto market_data = std::make_unique<MarketDataUsdM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
+        MessageInfo message_info;
+        Start start;
+        create_event_and_dispatch(*market_data, message_info, start);
+        market_data_.emplace_back(std::move(market_data));
+        break;
+      }
+    }
   }
 }
 
@@ -200,7 +258,7 @@ void Gateway::dispatch(Args &&...args) {
 template <typename... Args>
 void Gateway::dispatch_helper(auto &self, Args &&...args) {
   auto helper = [&](auto &target) { target(args...); };
-  helper(self.rest_);
+  helper(*self.rest_);
   for (auto &[_, order_entry] : self.order_entry_) {
     helper(*order_entry);
   }

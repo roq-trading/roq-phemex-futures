@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2025, Hans Erik Thrane */
 
-#include "roq/phemex_futures/drop_copy.hpp"
+#include "roq/phemex_futures/drop_copy_coin_m.hpp"
 
 #include "roq/mask.hpp"
 
@@ -78,7 +78,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
+DropCopyCoinM::DropCopyCoinM(DropCopy::Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)}, connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -94,19 +94,19 @@ DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, A
       account_{account}, shared_{shared} {
 }
 
-bool DropCopy::ready() const {
+bool DropCopyCoinM::ready() const {
   return (*connection_).ready();
 }
 
-void DropCopy::operator()(Event<Start> const &) {
+void DropCopyCoinM::operator()(Event<Start> const &) {
   (*connection_).start();
 }
 
-void DropCopy::operator()(Event<Stop> const &) {
+void DropCopyCoinM::operator()(Event<Stop> const &) {
   (*connection_).stop();
 }
 
-void DropCopy::operator()(Event<Timer> const &event) {
+void DropCopyCoinM::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   (*connection_).refresh(now);
   if (ready()) {
@@ -117,7 +117,7 @@ void DropCopy::operator()(Event<Timer> const &event) {
   }
 }
 
-void DropCopy::operator()(metrics::Writer &writer) const {
+void DropCopyCoinM::operator()(metrics::Writer &writer) const {
   writer
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
@@ -130,13 +130,13 @@ void DropCopy::operator()(metrics::Writer &writer) const {
 
 // web::socket::Client::Handler
 
-void DropCopy::operator()(web::socket::Client::Connected const &) {
+void DropCopyCoinM::operator()(web::socket::Client::Connected const &) {
   assert(logon_timeout_.count() == 0);
   auto now = clock::get_system();
   logon_timeout_ = now + shared_.settings.ws.request_timeout;
 }
 
-void DropCopy::operator()(web::socket::Client::Disconnected const &) {
+void DropCopyCoinM::operator()(web::socket::Client::Disconnected const &) {
   ++counter_.disconnect;
   ready_ = false;
   (*this)(ConnectionStatus::DISCONNECTED);
@@ -144,14 +144,14 @@ void DropCopy::operator()(web::socket::Client::Disconnected const &) {
   next_ping_ = {};
 }
 
-void DropCopy::operator()(web::socket::Client::Ready const &) {
+void DropCopyCoinM::operator()(web::socket::Client::Ready const &) {
   login();
 }
 
-void DropCopy::operator()(web::socket::Client::Close const &) {
+void DropCopyCoinM::operator()(web::socket::Client::Close const &) {
 }
 
-void DropCopy::operator()(web::socket::Client::Latency const &latency) {
+void DropCopyCoinM::operator()(web::socket::Client::Latency const &latency) {
   TraceInfo trace_info;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
@@ -162,15 +162,15 @@ void DropCopy::operator()(web::socket::Client::Latency const &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void DropCopy::operator()(web::socket::Client::Text const &text) {
+void DropCopyCoinM::operator()(web::socket::Client::Text const &text) {
   parse(text.payload);
 }
 
-void DropCopy::operator()(web::socket::Client::Binary const &) {
+void DropCopyCoinM::operator()(web::socket::Client::Binary const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(ConnectionStatus status) {
+void DropCopyCoinM::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     TraceInfo trace_info;
     auto stream_status = StreamStatus{
@@ -192,7 +192,7 @@ void DropCopy::operator()(ConnectionStatus status) {
   }
 }
 
-void DropCopy::ping(std::chrono::nanoseconds now) {
+void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"
@@ -203,17 +203,17 @@ void DropCopy::ping(std::chrono::nanoseconds now) {
   (*connection_).send_text(message);
 }
 
-void DropCopy::login() {
+void DropCopyCoinM::login() {
   auto message = account_.create_ws_login(REQUEST_ID_AUTH);
   log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }
 
-void DropCopy::subscribe() {
+void DropCopyCoinM::subscribe() {
   subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
 }
 
-void DropCopy::subscribe(uint64_t id, std::string_view const &topic) {
+void DropCopyCoinM::subscribe(uint64_t id, std::string_view const &topic) {
   log::info(R"(Subscribe topic="{}")"sv, topic);
   auto message = fmt::format(
       R"({{)"
@@ -227,7 +227,7 @@ void DropCopy::subscribe(uint64_t id, std::string_view const &topic) {
   (*connection_).send_text(message);
 }
 
-void DropCopy::parse(std::string_view const &message) {
+void DropCopyCoinM::parse(std::string_view const &message) {
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
@@ -246,14 +246,14 @@ void DropCopy::parse(std::string_view const &message) {
 
 // - admin
 
-void DropCopy::operator()(Trace<json::Pong> const &event) {
+void DropCopyCoinM::operator()(Trace<json::Pong> const &event) {
   auto &[trace_info, pong] = event;
   auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
   log::debug("pong={} (latency={}))"sv, pong, latency);
 }
 
 // note! sometimes seeing this: {"error":{"code":6012,"message":"invalid login token"},"id":1,"result":null}
-void DropCopy::operator()(Trace<json::Ack> const &event) {
+void DropCopyCoinM::operator()(Trace<json::Ack> const &event) {
   auto &[trace_info, ack] = event;
   auto success = ack.result.status == json::AckResultStatus::SUCCESS;
   auto auth_helper = [&]() {
@@ -284,34 +284,34 @@ void DropCopy::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void DropCopy::operator()(Trace<json::Book> const &) {
+void DropCopyCoinM::operator()(Trace<json::Book> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Trades> const &) {
+void DropCopyCoinM::operator()(Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Market24h> const &) {
+void DropCopyCoinM::operator()(Trace<json::Market24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Market24h2> const &) {
+void DropCopyCoinM::operator()(Trace<json::Market24h2> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Kline> const &) {
+void DropCopyCoinM::operator()(Trace<json::Kline> const &) {
   log::fatal("Unexpected"sv);
 }
 
 // - drop-copy
 
-void DropCopy::operator()(Trace<json::IndexMarket24h> const &event) {
+void DropCopyCoinM::operator()(Trace<json::IndexMarket24h> const &event) {
   auto &[trace_info, index_market24h] = event;
   log::info<2>("index_market24h={}"sv, index_market24h);
 }
 
-void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
+void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
   log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);
@@ -335,7 +335,7 @@ void DropCopy::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   }
 }
 
-void DropCopy::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
+void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
   log::warn("DEBUG accounts_orders_positions={}"sv, accounts_orders_positions);

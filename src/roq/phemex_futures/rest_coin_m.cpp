@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2025, Hans Erik Thrane */
 
-#include "roq/phemex_futures/rest.hpp"
+#include "roq/phemex_futures/rest_coin_m.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -77,7 +77,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
+RestCoinM::RestCoinM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -93,20 +93,20 @@ Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &s
       shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
 }
 
-void Rest::operator()(Event<Start> const &) {
+void RestCoinM::operator()(Event<Start> const &) {
   (*connection_).start();
 }
 
-void Rest::operator()(Event<Stop> const &) {
+void RestCoinM::operator()(Event<Stop> const &) {
   (*connection_).stop();
 }
 
-void Rest::operator()(Event<Timer> const &event) {
+void RestCoinM::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   (*connection_).refresh(now);
 }
 
-void Rest::operator()(metrics::Writer &writer) const {
+void RestCoinM::operator()(metrics::Writer &writer) const {
   writer
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
@@ -117,7 +117,7 @@ void Rest::operator()(metrics::Writer &writer) const {
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
-void Rest::operator()(ConnectionStatus status) {
+void RestCoinM::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     TraceInfo trace_info;
     auto stream_status = StreamStatus{
@@ -139,7 +139,7 @@ void Rest::operator()(ConnectionStatus status) {
   }
 }
 
-void Rest::operator()(Trace<web::rest::Client::Connected> const &) {
+void RestCoinM::operator()(Trace<web::rest::Client::Connected> const &) {
   if (download_.downloading()) {
     download_.bump();
   } else {
@@ -148,7 +148,7 @@ void Rest::operator()(Trace<web::rest::Client::Connected> const &) {
   }
 }
 
-void Rest::operator()(Trace<web::rest::Client::Disconnected> const &) {
+void RestCoinM::operator()(Trace<web::rest::Client::Disconnected> const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   if (!download_.downloading()) {
@@ -156,7 +156,7 @@ void Rest::operator()(Trace<web::rest::Client::Disconnected> const &) {
   }
 }
 
-void Rest::operator()(Trace<web::rest::Client::Latency> const &event) {
+void RestCoinM::operator()(Trace<web::rest::Client::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
@@ -167,7 +167,7 @@ void Rest::operator()(Trace<web::rest::Client::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
-uint32_t Rest::download(RestState state) {
+uint32_t RestCoinM::download(RestState state) {
   switch (state) {
     using enum RestState;
     case UNDEFINED:
@@ -186,7 +186,7 @@ uint32_t Rest::download(RestState state) {
 
 // products
 
-void Rest::get_products() {
+void RestCoinM::get_products() {
   profile_.products([&]() {
     auto request = web::rest::Request{
         .method = web::http::Method::GET,
@@ -207,7 +207,7 @@ void Rest::get_products() {
   });
 }
 
-void Rest::get_products_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
+void RestCoinM::get_products_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
   auto const state = RestState::PRODUCTS;
   profile_.products_ack([&]() {
     auto &[trace_info, response] = event;
@@ -233,7 +233,7 @@ void Rest::get_products_ack(Trace<web::rest::Response> const &event, uint32_t se
   });
 }
 
-void Rest::operator()(Trace<json::Products> const &event) {
+void RestCoinM::operator()(Trace<json::Products> const &event) {
   auto &[trace_info, products] = event;
   log::info<4>("products={}"sv, products);
   auto discard = [&](auto &symbol, auto type, auto status) {
@@ -265,7 +265,6 @@ void Rest::operator()(Trace<json::Products> const &event) {
     for (size_t i = 0; i < std::size(data); ++i) {
       auto &item = data[i];
       log::info<2>("item={}"sv, item);
-      log::warn("DEBUG item={}"sv, item);
       if (discard(item.symbol, item.type, item.status)) {
         continue;
       }
@@ -355,7 +354,7 @@ void Rest::operator()(Trace<json::Products> const &event) {
 
 // helpers
 
-void Rest::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
+void RestCoinM::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
   try {
     auto [status, category, body] = response.result();
     switch (category) {

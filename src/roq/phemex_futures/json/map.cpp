@@ -214,6 +214,8 @@ constexpr Helper<phemex_futures::json::PosSide, phemex_futures::json::Side>::ope
           return roq::PositionEffect::UNDEFINED;
         case UNKNOWN_INTERNAL:
           return roq::PositionEffect::UNDEFINED;
+        case NONE:
+          return roq::PositionEffect::UNDEFINED;
         case BUY:
           return roq::PositionEffect::OPEN;
         case SELL:
@@ -226,6 +228,8 @@ constexpr Helper<phemex_futures::json::PosSide, phemex_futures::json::Side>::ope
         case UNDEFINED_INTERNAL:
           return roq::PositionEffect::UNDEFINED;
         case UNKNOWN_INTERNAL:
+          return roq::PositionEffect::UNDEFINED;
+        case NONE:
           return roq::PositionEffect::UNDEFINED;
         case BUY:
           return roq::PositionEffect::CLOSE;
@@ -285,6 +289,8 @@ constexpr Helper<phemex_futures::json::Side>::operator std::optional<roq::Side>(
       return roq::Side::UNDEFINED;
     case UNKNOWN_INTERNAL:
       return roq::Side::UNDEFINED;
+    case NONE:
+      return roq::Side::UNDEFINED;
     case BUY:
       return roq::Side::BUY;
     case SELL:
@@ -294,6 +300,7 @@ constexpr Helper<phemex_futures::json::Side>::operator std::optional<roq::Side>(
 }
 
 static_assert(Helper{phemex_futures::json::Side{phemex_futures::json::Side::UNDEFINED_INTERNAL}} == roq::Side::UNDEFINED);
+static_assert(Helper{phemex_futures::json::Side{phemex_futures::json::Side::NONE}} == roq::Side::UNDEFINED);
 static_assert(Helper{phemex_futures::json::Side{phemex_futures::json::Side::BUY}} == roq::Side::BUY);
 static_assert(Helper{phemex_futures::json::Side{phemex_futures::json::Side::SELL}} == roq::Side::SELL);
 
@@ -338,136 +345,6 @@ static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::Tim
 template <>
 template <>
 std::optional<roq::TimeInForce> Map<phemex_futures::json::TimeInForce>::helper() const {
-  return Helper{args_};
-}
-
-// phemex_futures::json::TradeScope => roq::Liquidity
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::TradeScope>::operator std::optional<roq::Liquidity>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::TradeScope::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::Liquidity::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::Liquidity::UNDEFINED;
-    case TAKER:
-      return roq::Liquidity::TAKER;
-    case MAKER:
-      return roq::Liquidity::MAKER;
-  }
-  return {};
-}
-
-static_assert(Helper{phemex_futures::json::TradeScope{phemex_futures::json::TradeScope::UNDEFINED_INTERNAL}} == roq::Liquidity::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeScope{phemex_futures::json::TradeScope::TAKER}} == roq::Liquidity::TAKER);
-static_assert(Helper{phemex_futures::json::TradeScope{phemex_futures::json::TradeScope::MAKER}} == roq::Liquidity::MAKER);
-
-template <>
-template <>
-std::optional<roq::Liquidity> Map<phemex_futures::json::TradeScope>::helper() const {
-  return Helper{args_};
-}
-
-// phemex_futures::json::TradeSide => roq::PositionEffect
-
-template <>
-template <>
-constexpr Helper<phemex_futures::json::TradeSide>::operator std::optional<roq::PositionEffect>() const {
-  switch (std::get<0>(args_)) {
-    using enum phemex_futures::json::TradeSide::type_t;
-    case UNDEFINED_INTERNAL:
-      return roq::PositionEffect::UNDEFINED;
-    case UNKNOWN_INTERNAL:
-      return roq::PositionEffect::UNDEFINED;
-    case CLOSE:
-      return roq::PositionEffect::CLOSE;
-    case OPEN:
-      return roq::PositionEffect::OPEN;
-    case REDUCE_CLOSE_LONG:
-      return roq::PositionEffect::CLOSE;
-    case REDUCE_CLOSE_SHORT:
-      return roq::PositionEffect::CLOSE;
-    case BURST_CLOSE_LONG:
-      return roq::PositionEffect::CLOSE;
-    case BURST_CLOSE_SHORT:
-      return roq::PositionEffect::CLOSE;
-    case OFFSET_CLOSE_LONG:
-      return roq::PositionEffect::CLOSE;
-    case OFFSET_CLOSE_SHORT:
-      return roq::PositionEffect::CLOSE;
-    case DELIVERY_CLOSE_LONG:
-      return roq::PositionEffect::CLOSE;
-    case DELIVERY_CLOSE_SHORT:
-      return roq::PositionEffect::CLOSE;
-    case DTE_SYS_ADL_CLOSE_LONG:
-      return roq::PositionEffect::CLOSE;
-    case DTE_SYS_ADL_CLOSE_SHORT:
-      return roq::PositionEffect::CLOSE;
-    case BUY_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case SELL_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case REDUCE_BUY_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case REDUCE_SELL_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case BURST_BUY_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case BURST_SELL_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case DELIVERY_SELL_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case DELIVERY_BUY_SINGLE:
-      return roq::PositionEffect::UNDEFINED;
-    case DTE_SYS_ADL_BUY_IN_SINGLE_SIDE_MODE:
-      return roq::PositionEffect::UNDEFINED;
-    case DTE_SYS_ADL_SELL_IN_SINGLE_SIDE_MODE:
-      return roq::PositionEffect::UNDEFINED;
-    case OPEN_SHORT:
-      return roq::PositionEffect::OPEN;
-    case OPEN_LONG:
-      return roq::PositionEffect::OPEN;
-    case CLOSE_SHORT:
-      return roq::PositionEffect::CLOSE;
-    case CLOSE_LONG:
-      return roq::PositionEffect::CLOSE;
-  }
-  return {};
-}
-
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::UNDEFINED_INTERNAL}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::CLOSE}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::OPEN}} == roq::PositionEffect::OPEN);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::REDUCE_CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::REDUCE_CLOSE_SHORT}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::BURST_CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::BURST_CLOSE_SHORT}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::OFFSET_CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::OFFSET_CLOSE_SHORT}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DELIVERY_CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DELIVERY_CLOSE_SHORT}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DTE_SYS_ADL_CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DTE_SYS_ADL_CLOSE_SHORT}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::BUY_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::SELL_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::REDUCE_BUY_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::REDUCE_SELL_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::BURST_BUY_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::BURST_SELL_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DELIVERY_SELL_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DELIVERY_BUY_SINGLE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DTE_SYS_ADL_BUY_IN_SINGLE_SIDE_MODE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::DTE_SYS_ADL_SELL_IN_SINGLE_SIDE_MODE}} == roq::PositionEffect::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::OPEN_SHORT}} == roq::PositionEffect::OPEN);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::OPEN_SHORT}} == roq::PositionEffect::OPEN);
-static_assert(Helper{phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::CLOSE_LONG}} == roq::PositionEffect::CLOSE);
-
-template <>
-template <>
-std::optional<roq::PositionEffect> Map<phemex_futures::json::TradeSide>::helper() const {
   return Helper{args_};
 }
 
@@ -576,33 +453,6 @@ static_assert(Helper{roq::PositionEffect::CLOSE, roq::Side::SELL} == phemex_futu
 template <>
 template <>
 std::optional<phemex_futures::json::PosSide> Map<roq::PositionEffect, roq::Side>::helper() const {
-  return Helper{args_};
-}
-
-// roq::PositionEffect => phemex_futures::json::TradeSide
-
-template <>
-template <>
-constexpr Helper<roq::PositionEffect>::operator std::optional<phemex_futures::json::TradeSide>() const {
-  switch (std::get<0>(args_)) {
-    using enum roq::PositionEffect;
-    case UNDEFINED:
-      return phemex_futures::json::TradeSide::UNDEFINED_INTERNAL;
-    case OPEN:
-      return phemex_futures::json::TradeSide::OPEN;
-    case CLOSE:
-      return phemex_futures::json::TradeSide::CLOSE;
-  }
-  return {};
-}
-
-static_assert(Helper{roq::PositionEffect::UNDEFINED} == phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::UNDEFINED_INTERNAL});
-static_assert(Helper{roq::PositionEffect::OPEN} == phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::OPEN});
-static_assert(Helper{roq::PositionEffect::CLOSE} == phemex_futures::json::TradeSide{phemex_futures::json::TradeSide::CLOSE});
-
-template <>
-template <>
-std::optional<phemex_futures::json::TradeSide> Map<roq::PositionEffect>::helper() const {
   return Helper{args_};
 }
 

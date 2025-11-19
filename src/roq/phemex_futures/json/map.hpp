@@ -4,7 +4,6 @@
 
 #include "roq/map.hpp"
 
-#include "roq/liquidity.hpp"
 #include "roq/order_status.hpp"
 #include "roq/order_type.hpp"
 #include "roq/position_effect.hpp"
@@ -14,7 +13,6 @@
 #include "roq/update_type.hpp"
 
 #include "roq/phemex_futures/json/action.hpp"
-#include "roq/phemex_futures/json/category.hpp"
 #include "roq/phemex_futures/json/event_type.hpp"
 #include "roq/phemex_futures/json/message_type.hpp"
 #include "roq/phemex_futures/json/order_status.hpp"
@@ -22,8 +20,6 @@
 #include "roq/phemex_futures/json/pos_side.hpp"
 #include "roq/phemex_futures/json/side.hpp"
 #include "roq/phemex_futures/json/time_in_force.hpp"
-#include "roq/phemex_futures/json/trade_scope.hpp"
-#include "roq/phemex_futures/json/trade_side.hpp"
 #include "roq/phemex_futures/json/type.hpp"
 
 namespace roq {
@@ -40,7 +36,7 @@ std::optional<UpdateType> Map<phemex_futures::json::EventType>::helper() const;
 
 template <>
 template <>
-std::optional<UpdateType> Map<phemex_futures::json::MessageType>::helper() const;  // ???
+std::optional<UpdateType> Map<phemex_futures::json::MessageType>::helper() const;
 
 template <>
 template <>
@@ -64,14 +60,6 @@ std::optional<TimeInForce> Map<phemex_futures::json::TimeInForce>::helper() cons
 
 template <>
 template <>
-std::optional<Liquidity> Map<phemex_futures::json::TradeScope>::helper() const;  // XXX
-
-template <>
-template <>
-std::optional<PositionEffect> Map<phemex_futures::json::TradeSide>::helper() const;  // XXX
-
-template <>
-template <>
 std::optional<SecurityType> Map<phemex_futures::json::Type>::helper() const;
 
 // roq => phemex_futures::json
@@ -83,10 +71,6 @@ std::optional<phemex_futures::json::OrderType> Map<OrderType>::helper() const;
 template <>
 template <>
 std::optional<phemex_futures::json::PosSide> Map<PositionEffect, Side>::helper() const;
-
-template <>
-template <>
-std::optional<phemex_futures::json::TradeSide> Map<PositionEffect>::helper() const;  // XXX
 
 template <>
 template <>

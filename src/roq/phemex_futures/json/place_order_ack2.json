@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/FillHistory",
+  "name": "roq/phemex_futures/json/PlaceOrderAck2",
   "type": "dictionary",
   "values": [
     {
@@ -16,7 +16,7 @@
     },
     {
       "name": "data",
-      "type": "roq/phemex_futures/json/FillHistoryData"
+      "type": "roq/phemex_futures/json/PlaceOrderAck2Data"
     }
   ]
 }
