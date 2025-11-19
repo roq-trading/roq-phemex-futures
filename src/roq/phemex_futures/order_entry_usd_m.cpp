@@ -531,7 +531,7 @@ void OrderEntryUsdM::create_order(Event<CreateOrder> const &event, server::oms::
         .body = {},
         .quality_of_service = {},
     };
-    // log::warn("DEBUG request={}"sv, request);
+    log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
       uint32_t version = 1;
       TraceInfo trace_info;
@@ -561,7 +561,7 @@ void OrderEntryUsdM::create_order_ack(Trace<web::rest::Response> const &event, u
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      // log::warn(R"(DEBUG body="{}")"sv, body);
+      log::warn(R"(DEBUG body="{}")"sv, body);
       json::PlaceOrderAck2 create_order_ack{body, decode_buffer_};
       if (create_order_ack.code == 0) {
         Trace event_2{event, create_order_ack};
@@ -699,7 +699,7 @@ void OrderEntryUsdM::modify_order_ack(Trace<web::rest::Response> const &event, u
 void OrderEntryUsdM::operator()(Trace<json::ModifyOrderAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, modify_order_ack] = event;
   log::info<2>("modify_order_ack={}"sv, modify_order_ack);
-  log::warn("DEBUG modify_order_ack={}"sv, modify_order_ack);
+  // log::warn("DEBUG modify_order_ack={}"sv, modify_order_ack);
   auto &data = modify_order_ack.data;
   auto response = server::oms::Response{
       .request_type = RequestType::MODIFY_ORDER,
@@ -775,7 +775,7 @@ void OrderEntryUsdM::cancel_order(
         .body = {},
         .quality_of_service = {},
     };
-    // log::warn("DEBUG request={}"sv, request);
+    log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = cancel_order.order_id, version = cancel_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
@@ -805,7 +805,7 @@ void OrderEntryUsdM::cancel_order_ack(Trace<web::rest::Response> const &event, u
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      // log::warn(R"(DEBUG body="{}")"sv, body);
+      log::warn(R"(DEBUG body="{}")"sv, body);
       json::CancelOrderAck2 cancel_order_ack{body, decode_buffer_};
       if (cancel_order_ack.code == 0) {
         Trace event_2{event, cancel_order_ack};

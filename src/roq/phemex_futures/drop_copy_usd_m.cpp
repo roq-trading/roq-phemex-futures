@@ -334,7 +334,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .update_type = update_type,
         .exchange_time_utc = {},  // ???
         .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
-        .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+        .sending_time_utc = accounts_orders_positions.timestamp,
     };
     create_trace_and_dispatch(handler_, trace_info, funds_update, true);
   }
@@ -356,7 +356,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .order_type = map(item.ord_type),
         .time_in_force = map(item.time_in_force),
         .execution_instructions = {},
-        .create_time_utc = {},
+        .create_time_utc = item.transact_time_ns,
         .update_time_utc = item.transact_time_ns,
         .external_account = external_account,
         .external_order_id = item.order_id,
@@ -369,8 +369,8 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .remaining_quantity = item.leaves_value_rv,
         .traded_quantity = item.cum_qty,  // cum_value_rv ???
         .average_traded_price = NaN,
-        .last_traded_quantity = NaN,  // item.exec_qty,  // exec_value_rv ???
-        .last_traded_price = NaN,     // item.exec_price_rp,
+        .last_traded_quantity = NaN,  // exec_qty, exec_value_rv ???
+        .last_traded_price = NaN,     // exec_price_rp ???
         .last_liquidity = {},
         .routing_id = {},
         .max_request_version = {},
@@ -398,7 +398,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
     auto external_account = fmt::format("{}"sv, item.account_id);
     auto long_quantity = std::max(0.0, item.assigned_pos_balance_rv);  // side / size ???
     auto short_quantity = std::max(0.0, item.assigned_pos_balance_rv);
-    // cross_shared_balance_rv ???
+    // cross_shared_balance_rv ??? <<== margin ???
     auto position_update = PositionUpdate{
         .stream_id = stream_id_,
         .account = account_.name,
@@ -411,7 +411,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .update_type = update_type,
         .exchange_time_utc = item.transact_time_ns,
         // execSeq ???
-        .sending_time_utc = item.updated_at_ns,
+        .sending_time_utc = accounts_orders_positions.timestamp,
     };
     create_trace_and_dispatch(handler_, trace_info, position_update, true);
   }

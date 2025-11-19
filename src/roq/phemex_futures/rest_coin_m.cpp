@@ -236,6 +236,11 @@ void RestCoinM::get_products_ack(Trace<web::rest::Response> const &event, uint32
 void RestCoinM::operator()(Trace<json::Products> const &event) {
   auto &[trace_info, products] = event;
   log::info<4>("products={}"sv, products);
+  for (auto &item : products.data.currencies) {
+    shared_.currency[item.currency] = tools::Currency{
+        .value_factor = std::pow(10.0, item.value_scale),
+    };
+  }
   auto discard = [&](auto &symbol, auto type, auto status) {
     switch (type) {
       using enum json::Type::type_t;

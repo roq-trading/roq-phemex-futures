@@ -172,7 +172,7 @@
     },
     {
       "name": "side",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/Side"
     },
     {
       "name": "size",

@@ -1,7 +1,5 @@
 TODO
 
-coin-m drop-copy must wait for reference data -- funding amounts are scaled
+coin-m drop-copy must wait for reference data so values can be scaled
 
-cache scaling factors
-
-drop open orders download ???
+drop open-orders download ???

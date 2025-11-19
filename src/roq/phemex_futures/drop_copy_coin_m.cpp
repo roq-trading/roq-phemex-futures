@@ -4,6 +4,7 @@
 
 #include "roq/mask.hpp"
 
+#include "roq/utils/common.hpp"
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
@@ -312,33 +313,123 @@ void DropCopyCoinM::operator()(Trace<json::IndexMarket24h> const &event) {
 void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
-  log::warn("DEBUG accounts:"sv);
+  auto update_type = map(accounts_orders_positions.type).template get<UpdateType>();
   for (auto &item : accounts_orders_positions.accounts) {
-    log::warn("DEBUG item={}"sv, item);
-    // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
-    auto funds_update = FundsUpdate{
-        .stream_id = stream_id_,
-        .account = account_.name,
-        .currency = item.currency,
-        .margin_mode = {},                                     // ???
-        .balance = utils::safe_cast(item.account_balance_ev),  // TYPE CONVERSION ???
-        .hold = NaN,
-        .borrowed = NaN,
-        .external_account = {},
-        .update_type = map(accounts_orders_positions.type),
-        .exchange_time_utc = {},  // ???
-        .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
-        .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+    auto helper = [&](auto &currency) {
+      auto account_balance = static_cast<double>(item.account_balance_ev) / currency.value_factor;
+      // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
+      auto funds_update = FundsUpdate{
+          .stream_id = stream_id_,
+          .account = account_.name,
+          .currency = item.currency,
+          .margin_mode = {},  // ???
+          .balance = account_balance,
+          .hold = NaN,
+          .borrowed = NaN,
+          .external_account = {},
+          .update_type = update_type,
+          .exchange_time_utc = {},  // ???
+          .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
+          .sending_time_utc = accounts_orders_positions.timestamp,
+      };
+      create_trace_and_dispatch(handler_, trace_info, funds_update, true);
     };
-    create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+    if (shared_.find_currency(item.currency, helper)) {
+    } else {
+      log::warn("*** MISSING CURRENCY *** ({})"sv, item.currency);
+    }
   }
-  log::warn("DEBUG orders:"sv);
   for (auto &item : accounts_orders_positions.orders) {
-    log::warn("DEBUG item={}"sv, item);
+    // log::warn("DEBUG item={}"sv, item);
+    auto helper = [&](auto &security) {
+      auto order_status = map(item.ord_status).template get<OrderStatus>();
+      if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
+        return;
+      }
+      auto external_account = fmt::format("{}"sv, item.account_id);
+      auto price = static_cast<double>(item.price_ep) / security.price_factor;
+      auto stop_price = static_cast<double>(item.stop_px_ep) / security.price_factor;
+      auto order_update = server::oms::OrderUpdate{
+          .account = account_.name,
+          .exchange = shared_.settings.exchange,
+          .symbol = item.symbol,
+          .side = map(item.side),
+          .position_effect = {},
+          .margin_mode = {},
+          .max_show_quantity = NaN,
+          .order_type = map(item.ord_type),
+          .time_in_force = map(item.time_in_force),
+          .execution_instructions = {},
+          .create_time_utc = item.transact_time_ns,
+          .update_time_utc = item.transact_time_ns,
+          .external_account = external_account,
+          .external_order_id = item.order_id,
+          .client_order_id = item.cl_ord_id,
+          .order_status = order_status,
+          .quantity = item.order_qty,
+          .price = price,
+          .stop_price = stop_price,
+          .leverage = NaN,
+          .remaining_quantity = item.leaves_qty,
+          .traded_quantity = item.cum_qty,
+          .average_traded_price = NaN,
+          .last_traded_quantity = NaN,
+          .last_traded_price = NaN,
+          .last_liquidity = {},
+          .routing_id = {},
+          .max_request_version = {},
+          .max_response_version = {},
+          .max_accepted_version = {},
+          .update_type = update_type,
+          .sending_time_utc = accounts_orders_positions.timestamp,
+      };
+      auto user_id = SOURCE_NONE;
+      auto order_id = ORDER_ID_NONE;
+      auto strategy_id = STRATEGY_ID_NONE;
+      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&](auto &order) {
+            user_id = order.user_id;
+            order_id = order.order_id;
+            strategy_id = order.strategy_id;
+          })) {
+      } else {
+        log::warn("*** EXTERNAL ORDER ***"sv);
+        log::warn("item={}"sv, item);
+      }
+      // XXX FIXME TODO fills ???
+    };
+    if (shared_.find_security(item.symbol, helper)) {
+    } else {
+      log::warn("*** MISSING SYMBOL *** ({})"sv, item.symbol);
+    }
   }
-  log::warn("DEBUG positions:"sv);
   for (auto &item : accounts_orders_positions.positions) {
-    log::warn("DEBUG item={}"sv, item);
+    // log::warn("DEBUG item={}"sv, item);
+    auto helper = [&](auto &security) {
+      auto external_account = fmt::format("{}"sv, item.account_id);
+      auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  //  XXX size? free_qty?
+      auto long_quantity = std::max(0.0, assigned_pos_balance);
+      auto short_quantity = std::max(0.0, assigned_pos_balance);
+      // cross_shared_balance_rv ???
+      auto position_update = PositionUpdate{
+          .stream_id = stream_id_,
+          .account = account_.name,
+          .exchange = shared_.settings.exchange,
+          .symbol = item.symbol,
+          .margin_mode = {},
+          .external_account = external_account,
+          .long_quantity = long_quantity,
+          .short_quantity = short_quantity,
+          .update_type = update_type,
+          .exchange_time_utc = item.transact_time_ns,
+          // execSeq ???
+          .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+      };
+      create_trace_and_dispatch(handler_, trace_info, position_update, true);
+    };
+    if (shared_.find_security(item.symbol, helper)) {
+    } else {
+      log::warn("*** MISSING SYMBOL *** ({})"sv, item.symbol);
+    }
   }
 }
 

@@ -225,12 +225,15 @@ uint32_t OrderEntryCoinM::download(OrderEntryState state) {
       assert(false);
       break;
     case OPEN_ORDERS:
+      /*
       if (!std::empty(shared_.settings.download.symbols)) {
         get_open_orders();
         return 1;  // XXX FIXME TODO countdown
       } else {
         return 0;
       }
+      */
+      return 0;
     case FILL_HISTORY:
       /*
       if (shared_.settings.rest.download_fills_begin.count()) {
@@ -248,7 +251,7 @@ uint32_t OrderEntryCoinM::download(OrderEntryState state) {
   assert(false);
   return 0;
 }
-
+/*
 // open_orders
 
 void OrderEntryCoinM::get_open_orders() {
@@ -315,7 +318,7 @@ void OrderEntryCoinM::operator()(Trace<json::OpenOrders> const &event) {
   log::info<4>("open_orders={}"sv, open_orders);
   for (auto &item : open_orders.data.rows) {
     log::warn("DEBUG item={}"sv, item);
-    /*
+
     auto remaining_quantity = item.qty - item.cum_exec_qty;
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
@@ -354,9 +357,9 @@ void OrderEntryCoinM::operator()(Trace<json::OpenOrders> const &event) {
     log::warn("DEBUG order_update={}"sv, order_update);
     Trace event_2{trace_info, order_update};
     (*this)(event_2, item.client_oid);
-    */
   }
 }
+*/
 /*
 // fill_history
 
@@ -577,11 +580,58 @@ void OrderEntryCoinM::create_order_ack(Trace<web::rest::Response> const &event, 
   });
 }
 
-void OrderEntryCoinM::operator()(
-    Trace<json::PlaceOrderAck> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
+void OrderEntryCoinM::operator()(Trace<json::PlaceOrderAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, create_order_ack] = event;
   log::info<2>("create_order_ack={}"sv, create_order_ack);
   log::warn("DEBUG create_order_ack={}"sv, create_order_ack);
+  auto &data = create_order_ack.data;
+  auto response = server::oms::Response{
+      .request_type = RequestType::CREATE_ORDER,
+      .origin = Origin::EXCHANGE,
+      .request_status = RequestStatus::ACCEPTED,
+      .error = {},
+      .text = {},
+      .version = version,
+      .request_id = {},
+      .quantity = data.order_qty,
+      .price = data.price,
+  };
+  auto order_update = server::oms::OrderUpdate{
+      .account = account_.name,
+      .exchange = shared_.settings.exchange,
+      .symbol = data.symbol,
+      .side = map(data.side),
+      .position_effect = {},
+      .margin_mode = {},
+      .max_show_quantity = NaN,
+      .order_type = map(data.order_type),
+      .time_in_force = map(data.time_in_force),
+      .execution_instructions = {},  // ???
+      .create_time_utc = data.transact_time_ns,
+      .update_time_utc = data.transact_time_ns,
+      .external_account = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
+      .order_status = map(data.ord_status),
+      .quantity = data.order_qty,
+      .price = data.price,
+      .stop_price = data.stop_px,
+      .leverage = NaN,
+      .remaining_quantity = data.leaves_qty,
+      .traded_quantity = data.cum_qty,
+      .average_traded_price = NaN,
+      .last_traded_quantity = NaN,
+      .last_traded_price = NaN,
+      .last_liquidity = {},
+      .routing_id = {},
+      .max_request_version = {},
+      .max_response_version = {},
+      .max_accepted_version = {},
+      .update_type = UpdateType::INCREMENTAL,
+      .sending_time_utc = create_order_ack.request_time,  // ???
+  };
+  Trace event_2{trace_info, response};
+  (*this)(event_2, user_id, order_id, order_update);
 }
 
 // modify_order
@@ -609,7 +659,7 @@ void OrderEntryCoinM::modify_order(
         .body = {},
         .quality_of_service = {},
     };
-    log::warn("DEBUG request={}"sv, request);
+    // log::warn("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = modify_order.order_id, version = modify_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
@@ -727,11 +777,58 @@ void OrderEntryCoinM::cancel_order_ack(Trace<web::rest::Response> const &event, 
   });
 }
 
-void OrderEntryCoinM::operator()(
-    Trace<json::CancelOrderAck> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
+void OrderEntryCoinM::operator()(Trace<json::CancelOrderAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, cancel_order_ack] = event;
   log::info<2>("cancel_order_ack={}"sv, cancel_order_ack);
   log::warn("DEBUG cancel_order_ack={}"sv, cancel_order_ack);
+  auto &data = cancel_order_ack.data;
+  auto response = server::oms::Response{
+      .request_type = RequestType::CANCEL_ORDER,
+      .origin = Origin::EXCHANGE,
+      .request_status = RequestStatus::ACCEPTED,
+      .error = {},
+      .text = {},
+      .version = version,
+      .request_id = {},
+      .quantity = data.order_qty,
+      .price = data.price,
+  };
+  auto order_update = server::oms::OrderUpdate{
+      .account = account_.name,
+      .exchange = shared_.settings.exchange,
+      .symbol = data.symbol,
+      .side = map(data.side),
+      .position_effect = {},
+      .margin_mode = {},
+      .max_show_quantity = NaN,
+      .order_type = map(data.order_type),
+      .time_in_force = map(data.time_in_force),
+      .execution_instructions = {},  // ???
+      .create_time_utc = {},
+      .update_time_utc = data.transact_time_ns,
+      .external_account = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
+      .order_status = map(data.ord_status),
+      .quantity = data.order_qty,
+      .price = data.price,
+      .stop_price = data.stop_px,
+      .leverage = NaN,
+      .remaining_quantity = data.leaves_qty,
+      .traded_quantity = data.cum_qty,
+      .average_traded_price = NaN,
+      .last_traded_quantity = NaN,
+      .last_traded_price = NaN,
+      .last_liquidity = {},
+      .routing_id = {},
+      .max_request_version = {},
+      .max_response_version = {},
+      .max_accepted_version = {},
+      .update_type = UpdateType::INCREMENTAL,
+      .sending_time_utc = cancel_order_ack.request_time,
+  };
+  Trace event_2{trace_info, response};
+  (*this)(event_2, user_id, order_id, order_update);
 }
 
 // cancel_all_orders

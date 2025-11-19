@@ -17,6 +17,7 @@
 #include "roq/phemex_futures/api.hpp"
 #include "roq/phemex_futures/settings.hpp"
 
+#include "roq/phemex_futures/tools/currency.hpp"
 #include "roq/phemex_futures/tools/security.hpp"
 
 namespace roq {
@@ -52,6 +53,22 @@ struct Shared final {
   API const api;
   core::limit::RateLimiter rate_limiter;
   core::Symbols symbols;
+
+  // currency
+
+  utils::unordered_map<std::string, tools::Currency> currency;
+
+  template <typename Callback>
+  bool find_currency(std::string_view const &name, Callback callback) {
+    auto iter = currency.find(name);
+    if (iter == std::end(currency)) {
+      return false;
+    }
+    callback((*iter).second);
+    return true;
+  }
+
+  // security
 
   utils::unordered_map<std::string, tools::Security> security;
 

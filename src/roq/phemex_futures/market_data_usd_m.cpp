@@ -327,66 +327,52 @@ void MarketDataUsdM::operator()(Trace<json::Book> const &event) {
   profile_.book([&]() {
     auto &[trace_info, book] = event;
     log::info<3>("book={}"sv, book);
-    auto helper = [&](auto &data) {
-      auto &bids = shared_.bids;
-      auto &asks = shared_.asks;
-      bids.clear();
-      asks.clear();
-      for (auto &item : data.bids) {
-        auto mbp_update = MBPUpdate{
-            .price = item.price_ep,  // XXX HANS convert to double
-            .quantity = item.qty,
-            .implied_quantity = NaN,
-            .number_of_orders = {},
-            .update_action = {},
-            .price_level = {},
-        };
-        bids.emplace_back(std::move(mbp_update));
-      }
-      for (auto &item : data.asks) {
-        auto mbp_update = MBPUpdate{
-            .price = item.price_ep,  // XXX HANS convert to double
-            .quantity = item.qty,
-            .implied_quantity = NaN,
-            .number_of_orders = {},
-            .update_action = {},
-            .price_level = {},
-        };
-        asks.emplace_back(std::move(mbp_update));
-      }
-      if (!(std::empty(bids) && std::empty(asks))) {
-        auto market_by_price_update = MarketByPriceUpdate{
-            .stream_id = stream_id_,
-            .exchange = shared_.settings.exchange,
-            .symbol = book.symbol,
-            .bids = bids,
-            .asks = asks,
-            .update_type = map(book.type),
-            .exchange_time_utc = book.timestamp,
-            .exchange_sequence = utils::safe_cast{book.sequence},
-            .sending_time_utc = {},
-            .price_precision = {},
-            .quantity_precision = {},
-            .max_depth = {},
-            .checksum = {},
-        };
-        create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true);
-      }
-    };
-    switch (shared_.api.type) {
-      using enum API::Type;
-      case COIN_M:
-        if (!std::empty(book.orderbook_p.bids) || !std::empty(book.orderbook_p.asks)) [[unlikely]] {
-          log::fatal("Unexpected"sv);
-        }
-        helper(book.book);
-        break;
-      case USD_M:
-        if (!std::empty(book.book.bids) || !std::empty(book.book.asks)) [[unlikely]] {
-          log::fatal("Unexpected"sv);
-        }
-        helper(book.orderbook_p);
-        break;
+    if (!std::empty(book.book.bids) || !std::empty(book.book.asks)) [[unlikely]] {
+      log::fatal("Unexpected"sv);
+    }
+    auto &bids = shared_.bids;
+    auto &asks = shared_.asks;
+    bids.clear();
+    asks.clear();
+    for (auto &item : book.orderbook_p.bids) {
+      auto mbp_update = MBPUpdate{
+          .price = item.price_ep,  // XXX HANS convert to double
+          .quantity = item.qty,
+          .implied_quantity = NaN,
+          .number_of_orders = {},
+          .update_action = {},
+          .price_level = {},
+      };
+      bids.emplace_back(std::move(mbp_update));
+    }
+    for (auto &item : book.orderbook_p.asks) {
+      auto mbp_update = MBPUpdate{
+          .price = item.price_ep,  // XXX HANS convert to double
+          .quantity = item.qty,
+          .implied_quantity = NaN,
+          .number_of_orders = {},
+          .update_action = {},
+          .price_level = {},
+      };
+      asks.emplace_back(std::move(mbp_update));
+    }
+    if (!(std::empty(bids) && std::empty(asks))) {
+      auto market_by_price_update = MarketByPriceUpdate{
+          .stream_id = stream_id_,
+          .exchange = shared_.settings.exchange,
+          .symbol = book.symbol,
+          .bids = bids,
+          .asks = asks,
+          .update_type = map(book.type),
+          .exchange_time_utc = book.timestamp,
+          .exchange_sequence = utils::safe_cast{book.sequence},
+          .sending_time_utc = {},
+          .price_precision = {},
+          .quantity_precision = {},
+          .max_depth = {},
+          .checksum = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true);
     }
   });
 }
@@ -398,120 +384,42 @@ void MarketDataUsdM::operator()(Trace<json::Trades> const &event) {
     if (trades.type != json::MessageType::INCREMENTAL) {  // note! drop snapshot
       return;
     }
+    if (!std::empty(trades.trades)) [[unlikely]] {
+      log::fatal("Unexpected"sv);
+    }
     auto &trades_2 = shared_.trades;
     trades_2.clear();
-    auto helper = [&](auto &data) {
-      using timestamp_type = decltype(json::TradesTradesItem::timestamp);
-      auto timestamp = timestamp_type{};
-      for (auto &item : data) {
-        auto item_2 = Trade{
-            .side = map(item.side),
-            .price = item.price_ep,  // XXX HANS convert to double
-            .quantity = item.qty,    // XXX HANS convert to double
-            .trade_id = {},          // note! nothing...
-            .taker_order_id = {},
-            .maker_order_id = {},
-        };
-        trades_2.emplace_back(std::move(item_2));
-        utils::update_max(timestamp, item.timestamp);
-      }
-      if (!std::empty(trades_2)) {
-        auto trade_summary = TradeSummary{
-            .stream_id = stream_id_,
-            .exchange = shared_.settings.exchange,
-            .symbol = trades.symbol,
-            .trades = trades_2,
-            .exchange_time_utc = timestamp,
-            .exchange_sequence = utils::safe_cast{trades.sequence},
-            .sending_time_utc = {},
-        };
-        create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
-      }
-    };
-    switch (shared_.api.type) {
-      using enum API::Type;
-      case COIN_M:
-        if (!std::empty(trades.trades_p)) [[unlikely]] {
-          log::fatal("Unexpected"sv);
-        }
-        helper(trades.trades);
-        break;
-      case USD_M:
-        if (!std::empty(trades.trades)) [[unlikely]] {
-          log::fatal("Unexpected"sv);
-        }
-        helper(trades.trades_p);
-        break;
+    using timestamp_type = decltype(json::TradesTradesItem::timestamp);
+    auto timestamp = timestamp_type{};
+    for (auto &item : trades.trades_p) {
+      auto item_2 = Trade{
+          .side = map(item.side),
+          .price = item.price_ep,  // XXX HANS convert to double
+          .quantity = item.qty,    // XXX HANS convert to double
+          .trade_id = {},          // note! nothing...
+          .taker_order_id = {},
+          .maker_order_id = {},
+      };
+      trades_2.emplace_back(std::move(item_2));
+      utils::update_max(timestamp, item.timestamp);
+    }
+    if (!std::empty(trades_2)) {
+      auto trade_summary = TradeSummary{
+          .stream_id = stream_id_,
+          .exchange = shared_.settings.exchange,
+          .symbol = trades.symbol,
+          .trades = trades_2,
+          .exchange_time_utc = timestamp,
+          .exchange_sequence = utils::safe_cast{trades.sequence},
+          .sending_time_utc = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
     }
   });
 }
 
-void MarketDataUsdM::operator()(Trace<json::Market24h> const &event) {
-  profile_.market24h([&]() {
-    auto &[trace_info, market24h] = event;
-    log::info<3>("market24h={}"sv, market24h);
-    std::array<Statistics, 8> statistics{{
-        {
-            .type = StatisticsType::OPEN_PRICE,
-            .value = market24h.market24h.open,  // XXX HANS convert to double
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::HIGHEST_TRADED_PRICE,
-            .value = market24h.market24h.high,  // XXX HANS convert to double
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::LOWEST_TRADED_PRICE,
-            .value = market24h.market24h.low,  // XXX HANS convert to double
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::INDEX_VALUE,
-            .value = market24h.market24h.index_price,  // XXX HANS convert to double
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::SETTLEMENT_PRICE,
-            .value = market24h.market24h.mark_price,  // XXX HANS convert to double
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::TRADE_VOLUME,
-            .value = market24h.market24h.volume,  // XXX HANS convert ??? turnover ???
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::FUNDING_RATE,
-            .value = market24h.market24h.pred_funding_rate,  // XXX HANS convert ???
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-        {
-            .type = StatisticsType::OPEN_INTEREST,
-            .value = market24h.market24h.open_interest,  // XXX HANS convert ???
-            .begin_time_utc = {},
-            .end_time_utc = {},
-        },
-    }};
-    auto statistics_update = StatisticsUpdate{
-        .stream_id = stream_id_,
-        .exchange = shared_.settings.exchange,
-        .symbol = market24h.market24h.symbol,
-        .statistics = statistics,
-        .update_type = UpdateType::INCREMENTAL,
-        .exchange_time_utc = market24h.timestamp,  // ???
-        .exchange_sequence = {},
-        .sending_time_utc = {},
-    };
-    create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
-  });
+void MarketDataUsdM::operator()(Trace<json::Market24h> const &) {
+  log::fatal("Unexpected"sv);
 }
 
 void MarketDataUsdM::operator()(Trace<json::Market24h2> const &event) {

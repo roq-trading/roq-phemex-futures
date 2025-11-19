@@ -28,7 +28,7 @@
     },
     {
       "name": "status",
-      "type": "std/int64"
+      "type": "std/int32"
     },
     {
       "name": "totalUsedBalanceEv",
@@ -44,7 +44,7 @@
     },
     {
       "name": "ver",
-      "type": "std/int64"
+      "type": "std/int32"
     }
   ]
 }
