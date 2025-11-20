@@ -152,7 +152,7 @@ std::string_view Encoder::modify_order_usd_m(
 
 std::string_view Encoder::cancel_order_coin_m(
     std::string &buffer, CancelOrder const &, server::oms::Order const &order, [[maybe_unused]] std::string_view const &request_id) {
-  assert(!std::empty(symbol));
+  assert(!std::empty(order.symbol));
   buffer.clear();
   if (std::empty(order.external_order_id)) {
     fmt::format_to(std::back_inserter(buffer), "?clOrdID={}"sv, order.client_order_id);
@@ -165,7 +165,7 @@ std::string_view Encoder::cancel_order_coin_m(
 
 std::string_view Encoder::cancel_order_usd_m(
     std::string &buffer, CancelOrder const &, server::oms::Order const &order, [[maybe_unused]] std::string_view const &request_id) {
-  assert(!std::empty(symbol));
+  assert(!std::empty(order.symbol));
   buffer.clear();
   if (std::empty(order.external_order_id)) {
     fmt::format_to(std::back_inserter(buffer), "?clOrdID={}"sv, order.client_order_id);
