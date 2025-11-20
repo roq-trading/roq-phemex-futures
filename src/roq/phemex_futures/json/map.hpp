@@ -4,6 +4,7 @@
 
 #include "roq/map.hpp"
 
+#include "roq/liquidity.hpp"
 #include "roq/order_status.hpp"
 #include "roq/order_type.hpp"
 #include "roq/position_effect.hpp"
@@ -13,6 +14,7 @@
 #include "roq/update_type.hpp"
 
 #include "roq/phemex_futures/json/event_type.hpp"
+#include "roq/phemex_futures/json/liquidity_ind.hpp"
 #include "roq/phemex_futures/json/message_type.hpp"
 #include "roq/phemex_futures/json/order_status.hpp"
 #include "roq/phemex_futures/json/order_type.hpp"
@@ -28,6 +30,10 @@ namespace roq {
 template <>
 template <>
 std::optional<UpdateType> Map<phemex_futures::json::EventType>::helper() const;
+
+template <>
+template <>
+std::optional<Liquidity> Map<phemex_futures::json::LiquidityInd>::helper() const;
 
 template <>
 template <>

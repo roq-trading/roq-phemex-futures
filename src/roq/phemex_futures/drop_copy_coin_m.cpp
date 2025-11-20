@@ -340,7 +340,20 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
     }
   }
   for (auto &item : accounts_orders_positions.orders) {
-    // log::warn("DEBUG item={}"sv, item);
+    log::warn("DEBUG item={}"sv, item);
+    log::warn(
+        "DEBUG exec_inst={}, exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_ep={}, exec_fee_ev={}, exec_seq={}, last_liquidity_ind={}, trade_type={}"sv,
+        item.exec_inst,
+        item.exec_status,
+        item.ord_status,
+        item.leaves_qty,
+        item.cum_qty,
+        item.exec_qty,
+        item.exec_price_ep,
+        item.exec_fee_ev,
+        item.exec_seq,
+        item.last_liquidity_ind,
+        item.trade_type);
     auto helper = [&](auto &security) {
       auto order_status = map(item.ord_status).template get<OrderStatus>();
       if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
@@ -354,7 +367,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
           .exchange = shared_.settings.exchange,
           .symbol = item.symbol,
           .side = map(item.side),
-          .position_effect = {},
+          .position_effect = {},  // XXX FIXME TODO
           .margin_mode = {},
           .max_show_quantity = NaN,
           .order_type = map(item.ord_type),
@@ -391,11 +404,53 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
             order_id = order.order_id;
             strategy_id = order.strategy_id;
           })) {
+        log::warn("DEBUG order_update={}"sv, order_update);
       } else {
-        log::warn("*** EXTERNAL ORDER ***"sv);
-        log::warn("item={}"sv, item);
+        log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, item.cl_ord_id);
       }
-      // XXX FIXME TODO fills ???
+      if (item.trade_type == json::TradeType::TRADE) {
+        if (item.exec_status != json::ExecStatus::TAKER_FILL && item.exec_status != json::ExecStatus::MAKER_FILL) {
+          log::fatal("Unexpected: {}"sv, item);
+        }
+        auto fill = Fill{
+            .exchange_time_utc = item.transact_time_ns,
+            .external_trade_id = {},
+            .quantity = item.exec_qty,
+            .price = item.exec_price_ep / security.price_factor,
+            .liquidity = map(item.last_liquidity_ind),
+            .commission_amount = static_cast<double>(item.exec_fee_ev),  // XXX FIXME TODO scale?
+            .commission_currency = {},                                   // XXX FIXME TODO
+            .base_amount = NaN,
+            .quote_amount = NaN,
+            .profit_loss_amount = NaN,
+        };
+        fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.exec_id);
+        auto trade_update = TradeUpdate{
+            .stream_id = stream_id_,
+            .account = account_.name,
+            .order_id = {},
+            .exchange = shared_.settings.exchange,
+            .symbol = item.symbol,
+            .side = map(item.side),
+            .position_effect = {},  // XXX FIXME TODO
+            .margin_mode = {},
+            .create_time_utc = item.transact_time_ns,
+            .update_time_utc = item.transact_time_ns,
+            .external_account = external_account,
+            .external_order_id = item.order_id,
+            .client_order_id = item.cl_ord_id,
+            .fills = {&fill, 1},
+            .routing_id = {},
+            .update_type = update_type,
+            .exchange_time_utc = item.transact_time_ns,
+            .exchange_sequence = item.exec_seq,
+            .sending_time_utc = accounts_orders_positions.timestamp,
+            .user = {},
+            .strategy_id = {},
+        };
+        log::warn("DEBUG trade_update={}"sv, trade_update);
+        create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, item.cl_ord_id);
+      }
     };
     if (shared_.find_security(item.symbol, helper)) {
     } else {
@@ -403,12 +458,12 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
     }
   }
   for (auto &item : accounts_orders_positions.positions) {
-    // log::warn("DEBUG item={}"sv, item);
+    log::warn("DEBUG item={}"sv, item);
     auto helper = [&](auto &security) {
       auto external_account = fmt::format("{}"sv, item.account_id);
       auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  //  XXX size? free_qty?
       auto long_quantity = std::max(0.0, assigned_pos_balance);
-      auto short_quantity = std::max(0.0, assigned_pos_balance);
+      auto short_quantity = std::max(0.0, -assigned_pos_balance);
       // cross_shared_balance_rv ???
       auto position_update = PositionUpdate{
           .stream_id = stream_id_,
@@ -435,6 +490,11 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
 
 void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &) {
   log::fatal("Unexpected"sv);
+}
+
+void DropCopyCoinM::operator()(Trace<json::PositionInfo> const &event) {
+  auto &[trace_info, position_info] = event;
+  log::info<2>("position_info={}"sv, position_info);
 }
 
 }  // namespace phemex_futures

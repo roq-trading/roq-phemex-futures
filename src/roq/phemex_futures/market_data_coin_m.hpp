@@ -79,6 +79,7 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   void operator()(Trace<json::IndexMarket24h> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
+  void operator()(Trace<json::PositionInfo> const &) override;
 
  private:
   MarketData::Handler &handler_;

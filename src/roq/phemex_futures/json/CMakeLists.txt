@@ -36,6 +36,7 @@ set(AUTOGEN_SCHEMAS
     kline_data_item.json
     kline.json
     liq_status.json
+    liquidity_ind.json
     market24h2.json
     market24h_data2.json
     market24h_data.json
@@ -56,6 +57,8 @@ set(AUTOGEN_SCHEMAS
     place_order_ack_data.json
     place_order_ack.json
     pong.json
+    position_info.json
+    position_info_position_info.json
     pos_mode.json
     pos_side.json
     products_data_currencies_item.json
@@ -67,9 +70,9 @@ set(AUTOGEN_SCHEMAS
     status.json
     stp_instruction.json
     time_in_force.json
-    trade_type.json
     trades.json
     trades_trades_item.json
+    trade_type.json
     type.json
     user_mode.json)
 

@@ -221,6 +221,18 @@
     {
       "name": "userID",
       "type": "std/int64"
+    },
+    {
+      "name": "lastLiquidityInd",
+      "type": "roq/phemex_futures/json/LiquidityInd"
+    },
+    {
+      "name": "tradeType",
+      "type": "roq/phemex_futures/json/TradeType"
+    },
+    {
+      "name": "execInst",
+      "type": "roq/phemex_futures/json/ExecInst"
     }
   ]
 }

@@ -12,6 +12,7 @@ set(SOURCES
     json_modify_order_ack.cpp
     json_open_orders.cpp
     json_place_order_ack.cpp
+    json_position_info.cpp
     json_products.cpp
     json_trades.cpp
     main.cpp)

@@ -340,6 +340,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
   }
   for (auto &item : accounts_orders_positions.orders_p) {
     log::info<2>("item={}"sv, item);
+    log::warn("DEBUG item={}"sv, item);
     auto order_status = map(item.ord_status).template get<OrderStatus>();
     if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
       continue;
@@ -388,16 +389,16 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
           strategy_id = order.strategy_id;
         })) {
     } else {
-      log::warn("*** EXTERNAL ORDER ***"sv);
-      log::warn("item={}"sv, item);
+      log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, item.cl_ord_id);
     }
     // XXX FIXME TODO fills ???
   }
   for (auto &item : accounts_orders_positions.positions_p) {
     log::info<2>("item={}"sv, item);
+    log::warn("DEBUG item={}"sv, item);
     auto external_account = fmt::format("{}"sv, item.account_id);
     auto long_quantity = std::max(0.0, item.assigned_pos_balance_rv);  // side / size ???
-    auto short_quantity = std::max(0.0, item.assigned_pos_balance_rv);
+    auto short_quantity = std::max(0.0, -item.assigned_pos_balance_rv);
     // cross_shared_balance_rv ??? <<== margin ???
     auto position_update = PositionUpdate{
         .stream_id = stream_id_,
@@ -415,6 +416,11 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
     };
     create_trace_and_dispatch(handler_, trace_info, position_update, true);
   }
+}
+
+void DropCopyUsdM::operator()(Trace<json::PositionInfo> const &event) {
+  auto &[trace_info, position_info] = event;
+  log::info<2>("position_info={}"sv, position_info);
 }
 
 }  // namespace phemex_futures

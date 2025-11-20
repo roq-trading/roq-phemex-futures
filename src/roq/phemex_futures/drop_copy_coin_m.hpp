@@ -63,6 +63,7 @@ struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handle
   void operator()(Trace<json::IndexMarket24h> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
+  void operator()(Trace<json::PositionInfo> const &) override;
 
  private:
   void operator()(ConnectionStatus);

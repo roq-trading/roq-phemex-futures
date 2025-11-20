@@ -166,8 +166,7 @@ bool Parser::dispatch(
       dispatch_helper<AccountsOrdersPositions2>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_POSITION_INFO) {
-      // dispatch_helper<PositionInfo>(handler, message, buffer_stack, trace_info);  // XXX FIXME TODO
-      return false;  // XXX FIXME TODO
+      dispatch_helper<PositionInfo>(handler, message, buffer_stack, trace_info);
     }
     return true;
   }

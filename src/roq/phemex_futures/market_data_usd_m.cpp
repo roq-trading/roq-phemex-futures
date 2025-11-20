@@ -511,5 +511,9 @@ void MarketDataUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &) {
   log::fatal("Unexpected"sv);
 }
 
+void MarketDataUsdM::operator()(Trace<json::PositionInfo> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 }  // namespace phemex_futures
 }  // namespace roq

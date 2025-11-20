@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex_futures/json/LiquidityInd",
+  "type": "enum",
+  "values": [
+    {
+      "name": "AddedLiquidity"
+    },
+    {
+      "name": "RemovedLiquidity"
+    }
+  ]
+}

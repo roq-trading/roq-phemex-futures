@@ -4,6 +4,9 @@
   "values": [
     {
       "name": "Replace"
+    },
+    {
+      "name": "Trade"
     }
   ]
 }

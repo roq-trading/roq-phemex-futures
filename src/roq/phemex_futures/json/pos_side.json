@@ -13,6 +13,10 @@
     },
     {
       "name": "Merged"
+    },
+    {
+      "name": "Sell",
+      "comment": "XXX TODO check (from positions)"
     }
   ]
 }

@@ -1,0 +1,22 @@
+{
+  "name": "roq/phemex_futures/json/PositionInfoPositionInfo",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "accountID",
+      "type": "std/int64"
+    },
+    {
+      "name": "light",
+      "type": "std/int32"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "userID",
+      "type": "std/int64"
+    }
+  ]
+}

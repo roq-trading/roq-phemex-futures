@@ -21,6 +21,7 @@
 #include "roq/phemex_futures/json/accounts_orders_positions.hpp"
 #include "roq/phemex_futures/json/accounts_orders_positions2.hpp"
 #include "roq/phemex_futures/json/index_market24h.hpp"
+#include "roq/phemex_futures/json/position_info.hpp"
 
 namespace roq {
 namespace phemex_futures {
@@ -40,6 +41,7 @@ struct Parser final {
     virtual void operator()(Trace<json::IndexMarket24h> const &) = 0;
     virtual void operator()(Trace<json::AccountsOrdersPositions> const &) = 0;
     virtual void operator()(Trace<json::AccountsOrdersPositions2> const &) = 0;
+    virtual void operator()(Trace<json::PositionInfo> const &) = 0;
   };
 
   static bool dispatch(Handler &, std::string_view const &message, core::json::BufferStack &, TraceInfo const &, bool allow_unknown_event_types);

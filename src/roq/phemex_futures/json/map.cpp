@@ -42,6 +42,35 @@ std::optional<roq::UpdateType> Map<phemex_futures::json::EventType>::helper() co
   return Helper{args_};
 }
 
+// phemex_futures::json::LiquidityInd => roq::Liquidity
+
+template <>
+template <>
+constexpr Helper<phemex_futures::json::LiquidityInd>::operator std::optional<roq::Liquidity>() const {
+  switch (std::get<0>(args_)) {
+    using enum phemex_futures::json::LiquidityInd::type_t;
+    case UNDEFINED_INTERNAL:
+      return roq::Liquidity::UNDEFINED;
+    case UNKNOWN_INTERNAL:
+      return roq::Liquidity::UNDEFINED;
+    case ADDED_LIQUIDITY:
+      return roq::Liquidity::MAKER;
+    case REMOVED_LIQUIDITY:
+      return roq::Liquidity::TAKER;
+  }
+  return {};
+}
+
+static_assert(Helper{phemex_futures::json::LiquidityInd{phemex_futures::json::LiquidityInd::UNDEFINED_INTERNAL}} == roq::Liquidity::UNDEFINED);
+static_assert(Helper{phemex_futures::json::LiquidityInd{phemex_futures::json::LiquidityInd::ADDED_LIQUIDITY}} == roq::Liquidity::MAKER);
+static_assert(Helper{phemex_futures::json::LiquidityInd{phemex_futures::json::LiquidityInd::REMOVED_LIQUIDITY}} == roq::Liquidity::TAKER);
+
+template <>
+template <>
+std::optional<roq::Liquidity> Map<phemex_futures::json::LiquidityInd>::helper() const {
+  return Helper{args_};
+}
+
 // phemex_futures::json::MessageType => roq::UpdateType
 
 template <>
@@ -210,6 +239,8 @@ constexpr Helper<phemex_futures::json::PosSide, phemex_futures::json::Side>::ope
       break;
     case MERGED:
       return roq::PositionEffect::UNDEFINED;
+    case SELL:
+      return roq::PositionEffect::UNDEFINED;
   }
   return {};
 }
@@ -292,8 +323,6 @@ constexpr Helper<phemex_futures::json::TimeInForce>::operator std::optional<roq:
       return roq::TimeInForce::UNDEFINED;
     case UNKNOWN_INTERNAL:
       return roq::TimeInForce::UNDEFINED;
-    case GOOD_TILL_CANCEL:
-      return roq::TimeInForce::GTC;
     case IMMEDIATE_OR_CANCEL:
       return roq::TimeInForce::IOC;
     case FILL_OR_KILL:
@@ -301,17 +330,22 @@ constexpr Helper<phemex_futures::json::TimeInForce>::operator std::optional<roq:
     case POST_ONLY:
       return roq::TimeInForce::GTC;
     case RPI_POST_ONLY:
-      return roq::TimeInForce::GTC;
+      return roq::TimeInForce::GTC;  // ???
+    case GOOD_TILL_CANCEL:
+      return roq::TimeInForce::GTC;  // ???
+    case GOOD_TILL_MODIFY:
+      return roq::TimeInForce::GTC;  // ???
   }
   return {};
 }
 
 static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::UNDEFINED_INTERNAL}} == roq::TimeInForce::UNDEFINED);
-static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GOOD_TILL_CANCEL}} == roq::TimeInForce::GTC);
 static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::IMMEDIATE_OR_CANCEL}} == roq::TimeInForce::IOC);
 static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::FILL_OR_KILL}} == roq::TimeInForce::FOK);
 static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::POST_ONLY}} == roq::TimeInForce::GTC);
 static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::RPI_POST_ONLY}} == roq::TimeInForce::GTC);
+static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GOOD_TILL_CANCEL}} == roq::TimeInForce::GTC);
+static_assert(Helper{phemex_futures::json::TimeInForce{phemex_futures::json::TimeInForce::GOOD_TILL_MODIFY}} == roq::TimeInForce::GTC);
 
 template <>
 template <>
