@@ -17,6 +17,14 @@
     {
       "name": "userID",
       "type": "std/int64"
+    },
+    {
+      "name": "marginMode",
+      "type": "roq/phemex_futures/json/MarginMode"
+    },
+    {
+      "name": "posSide",
+      "type": "roq/phemex_futures/json/PosSide"
     }
   ]
 }

@@ -152,11 +152,11 @@
     },
     {
       "name": "posMode",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/PosMode"
     },
     {
       "name": "posSide",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/PosSide"
     },
     {
       "name": "positionMarginRv",
@@ -188,7 +188,7 @@
     },
     {
       "name": "side",
-      "type": "std/string_view"
+      "type": "roq/phemex_futures/json/Side"
     },
     {
       "name": "size",

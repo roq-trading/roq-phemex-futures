@@ -17,6 +17,19 @@ namespace roq {
 namespace phemex_futures {
 namespace json {
 
+// === HELPERS ===
+
+namespace {
+auto map_time_in_force(auto time_in_force, auto execution_instructions) -> json::TimeInForce {
+  if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE)) {
+    return json::TimeInForce::POST_ONLY;
+  }
+  return map(time_in_force);
+};
+}  // namespace
+
+// === IMPLEMENTATION ===
+
 // no stp?
 std::string_view Encoder::create_order_coin_m(
     std::string &buffer,
@@ -28,7 +41,7 @@ std::string_view Encoder::create_order_coin_m(
   auto side = map(create_order.side).template get<json::Side>();
   auto pos_side = map(create_order.position_effect, create_order.side).template get<json::PosSide>();
   auto ord_type = map(create_order.order_type).template get<json::OrderType>();
-  auto time_in_force = [&]() -> json::TimeInForce { return map(create_order.time_in_force); }();
+  auto time_in_force = map_time_in_force(create_order.time_in_force, create_order.execution_instructions);
   auto reduce_only = [&]() { return create_order.execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE); }();
   auto price = create_order.price * security.price_factor;  // note!
   log::warn("DEBUG scaling price {} => {}"sv, create_order.price, price);
@@ -66,7 +79,7 @@ std::string_view Encoder::create_order_usd_m(
   auto side = map(create_order.side).template get<json::Side>();
   auto pos_side = map(create_order.position_effect, create_order.side).template get<json::PosSide>();
   auto ord_type = map(create_order.order_type).template get<json::OrderType>();
-  auto time_in_force = map(create_order.time_in_force).template get<json::TimeInForce>();
+  auto time_in_force = map_time_in_force(create_order.time_in_force, create_order.execution_instructions);
   auto reduce_only = [&]() { return create_order.execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE); }();
   fmt::format_to(
       std::back_inserter(buffer),

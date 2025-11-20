@@ -10,7 +10,6 @@ set(SOURCES
     json_kline.cpp
     json_market24h.cpp
     json_modify_order_ack.cpp
-    json_open_orders.cpp
     json_place_order_ack.cpp
     json_position_info.cpp
     json_products.cpp

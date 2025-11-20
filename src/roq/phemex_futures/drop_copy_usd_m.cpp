@@ -341,6 +341,18 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
   for (auto &item : accounts_orders_positions.orders_p) {
     log::info<2>("item={}"sv, item);
     log::warn("DEBUG item={}"sv, item);
+    log::warn(
+        "DEBUG exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_rp={}, exec_fee_rv={}, exec_seq={}, last_liquidity_ind={}, trade_type={}"sv,
+        item.exec_status,
+        item.ord_status,
+        item.leaves_qty,
+        item.cum_qty,
+        item.exec_qty,
+        item.exec_price_rp,
+        item.exec_fee_rv,
+        item.exec_seq,
+        item.last_liquidity_ind,
+        item.trade_type);
     auto order_status = map(item.ord_status).template get<OrderStatus>();
     if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
       continue;
@@ -391,21 +403,66 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
     } else {
       log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, item.cl_ord_id);
     }
-    // XXX FIXME TODO fills ???
+    if (item.trade_type == json::TradeType::TRADE) {
+      if (item.exec_status != json::ExecStatus::TAKER_FILL && item.exec_status != json::ExecStatus::MAKER_FILL) {
+        log::fatal("Unexpected: {}"sv, item);
+      }
+      auto fill = Fill{
+          .exchange_time_utc = item.transact_time_ns,
+          .external_trade_id = {},
+          .quantity = item.exec_qty,
+          .price = item.exec_price_rp,
+          .liquidity = map(item.last_liquidity_ind),
+          .commission_amount = item.exec_fee_rv,
+          .commission_currency = {},  // XXX FIXME TODO
+          .base_amount = NaN,
+          .quote_amount = NaN,
+          .profit_loss_amount = NaN,
+      };
+      fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.exec_id);
+      auto trade_update = TradeUpdate{
+          .stream_id = stream_id_,
+          .account = account_.name,
+          .order_id = {},
+          .exchange = shared_.settings.exchange,
+          .symbol = item.symbol,
+          .side = map(item.side),
+          .position_effect = map(item.pos_side, item.side),
+          .margin_mode = {},
+          .create_time_utc = item.transact_time_ns,
+          .update_time_utc = item.transact_time_ns,
+          .external_account = external_account,
+          .external_order_id = item.order_id,
+          .client_order_id = item.cl_ord_id,
+          .fills = {&fill, 1},
+          .routing_id = {},
+          .update_type = update_type,
+          .exchange_time_utc = item.transact_time_ns,
+          .exchange_sequence = utils::safe_cast(item.exec_seq),
+          .sending_time_utc = accounts_orders_positions.timestamp,
+          .user = {},
+          .strategy_id = {},
+      };
+      log::warn("DEBUG trade_update={}"sv, trade_update);
+      create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, item.cl_ord_id);
+    }
   }
   for (auto &item : accounts_orders_positions.positions_p) {
     log::info<2>("item={}"sv, item);
     log::warn("DEBUG item={}"sv, item);
     auto external_account = fmt::format("{}"sv, item.account_id);
-    auto long_quantity = std::max(0.0, item.assigned_pos_balance_rv);  // side / size ???
-    auto short_quantity = std::max(0.0, -item.assigned_pos_balance_rv);
-    // cross_shared_balance_rv ??? <<== margin ???
+    if (utils::compare(item.assigned_pos_balance_rv, 0.0) < 0) {
+      log::fatal("Unexpected: {}"sv, item);
+    }
+    auto side = map(item.side).template get<Side>();
+    auto long_quantity = side == Side::BUY ? item.assigned_pos_balance_rv : 0.0;
+    auto short_quantity = side == Side::SELL ? item.assigned_pos_balance_rv : 0.0;
     auto position_update = PositionUpdate{
         .stream_id = stream_id_,
         .account = account_.name,
         .exchange = shared_.settings.exchange,
         .symbol = item.symbol,
-        .margin_mode = {},
+        .margin_mode = {},  // ???
         .external_account = external_account,
         .long_quantity = long_quantity,
         .short_quantity = short_quantity,

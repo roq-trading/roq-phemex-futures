@@ -342,8 +342,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
   for (auto &item : accounts_orders_positions.orders) {
     log::warn("DEBUG item={}"sv, item);
     log::warn(
-        "DEBUG exec_inst={}, exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_ep={}, exec_fee_ev={}, exec_seq={}, last_liquidity_ind={}, trade_type={}"sv,
-        item.exec_inst,
+        "DEBUG exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_ep={}, exec_fee_ev={}, exec_seq={}, last_liquidity_ind={}, trade_type={}"sv,
         item.exec_status,
         item.ord_status,
         item.leaves_qty,
@@ -367,7 +366,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
           .exchange = shared_.settings.exchange,
           .symbol = item.symbol,
           .side = map(item.side),
-          .position_effect = {},  // XXX FIXME TODO
+          .position_effect = {},  // XXX FIXME TODO not sure if required
           .margin_mode = {},
           .max_show_quantity = NaN,
           .order_type = map(item.ord_type),
@@ -443,7 +442,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
             .routing_id = {},
             .update_type = update_type,
             .exchange_time_utc = item.transact_time_ns,
-            .exchange_sequence = item.exec_seq,
+            .exchange_sequence = utils::safe_cast(item.exec_seq),
             .sending_time_utc = accounts_orders_positions.timestamp,
             .user = {},
             .strategy_id = {},
@@ -461,16 +460,20 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
     log::warn("DEBUG item={}"sv, item);
     auto helper = [&](auto &security) {
       auto external_account = fmt::format("{}"sv, item.account_id);
-      auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  //  XXX size? free_qty?
-      auto long_quantity = std::max(0.0, assigned_pos_balance);
-      auto short_quantity = std::max(0.0, -assigned_pos_balance);
+      auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  // scale ???
+      if (utils::compare(assigned_pos_balance, 0.0) < 0) {
+        log::fatal("Unexpected: {}"sv, item);
+      }
+      auto side = map(item.side).template get<Side>();
+      auto long_quantity = side == Side::BUY ? assigned_pos_balance : 0.0;
+      auto short_quantity = side == Side::SELL ? assigned_pos_balance : 0.0;
       // cross_shared_balance_rv ???
       auto position_update = PositionUpdate{
           .stream_id = stream_id_,
           .account = account_.name,
           .exchange = shared_.settings.exchange,
           .symbol = item.symbol,
-          .margin_mode = {},
+          .margin_mode = {},  // ???
           .external_account = external_account,
           .long_quantity = long_quantity,
           .short_quantity = short_quantity,

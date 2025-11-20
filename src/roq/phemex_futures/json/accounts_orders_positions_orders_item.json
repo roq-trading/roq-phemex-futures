@@ -72,7 +72,7 @@
     },
     {
       "name": "curPosSide",
-      "type": "roq/phemex_futures/json/PosSide"
+      "type": "roq/phemex_futures/json/Side"
     },
     {
       "name": "curPosSize",

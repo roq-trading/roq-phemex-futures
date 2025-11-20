@@ -25,8 +25,6 @@
 #include "roq/phemex_futures/order_entry_state.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
-// #include "roq/phemex_futures/json/open_orders.hpp"
-
 #include "roq/phemex_futures/json/cancel_all_orders_ack.hpp"
 #include "roq/phemex_futures/json/cancel_order_ack.hpp"
 #include "roq/phemex_futures/json/modify_order_ack.hpp"
@@ -62,12 +60,7 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
   void operator()(ConnectionStatus);
 
   uint32_t download(OrderEntryState);
-  /*
-  // open_orders
-  void get_open_orders();
-  void get_open_orders_ack(Trace<web::rest::Response> const &, uint32_t sequence);
-  void operator()(Trace<json::OpenOrders> const &);
-  */
+
   // place_order
   void create_order(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
   void create_order_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
@@ -112,10 +105,8 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
   } counter_;
   struct {
     utils::metrics::Profile  //
-        open_orders,
-        open_orders_ack,                 //
-        fill_history, fill_history_ack,  //
-        create_order, create_order_ack,  //
+        create_order,
+        create_order_ack,                //
         modify_order, modify_order_ack,  //
         cancel_order, cancel_order_ack,  //
         cancel_all_orders, cancel_all_orders_ack;

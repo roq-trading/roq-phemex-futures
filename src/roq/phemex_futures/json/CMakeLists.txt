@@ -37,6 +37,7 @@ set(AUTOGEN_SCHEMAS
     kline.json
     liq_status.json
     liquidity_ind.json
+    margin_mode.json
     market24h2.json
     market24h_data2.json
     market24h_data.json
@@ -47,9 +48,6 @@ set(AUTOGEN_SCHEMAS
     modify_order_ack2.json
     modify_order_ack_data.json
     modify_order_ack.json
-    open_orders_data.json
-    open_orders_data_rows_item.json
-    open_orders.json
     order_status.json
     order_type.json
     place_order_ack2_data.json

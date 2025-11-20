@@ -239,8 +239,6 @@ constexpr Helper<phemex_futures::json::PosSide, phemex_futures::json::Side>::ope
       break;
     case MERGED:
       return roq::PositionEffect::UNDEFINED;
-    case SELL:
-      return roq::PositionEffect::UNDEFINED;
   }
   return {};
 }
@@ -422,7 +420,7 @@ constexpr Helper<roq::PositionEffect, roq::Side>::operator std::optional<phemex_
   switch (std::get<0>(args_)) {
     using enum roq::PositionEffect;
     case UNDEFINED:
-      return phemex_futures::json::PosSide::NONE;
+      return phemex_futures::json::PosSide::MERGED;  // note!
     case OPEN:
       switch (std::get<1>(args_)) {
         using enum roq::Side;
@@ -449,7 +447,7 @@ constexpr Helper<roq::PositionEffect, roq::Side>::operator std::optional<phemex_
   return {};
 }
 
-static_assert(Helper{roq::PositionEffect::UNDEFINED, roq::Side::UNDEFINED} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::NONE});
+static_assert(Helper{roq::PositionEffect::UNDEFINED, roq::Side::UNDEFINED} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::MERGED});
 static_assert(Helper{roq::PositionEffect::OPEN, roq::Side::BUY} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::LONG});
 static_assert(Helper{roq::PositionEffect::OPEN, roq::Side::SELL} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::SHORT});
 static_assert(Helper{roq::PositionEffect::CLOSE, roq::Side::BUY} == phemex_futures::json::PosSide{phemex_futures::json::PosSide::SHORT});

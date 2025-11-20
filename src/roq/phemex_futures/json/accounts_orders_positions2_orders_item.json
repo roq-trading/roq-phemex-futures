@@ -80,7 +80,7 @@
     },
     {
       "name": "curPosSide",
-      "type": "roq/phemex_futures/json/PosSide"
+      "type": "roq/phemex_futures/json/Side"
     },
     {
       "name": "curPosSize",
@@ -265,6 +265,10 @@
     {
       "name": "tradeType",
       "type": "roq/phemex_futures/json/TradeType"
+    },
+    {
+      "name": "lastLiquidityInd",
+      "type": "roq/phemex_futures/json/LiquidityInd"
     }
   ]
 }

@@ -68,8 +68,8 @@ Supports
         - |check-mark|
         - |footnote-1|
       * - :cpp:class:`MarketStatus <roq::MarketStatus>`
-        - |check-mark|
-        - |footnote-1|
+        - |cross-mark|
+        -
       * - :cpp:class:`TopOfBook <roq::TopOfBook>`
         - |cross-mark|
         -
@@ -99,7 +99,7 @@ Supports
         - |check-mark|
         -
       * - :cpp:class:`ModifyOrder <roq::ModifyOrder>`
-        - |check-mark|
+        - |cross-mark|
         -
       * - :cpp:class:`CancelOrder <roq::CancelOrder>`
         - |check-mark|
@@ -135,7 +135,7 @@ Supports
 
    |cross-mark| = Unavailable.
 
-   |footnote-1| The exchange protocol does not support streaming updates for reference data and market status.
+   |footnote-1| The exchange protocol does not support streaming updates for reference data.
 
 
 Using
@@ -213,93 +213,6 @@ Configuration
 Market Data
 -----------
 
-Inbound
-~~~~~~~
-
-.. tab:: TradingStatus
-
-   .. list-table::
-     :header-rows: 1
-     :widths: auto
-     :align: left
-
-     * - Enum
-       -
-       -
-
-     * - :code:`listed`
-       - |right-double-arrow|
-       - :cpp:enumerator:`UNDEFINED <roq::TradingStatus::UNDEFINED>`
-
-     * - :code:`online`
-       - |right-double-arrow|
-       - :cpp:enumerator:`OPEN <roq::TradingStatus::OPEN>`
-
-     * - :code:`limit_open`
-       - |right-double-arrow|
-       - :cpp:enumerator:`PRE_OPEN <roq::TradingStatus::PRE_OPEN>`
-
-     * - :code:`offline`
-       - |right-double-arrow|
-       - :cpp:enumerator:`CLOSE <roq::TradingStatus::CLOSE>`
-
-     * - :code:`restrictedAPI`
-       - |right-double-arrow|
-       - :cpp:enumerator:`HALT <roq::TradingStatus::HALT>`
-
-
-.. tab:: StatisticsType
-
-   .. list-table::
-     :header-rows: 1
-     :widths: auto
-     :align: left
-
-     * - Event
-       - Field
-       -
-       -
-
-     * - :code:`market24h`
-       - :code:`open`
-       - |right-double-arrow|
-       - :cpp:enumerator:`OPEN_PRICE <roq::StatisticsType::OPEN_PRICE>`
-
-     * - :code:`market24h`
-       - :code:`high`
-       - |right-double-arrow|
-       - :cpp:enumerator:`HIGHEST_TRADED_PRICE <roq::StatisticsType::HIGHEST_TRADED_PRICE>`
-
-     * - :code:`market24h`
-       - :code:`low`
-       - |right-double-arrow|
-       - :cpp:enumerator:`LOWEST_TRADED_PRICE <roq::StatisticsType::LOWEST_TRADED_PRICE>`
-
-     * - :code:`market24h`
-       - :code:`index_price`
-       - |right-double-arrow|
-       - :cpp:enumerator:`INDEX_VALUE <roq::StatisticsType::INDEX_VALUE>`
-
-     * - :code:`market24h`
-       - :code:`markPrice`
-       - |right-double-arrow|
-       - :cpp:enumerator:`SETTLEMENT_PRICE <roq::StatisticsType::SETTLEMENT_PRICE>`
-
-     * - :code:`market24h`
-       - :code:`volume`
-       - |right-double-arrow|
-       - :cpp:enumerator:`TRADE_VOLUME <roq::StatisticsType::TRADE_VOLUME>`
-
-     * - :code:`market24h`
-       - :code:`predFundingRate`
-       - |right-double-arrow|
-       - :cpp:enumerator:`FUNDING_RATE <roq::StatisticsType::FUNDING_RATE>`
-
-     * - :code:`market24h`
-       - :code:`openInterest`
-       - |right-double-arrow|
-       - :cpp:enumerator:`OPEN_INTERST <roq::StatisticsType::OPEN_INTERST>`
-
 
 Order Management
 ----------------
@@ -312,10 +225,15 @@ Comments
   This seems intermittent and we have not yet found a good explanation for this.
   Upon seeing the error message, the gateway proceeds to disconnecting and trying again.
 
-* The REST connection will only report the "pending" order status.
+* The REST connection only seems to report a "pending" order status.
   The final confirmation will arrive on the WS connection.
+  Roq's OMS should be able to filter between WS and REST based on proper sequencing.
 
-* The exchange only support cancel-replace (not modify)
+* ModifyOrder can not be supported.
+  The exchange only support cancel-replace (not modify).
+
+* Positions are not reported as "lots".
+  There seems to be some base/quote conversion happening.
 
 
 References

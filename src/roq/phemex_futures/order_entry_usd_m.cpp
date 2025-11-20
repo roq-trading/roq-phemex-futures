@@ -29,11 +29,9 @@ auto const NAME = "om"sv;
 
 auto const SUPPORTS = Mask{
     SupportType::CREATE_ORDER,
-    SupportType::MODIFY_ORDER,
+    // SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
     SupportType::ORDER_ACK,
-    SupportType::FUNDS,
-    SupportType::POSITION,
 };
 
 size_t const MAX_DECODE_BUFFER_DEPTH = 2;
@@ -90,10 +88,6 @@ OrderEntryUsdM::OrderEntryUsdM(OrderEntry::Handler &handler, io::Context &contex
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
-          .open_orders = create_metrics(shared.settings, name_, "open_orders"sv),
-          .open_orders_ack = create_metrics(shared.settings, name_, "open_orders_ack"sv),
-          .fill_history = create_metrics(shared.settings, name_, "fill_history"sv),
-          .fill_history_ack = create_metrics(shared.settings, name_, "fill_history_ack"sv),
           .create_order = create_metrics(shared.settings, name_, "create_order"sv),
           .create_order_ack = create_metrics(shared.settings, name_, "create_order_ack"sv),
           .modify_order = create_metrics(shared.settings, name_, "modify_order"sv),
@@ -130,10 +124,6 @@ void OrderEntryUsdM::operator()(metrics::Writer &writer) const {
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
       // profile
-      .write(profile_.open_orders, metrics::Type::PROFILE)
-      .write(profile_.open_orders_ack, metrics::Type::PROFILE)
-      .write(profile_.fill_history, metrics::Type::PROFILE)
-      .write(profile_.fill_history_ack, metrics::Type::PROFILE)
       .write(profile_.create_order, metrics::Type::PROFILE)
       .write(profile_.create_order_ack, metrics::Type::PROFILE)
       .write(profile_.modify_order, metrics::Type::PROFILE)
@@ -152,9 +142,15 @@ uint16_t OrderEntryUsdM::operator()(Event<CreateOrder> const &event, server::oms
 }
 
 uint16_t OrderEntryUsdM::operator()(
-    Event<ModifyOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
+    Event<ModifyOrder> const &,
+    server::oms::Order const &,
+    [[maybe_unused]] std::string_view const &request_id,
+    [[maybe_unused]] std::string_view const &previous_request_id) {
+  throw server::oms::NotSupported{"not supported"sv};
+  /*
   modify_order(event, order, request_id, previous_request_id);
   return stream_id_;
+  */
 }
 
 uint16_t OrderEntryUsdM::operator()(
@@ -224,26 +220,6 @@ uint32_t OrderEntryUsdM::download(OrderEntryState state) {
     case UNDEFINED:
       assert(false);
       break;
-    case OPEN_ORDERS:
-      /*
-      if (!std::empty(shared_.settings.download.symbols)) {
-        get_open_orders();
-        return 1;  // XXX FIXME TODO countdown
-      } else {
-        return 0;
-      }
-      */
-      return 0;
-    case FILL_HISTORY:
-      /*
-      if (shared_.settings.rest.download_fills_begin.count()) {
-        get_fill_history();
-        return 1;
-      } else {
-        return 0;
-      }
-      */
-      return 0;
     case DONE:
       (*this)(ConnectionStatus::READY);
       return 0;
@@ -251,265 +227,7 @@ uint32_t OrderEntryUsdM::download(OrderEntryState state) {
   assert(false);
   return 0;
 }
-/*
-// open_orders
 
-void OrderEntryUsdM::get_open_orders() {
-  profile_.open_orders([&]() {
-    auto path = shared_.api.order_management.open_orders;
-    for (auto &item : shared_.settings.download.symbols) {
-      auto query = fmt::format("?symbol={}"sv, item);
-      auto headers = account_.create_headers(path, query, {});
-      auto request = web::rest::Request{
-          .method = web::http::Method::GET,
-          .path = path,
-          .query = query,
-          .accept = web::http::Accept::APPLICATION_JSON,
-          .content_type = {},
-          .headers = headers,
-          .body = {},
-          .quality_of_service = {},
-      };
-      auto sequence = download_.sequence();
-      (*connection_)("open_orders"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
-        TraceInfo trace_info;
-        Trace event{trace_info, response};
-        get_open_orders_ack(event, sequence);
-      });
-    }
-  });
-}
-
-void OrderEntryUsdM::get_open_orders_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
-  auto const state = OrderEntryState::OPEN_ORDERS;
-  profile_.open_orders_ack([&]() {
-    auto &[trace_info, response] = event;
-    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      download_.retry(state);
-    };
-    auto handle_success = [&](auto &body) {
-      // log::warn(R"(DEBUG body="{}")"sv, body);
-      if (download_.skip(sequence, state)) {
-        log::info("Download state={} has already been processed"sv, state);
-      } else {
-        json::OpenOrders open_orders{body, decode_buffer_};
-        switch (open_orders.code) {
-          case 0: {
-            Trace event{trace_info, open_orders};
-            (*this)(event);
-            download_.check(state);
-            break;
-          }
-          case 10002:  // no orders
-            download_.check(state);
-            break;
-          default:
-            handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(open_orders.code), open_orders.msg);
-        }
-      }
-    };
-    process_response(event, handle_error, handle_success);
-  });
-}
-
-void OrderEntryUsdM::operator()(Trace<json::OpenOrders> const &event) {
-  auto &[trace_info, open_orders] = event;
-  log::info<4>("open_orders={}"sv, open_orders);
-  for (auto &item : open_orders.data.rows) {
-    // log::warn("DEBUG item={}"sv, item);
-
-    auto remaining_quantity = item.qty - item.cum_exec_qty;
-    auto order_update = server::oms::OrderUpdate{
-        .account = account_.name,
-        .exchange = shared_.settings.exchange,
-        .symbol = item.symbol,
-        .side = map(item.side),
-        .position_effect = map(item.pos_side, item.side),
-        .margin_mode = {},  // XXX FIXME TODO from asset_info[symbol]
-        .max_show_quantity = NaN,
-        .order_type = map(item.order_type),
-        .time_in_force = map(item.time_in_force),
-        .execution_instructions = {},  // XXX map from time_in_force + reduce_only
-        .create_time_utc = item.created_time,
-        .update_time_utc = item.updated_time,
-        .external_account = {},
-        .external_order_id = item.order_id,
-        .client_order_id = item.client_oid,
-        .order_status = map(item.order_status),
-        .quantity = item.qty,
-        .price = item.price,
-        .stop_price = NaN,
-        .leverage = NaN,
-        .remaining_quantity = remaining_quantity,
-        .traded_quantity = item.cum_exec_qty,
-        .average_traded_price = item.avg_price,
-        .last_traded_quantity = NaN,
-        .last_traded_price = NaN,
-        .last_liquidity = {},
-        .routing_id = {},
-        .max_request_version = {},
-        .max_response_version = {},
-        .max_accepted_version = {},
-        .update_type = UpdateType::SNAPSHOT,
-        .sending_time_utc = open_orders.request_time,
-    };
-    log::warn("DEBUG order_update={}"sv, order_update);
-    Trace event_2{trace_info, order_update};
-    (*this)(event_2, item.client_oid);
-
-  }
-}
-*/
-/*
-// fill_history
-
-void OrderEntryUsdM::get_fill_history() {
-  assert(shared_.settings.rest.download_fills_begin.count() > 0);
-  profile_.fill_history([&]() {
-    auto now = clock::get_realtime();
-    auto start_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - shared_.settings.rest.download_fills_begin);
-    auto method = web::http::Method::GET;
-    auto query = fmt::format("?symbol=BTCUSDT"sv); // XXX FIXME TODO
-    auto path = shared_.api.order_management.fill_history;
-    auto query = fmt::format("?startTime={}"sv, start_time.count());
-    log::warn("DEBUG query={}"sv, query);
-    auto headers = account_.create_headers(path, query, {});
-    auto request = web::rest::Request{
-        .method = method,
-        .path = path,
-        .query = query,
-        .accept = web::http::Accept::APPLICATION_JSON,
-        .content_type = {},
-        .headers = headers,
-        .body = {},
-        .quality_of_service = {},
-    };
-    auto sequence = download_.sequence();
-    (*connection_)("fill_history"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_fill_history_ack(event, sequence);
-    });
-  });
-}
-
-void OrderEntryUsdM::get_fill_history_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
-  auto const state = OrderEntryState::FILL_HISTORY;
-  profile_.fill_history_ack([&]() {
-    auto &[trace_info, response] = event;
-    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      download_.retry(state);
-    };
-    auto handle_success = [&](auto &body) {
-      if (download_.skip(sequence, state)) {
-        log::info("Download state={} has already been processed"sv, state);
-      } else {
-        json::FillHistory fill_history{body, decode_buffer_};
-        if (fill_history.code == 0) {
-          Trace event{trace_info, fill_history};
-          (*this)(event);
-          download_.check(state);
-        } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(fill_history.code), fill_history.msg);
-        }
-      }
-    };
-    process_response(event, handle_error, handle_success);
-  });
-}
-
-void OrderEntryUsdM::operator()(Trace<json::FillHistory> const &event) {
-  auto &[trace_info, fill_history] = event;
-  log::info<4>("fill_history={}"sv, fill_history);
-  std::string_view symbol, order_id, client_oid;
-  json::Side side = {};
-  json::TradeSide trade_side = {};
-  std::chrono::nanoseconds created_time = {};
-  std::chrono::nanoseconds updated_time = {};
-  auto dispatch = [&]() {
-    if (!std::empty(shared_.fills)) {
-      auto trade_update = TradeUpdate{
-          .stream_id = stream_id_,
-          .account = account_.name,
-          .order_id = {},
-          .exchange = shared_.settings.exchange,
-          .symbol = symbol,
-          .side = map(side),
-          .position_effect = map(trade_side),
-          .margin_mode = {},  // XXX FIXME TODO from asset_info[symbol]
-          .quantity_type = {},
-          .create_time_utc = created_time,
-          .update_time_utc = updated_time,
-          .external_account = {},
-          .external_order_id = order_id,
-          .client_order_id = client_oid,
-          .fills = shared_.fills,
-          .routing_id = {},
-          .update_type = UpdateType::SNAPSHOT,
-          .sending_time_utc = fill_history.request_time,
-          .user = {},
-          .strategy_id = {},
-      };
-      create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE, client_oid);
-      log::warn("DEBUG trade_update={}"sv, trade_update);
-      shared_.fills.clear();
-    }
-  };
-  shared_.fills.clear();
-  for (auto &item : fill_history.data.list) {
-    log::warn("DEBUG item={}"sv, item);
-    if (item.symbol != symbol || item.order_id != order_id || item.client_oid != client_oid || item.side != side || item.trade_side != trade_side) {
-      dispatch();
-      symbol = item.symbol;
-      order_id = item.order_id;
-      client_oid = item.client_oid;
-      side = item.side;
-      trade_side = item.trade_side, created_time = {};
-      updated_time = {};
-    }
-    std::string_view fee_coin;
-    double fee = 0.0;
-    bool please_report = false;
-    for (auto &item_2 : item.fee_detail) {
-      if (!std::isnan(item_2.fee)) {
-        fee += item_2.fee;
-      }
-      if (!std::empty(item_2.fee_coin)) {
-        if (std::empty(fee_coin)) {
-          fee_coin = item_2.fee_coin;
-        } else if (item_2.fee_coin != fee_coin) {
-          log::warn(R"(fee_coin="{}"!="{}")"sv, item_2.fee_coin, fee_coin);
-        }
-      }
-    }
-    if (please_report) {
-      log::warn("*** PLEASE REPORT *** fill={}"sv, item);
-    }
-    auto fill = Fill{
-        .exchange_time_utc = item.created_time,
-        .external_trade_id = item.exec_id,
-        .quantity = item.exec_qty,
-        .price = item.exec_price,
-        .liquidity = map(item.trade_scope),
-        .commission_amount = fee,
-        .commission_currency = fee_coin,
-        .base_amount = NaN,   // XXX FIXME TODO
-        .quote_amount = NaN,  // XXX FIXME TODO
-        .profit_loss_amount = NaN,
-    };
-    shared_.fills.emplace_back(std::move(fill));
-    if (created_time < item.created_time) {
-      created_time = item.created_time;
-    }
-    if (updated_time < item.updated_time) {
-      updated_time = item.updated_time;
-    }
-  }
-  dispatch();
-}
-*/
 // place_order
 
 void OrderEntryUsdM::create_order(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
@@ -881,8 +599,8 @@ void OrderEntryUsdM::cancel_all_orders(Event<CancelAllOrders> const &event, std:
     }
     auto &[message_info, cancel_all_orders] = event;
     auto path = shared_.api.order_management.cancel_all_orders;
-    for (auto &item : shared_.settings.download.symbols) {  // XXX FIXME TODO
-      auto query = json::Encoder::cancel_all_orders(encode_buffer_, cancel_all_orders, item, request_id);
+    auto helper = [&](auto &symbol) {
+      auto query = json::Encoder::cancel_all_orders(encode_buffer_, cancel_all_orders, symbol, request_id);
       auto headers = account_.create_headers(path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::DELETE,
@@ -901,6 +619,10 @@ void OrderEntryUsdM::cancel_all_orders(Event<CancelAllOrders> const &event, std:
         cancel_all_orders_ack(event, user_id);
       };
       (*connection_)(request_id, request, callback);
+    };
+    if (shared_.dispatcher.get_all_order_symbols(helper, account_.name)) {
+    } else {
+      log::warn("*** NOT POSSIBLE TO CANCEL ALL OPEN ORDERS (NO SYMBOLS) ***"sv);
     }
   });
 }
