@@ -46,7 +46,7 @@ Supports
       :align: left
 
       * - :cpp:enumerator:`Spot <roq::SecurityType::SPOT>`
-        - |check-mark|
+        - |cross-mark|
         -
       * - :cpp:enumerator:`Futures <roq::SecurityType::FUTURES>`
         - |check-mark|
