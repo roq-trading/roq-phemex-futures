@@ -479,8 +479,8 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
           .short_quantity = short_quantity,
           .update_type = update_type,
           .exchange_time_utc = item.transact_time_ns,
-          // execSeq ???
-          .sending_time_utc = accounts_orders_positions.timestamp,  // ???
+          .exchange_sequence = utils::safe_cast(item.exec_seq),
+          .sending_time_utc = accounts_orders_positions.timestamp,
       };
       create_trace_and_dispatch(handler_, trace_info, position_update, true);
     };
