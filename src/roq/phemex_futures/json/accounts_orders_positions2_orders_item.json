@@ -269,6 +269,10 @@
     {
       "name": "lastLiquidityInd",
       "type": "roq/phemex_futures/json/LiquidityInd"
+    },
+    {
+      "name": "execInst",
+      "type": "std/string_view"
     }
   ]
 }
