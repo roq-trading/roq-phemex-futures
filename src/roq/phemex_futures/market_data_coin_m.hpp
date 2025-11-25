@@ -16,6 +16,8 @@
 
 #include "roq/web/socket/client.hpp"
 
+#include "roq/core/timer_queue.hpp"
+
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
@@ -59,9 +61,9 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   void ping(std::chrono::nanoseconds now);
 
   void subscribe(std::span<Symbol const> const &symbols);
-  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic);
-  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, uint32_t depth);
-  void subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, std::chrono::seconds interval);
+  void subscribe(Symbol const &, std::string_view const &topic);
+  void subscribe(Symbol const &, std::string_view const &topic, uint32_t depth);
+  void subscribe(Symbol const &, std::string_view const &topic, std::chrono::seconds interval);
 
   void parse(std::string_view const &message);
 
@@ -80,6 +82,8 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   void operator()(Trace<json::AccountsOrdersPositions> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
   void operator()(Trace<json::PositionInfo> const &) override;
+
+  void check_subscribe_queue(std::chrono::nanoseconds now);
 
  private:
   MarketData::Handler &handler_;
@@ -108,7 +112,9 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   // state
   ConnectionStatus status_ = {};
   std::chrono::nanoseconds next_ping_ = {};
-  uint32_t request_id_ = {};
+  uint64_t request_id_ = {};
+  // queue
+  core::TimerQueue<std::string> subscribe_queue_;
 };
 
 }  // namespace phemex_futures

@@ -34,6 +34,8 @@ auto const SUPPORTS = Mask{
     SupportType::STATISTICS,
 };
 
+uint64_t const REQUEST_ID = 1'000'000;
+
 size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
 auto const DEFAULT_KLINE_PERIOD = 60s;
@@ -97,7 +99,7 @@ MarketDataCoinM::MarketDataCoinM(MarketData::Handler &handler, io::Context &cont
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      shared_{shared} {
+      shared_{shared}, request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID} {
 }
 
 void MarketDataCoinM::operator()(Event<Start> const &) {
@@ -116,6 +118,7 @@ void MarketDataCoinM::operator()(Event<Timer> const &event) {
       next_ping_ = now + shared_.settings.ws.ping_freq;
       ping(now);
     }
+    check_subscribe_queue(now);
   }
 }
 
@@ -149,6 +152,7 @@ void MarketDataCoinM::operator()(web::socket::Client::Connected const &) {
 void MarketDataCoinM::operator()(web::socket::Client::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
+  subscribe_queue_.clear();
 }
 
 void MarketDataCoinM::operator()(web::socket::Client::Ready const &) {
@@ -212,77 +216,67 @@ void MarketDataCoinM::ping(std::chrono::nanoseconds now) {
 }
 
 void MarketDataCoinM::subscribe(std::span<Symbol const> const &symbols) {
-  if (std::empty(symbols)) {
-    return;
+  for (auto &item : symbols) {
+    subscribe(item, shared_.api.market_data.orderbook, 0);
+    subscribe(item, shared_.api.market_data.trade);
+    subscribe(item, shared_.api.market_data.market24h);
+    // subscribe(item, shared_.api.market_data.kline, DEFAULT_KLINE_PERIOD);
   }
-  subscribe(symbols, shared_.api.market_data.orderbook, 0);
-  subscribe(symbols, shared_.api.market_data.trade);
-  subscribe(symbols, shared_.api.market_data.market24h);
-  subscribe(symbols, shared_.api.market_data.kline, DEFAULT_KLINE_PERIOD);
 }
 
-void MarketDataCoinM::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic) {
-  assert(!std::empty(symbols));
-  for (auto &item : symbols) {
-    auto message = fmt::format(
-        R"({{)"
-        R"("id":{},)"
-        R"("method":"{}.subscribe",)"
-        R"("params":[)"
-        R"("{}")"
-        R"(])"
-        R"(}})"sv,
-        ++request_id_,
-        topic,
-        item);
-    // log::warn(R"(DEBUG message="{}")"sv, message);
-    (*connection_).send_text(message);
-  }
+void MarketDataCoinM::subscribe(Symbol const &symbol, std::string_view const &topic) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("id":{},)"
+      R"("method":"{}.subscribe",)"
+      R"("params":[)"
+      R"("{}")"
+      R"(])"
+      R"(}})"sv,
+      ++request_id_,
+      topic,
+      symbol);
+  // log::warn(R"(DEBUG message="{}")"sv, message);
+  subscribe_queue_.emplace_back(message);
 }
 
 // note! book
-void MarketDataCoinM::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, uint32_t depth) {
-  assert(!std::empty(symbols));
-  for (auto &item : symbols) {
-    auto message = fmt::format(
-        R"({{)"
-        R"("id":{},)"
-        R"("method":"{}.subscribe",)"
-        R"("params":[)"
-        R"("{}",)"
-        R"(false,)"  // note! false=20ms, true=120ms
-        R"({})"
-        R"(])"
-        R"(}})"sv,
-        ++request_id_,
-        topic,
-        item,
-        depth);
-    // log::warn(R"(DEBUG message="{}")"sv, message);
-    (*connection_).send_text(message);
-  }
+void MarketDataCoinM::subscribe(Symbol const &symbol, std::string_view const &topic, uint32_t depth) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("id":{},)"
+      R"("method":"{}.subscribe",)"
+      R"("params":[)"
+      R"("{}",)"
+      R"(false,)"  // note! false=20ms, true=120ms
+      R"({})"
+      R"(])"
+      R"(}})"sv,
+      ++request_id_,
+      topic,
+      symbol,
+      depth);
+  // log::warn(R"(DEBUG message="{}")"sv, message);
+  subscribe_queue_.emplace_back(message);
 }
 
 // note! kline
-void MarketDataCoinM::subscribe(std::span<Symbol const> const &symbols, std::string_view const &topic, std::chrono::seconds interval) {
-  assert(!std::empty(symbols));
-  for (auto &item : symbols) {
-    auto message = fmt::format(
-        R"({{)"
-        R"("id":{},)"
-        R"("method":"{}.subscribe",)"
-        R"("params":[)"
-        R"("{}",)"
-        R"({})"
-        R"(])"
-        R"(}})"sv,
-        ++request_id_,
-        topic,
-        item,
-        interval.count());
-    // log::warn(R"(DEBUG message="{}")"sv, message);
-    (*connection_).send_text(message);
-  }
+void MarketDataCoinM::subscribe(Symbol const &symbol, std::string_view const &topic, std::chrono::seconds interval) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("id":{},)"
+      R"("method":"{}.subscribe",)"
+      R"("params":[)"
+      R"("{}",)"
+      R"({})"
+      R"(])"
+      R"(}})"sv,
+      ++request_id_,
+      topic,
+      symbol,
+      interval.count());
+  // log::warn(R"(DEBUG message="{}")"sv, message);
+  subscribe_queue_.emplace_back(message);
 }
 
 void MarketDataCoinM::parse(std::string_view const &message) {
@@ -534,6 +528,12 @@ void MarketDataCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &) 
 
 void MarketDataCoinM::operator()(Trace<json::PositionInfo> const &) {
   log::fatal("Unexpected"sv);
+}
+
+void MarketDataCoinM::check_subscribe_queue(std::chrono::nanoseconds now) {
+  auto can_request = [&](auto now) { return shared_.rate_limiter.can_request(now); };
+  auto request = [&](auto &message) { (*connection_).send_text(message); };
+  subscribe_queue_.dispatch(can_request, request, now);
 }
 
 }  // namespace phemex_futures

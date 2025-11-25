@@ -28,7 +28,7 @@
       "name": "max_subscriptions_per_stream",
       "type": "std/uint32",
       "required": true,
-      "default": 100,
+      "default": 80,
       "description": "Maximum number of symbols per connection"
     }
   ]

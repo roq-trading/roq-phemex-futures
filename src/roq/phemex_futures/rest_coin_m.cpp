@@ -241,7 +241,7 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
         .value_factor = std::pow(10.0, item.value_scale),
     };
   }
-  auto discard = [&](auto &symbol, auto type, auto status) {
+  auto discard_helper = [&](auto &symbol, auto type, auto status) {
     switch (type) {
       using enum json::Type::type_t;
       case UNDEFINED_INTERNAL:
@@ -271,13 +271,7 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
   for (size_t i = 0; i < std::size(data); ++i) {
     auto &item = data[i];
     log::info<2>("item={}"sv, item);
-    if (discard(item.symbol, item.type, item.status)) {
-      continue;
-    }
-    if (all_symbols_.emplace(item.symbol).second) {  // only include new
-      symbols.emplace_back(item.symbol);
-    }
-    ++counter;
+    auto discard = discard_helper(item.symbol, item.type, item.status);
     auto reference_data = ReferenceData{
         .stream_id = stream_id_,
         .exchange = shared_.settings.exchange,
@@ -311,11 +305,19 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
         .sending_time_utc = {},
         .discard = {},
     };
-    create_trace_and_dispatch(handler_, trace_info, reference_data, true);
     // ...
     shared_.security[item.symbol] = tools::Security{
         .price_factor = std::pow(10.0, item.price_scale),
     };
+    create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+    if (discard) {
+      log::info<1>(R"(Drop symbol="{}")"sv, item.symbol);
+      continue;
+    }
+    if (all_symbols_.emplace(item.symbol).second) {  // only include new
+      symbols.emplace_back(item.symbol);
+    }
+    ++counter;
   }
   if (!std::empty(symbols)) {
     auto symbols_update = SymbolsUpdate{
