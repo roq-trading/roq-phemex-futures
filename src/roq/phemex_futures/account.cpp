@@ -33,7 +33,7 @@ Account::Account(Config const &config, std::string_view const &name) : name{name
 }
 
 std::string Account::create_ws_login(uint64_t request_id) {
-  auto now_utc = clock::get_realtime<std::chrono::seconds>();
+  auto now_utc = clock::get_realtime<std::chrono::seconds>() + TIMEOUT;
   return crypto_.create_ws_login(now_utc, request_id);
 }
 
