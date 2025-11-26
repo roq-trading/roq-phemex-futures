@@ -532,7 +532,10 @@ void MarketDataCoinM::operator()(Trace<json::PositionInfo> const &) {
 
 void MarketDataCoinM::check_subscribe_queue(std::chrono::nanoseconds now) {
   auto can_request = [&](auto now) { return shared_.rate_limiter.can_request(now); };
-  auto request = [&](auto &message) { (*connection_).send_text(message); };
+  auto request = [&](auto &message) {
+    log::warn("{}"sv, message);
+    (*connection_).send_text(message);
+  };
   subscribe_queue_.dispatch(can_request, request, now);
 }
 
