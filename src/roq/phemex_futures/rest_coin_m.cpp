@@ -272,6 +272,12 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
     auto &item = data[i];
     log::info<2>("item={}"sv, item);
     auto discard = discard_helper(item.symbol, item.type, item.status);
+    auto security = tools::Security{
+        .quantity_factor = std::pow(10.0, item.base_qty_precision),
+        .price_factor = std::pow(10.0, item.price_scale),
+    };
+    shared_.security[item.symbol] = security;
+    auto trade_vol_step_size = 1.0 / security.quantity_factor;
     auto reference_data = ReferenceData{
         .stream_id = stream_id_,
         .exchange = shared_.settings.exchange,
@@ -288,9 +294,9 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
         .tick_size_steps = {},
         .multiplier = NaN,
         .min_notional = NaN,
-        .min_trade_vol = item.lot_size,
+        .min_trade_vol = NaN,
         .max_trade_vol = NaN,
-        .trade_vol_step_size = NaN,
+        .trade_vol_step_size = trade_vol_step_size,
         .option_type = {},
         .strike_currency = {},
         .strike_price = NaN,
@@ -304,10 +310,6 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
         .exchange_sequence = {},
         .sending_time_utc = {},
         .discard = {},
-    };
-    // ...
-    shared_.security[item.symbol] = tools::Security{
-        .price_factor = std::pow(10.0, item.price_scale),
     };
     create_trace_and_dispatch(handler_, trace_info, reference_data, true);
     if (discard) {

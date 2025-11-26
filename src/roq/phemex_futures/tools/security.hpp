@@ -9,6 +9,7 @@ namespace phemex_futures {
 namespace tools {
 
 struct Security final {
+  double quantity_factor = NaN;
   double price_factor = NaN;
 };
 
