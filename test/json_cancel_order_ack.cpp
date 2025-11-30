@@ -50,7 +50,8 @@ TEST_CASE("coin_m_simple", "[json_cancel_order_ack]") {
                  R"("execInst":"None")"
                  R"(})"
                  R"(})"sv;
-  [[maybe_unused]] json::CancelOrderAck obj{message};
+  json::CancelOrderAck obj{message};
+  CHECK(obj.code == 0);
 }
 
 TEST_CASE("usd_m_simple", "[json_cancel_order_ack]") {
@@ -91,5 +92,6 @@ TEST_CASE("usd_m_simple", "[json_cancel_order_ack]") {
                  R"("tpPxRp":"0")"
                  R"(})"
                  R"(})"sv;
-  [[maybe_unused]] json::CancelOrderAck2 obj{message};
+  json::CancelOrderAck2 obj{message};
+  CHECK(obj.code == 0);
 }

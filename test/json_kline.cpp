@@ -4,7 +4,7 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex_futures/json/kline.hpp"
+#include "roq/phemex_futures/json/parser.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
@@ -27,8 +27,33 @@ TEST_CASE("snapshot", "[json_kline]") {
                  R"("valueScale":8)"
                  R"(})"
                  R"(})";
-  core::json::BufferStack buffer{8192, 2};
-  [[maybe_unused]] json::Kline obj{message, buffer};
+  core::json::BufferStack buffers{8192, 2};
+  // simple
+  json::Kline obj{message, buffers};
+  CHECK(obj.type == json::MessageType::SNAPSHOT);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &event) override {
+      found = true;
+      auto &[trace_info, kline] = event;
+      CHECK(kline.type == json::MessageType::SNAPSHOT);
+    }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }
 
 TEST_CASE("incremental", "[json_kline]") {
@@ -43,6 +68,31 @@ TEST_CASE("incremental", "[json_kline]") {
                  R"("type":"incremental",)"
                  R"("valueScale":8)"
                  R"(})";
-  core::json::BufferStack buffer{8192, 2};
-  [[maybe_unused]] json::Kline obj{message, buffer};
+  core::json::BufferStack buffers{8192, 2};
+  // simple
+  json::Kline obj{message, buffers};
+  CHECK(obj.type == json::MessageType::INCREMENTAL);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &event) override {
+      found = true;
+      auto &[trace_info, kline] = event;
+      CHECK(kline.type == json::MessageType::INCREMENTAL);
+    }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }

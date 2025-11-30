@@ -4,7 +4,7 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex_futures/json/trades.hpp"
+#include "roq/phemex_futures/json/parser.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
@@ -24,6 +24,31 @@ TEST_CASE("simple", "[json_trades]") {
                  R"(],)"
                  R"("type":"snapshot")"
                  R"(})";
-  core::json::BufferStack buffer{8192, 2};
-  [[maybe_unused]] json::Trades obj{message, buffer};
+  core::json::BufferStack buffers{8192, 2};
+  // simple
+  json::Trades obj{message, buffers};
+  CHECK(obj.sequence == 20254182892);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &event) override {
+      found = true;
+      auto &[trace_info, trades] = event;
+      CHECK(trades.sequence == 20254182892);
+    }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }

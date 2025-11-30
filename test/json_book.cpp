@@ -2,7 +2,8 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/phemex_futures/json/book.hpp"
+#include "roq/core/json/buffer_stack.hpp"
+
 #include "roq/phemex_futures/json/parser.hpp"
 
 using namespace roq;
@@ -33,50 +34,33 @@ TEST_CASE("snapshot", "[json_book]") {
                  R"("timestamp":1759032884308731357,)"
                  R"("type":"snapshot")"
                  R"(})";
-  core::json::BufferStack buffer_stack{8192, 3};
-  struct MyHandler : public json::Parser::Handler {
-    void operator()(Trace<json::Pong> const &) { FAIL(); }
-    void operator()(Trace<json::Ack> const &) { FAIL(); }
-    void operator()(Trace<json::Book> const &event) {
-      ++count;
-      [[maybe_unused]] auto &[trace_info, book] = event;
-      /*
-      CHECK(book.action == json::Action::UPDATE);
-      CHECK(book.arg.symbol == "ETHUSDT"sv);
-      REQUIRE(std::size(book.data) == 1);
-      auto &data = book.data[0];
-      auto &asks = data.asks;
-      REQUIRE(std::size(asks) == 12);
-      CHECK(asks[0].price == Catch::Approx{4488.46});
-      CHECK(asks[0].size == Catch::Approx{1.52});
-      CHECK(asks[11].price == Catch::Approx{4502.33});
-      CHECK(asks[11].size == Catch::Approx{91.72});
-      auto &bids = data.bids;
-      REQUIRE(std::size(bids) == 9);
-      CHECK(bids[0].price == Catch::Approx{4487.66});
-      CHECK(bids[0].size == Catch::Approx{34.16});
-      CHECK(bids[8].price == Catch::Approx{4474.89});
-      CHECK(bids[8].size == Catch::Approx{92.87});
-      CHECK(data.checksum == 1990051938);
-      CHECK(data.pseq == 1352182127478939650);
-      CHECK(data.seq == 1352182127898370048);
-      CHECK(data.ts == 1758111262297ms);
-      CHECK(book.ts == 1758111262300ms);
-      */
+  core::json::BufferStack buffers{8192, 3};
+  // simple
+  json::Book obj{message, buffers};
+  CHECK(obj.sequence == 20256544456);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &event) override {
+      found = true;
+      auto &[trace_info, book] = event;
+      CHECK(book.sequence == 20256544456);
     }
-    void operator()(Trace<json::Trades> const &) { FAIL(); }
-    void operator()(Trace<json::Market24h> const &) { FAIL(); }
-    void operator()(Trace<json::Market24h2> const &) { FAIL(); }
-    void operator()(Trace<json::Kline> const &) { FAIL(); }
-    void operator()(Trace<json::IndexMarket24h> const &) { FAIL(); }
-    void operator()(Trace<json::AccountsOrdersPositions> const &) { FAIL(); }
-    void operator()(Trace<json::AccountsOrdersPositions2> const &) { FAIL(); }
-    void operator()(Trace<json::PositionInfo> const &) { FAIL(); }
-    size_t count = 0;
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
   } handler;
-  TraceInfo trace_info;
-  json::Parser::dispatch(handler, message, buffer_stack, trace_info, false);
-  CHECK(handler.count == 1);
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }
 
 TEST_CASE("incremental", "[json_book]") {
@@ -94,48 +78,31 @@ TEST_CASE("incremental", "[json_book]") {
                  R"("timestamp":1759033283091421157,)"
                  R"("type":"incremental")"
                  R"(})";
-  core::json::BufferStack buffer_stack{8192, 3};
-  struct MyHandler : public json::Parser::Handler {
-    void operator()(Trace<json::Pong> const &) { FAIL(); }
-    void operator()(Trace<json::Ack> const &) { FAIL(); }
-    void operator()(Trace<json::Book> const &event) {
-      ++count;
-      [[maybe_unused]] auto &[trace_info, book] = event;
-      /*
-      CHECK(book.action == json::Action::UPDATE);
-      CHECK(book.arg.symbol == "ETHUSDT"sv);
-      REQUIRE(std::size(book.data) == 1);
-      auto &data = book.data[0];
-      auto &asks = data.asks;
-      REQUIRE(std::size(asks) == 12);
-      CHECK(asks[0].price == Catch::Approx{4488.46});
-      CHECK(asks[0].size == Catch::Approx{1.52});
-      CHECK(asks[11].price == Catch::Approx{4502.33});
-      CHECK(asks[11].size == Catch::Approx{91.72});
-      auto &bids = data.bids;
-      REQUIRE(std::size(bids) == 9);
-      CHECK(bids[0].price == Catch::Approx{4487.66});
-      CHECK(bids[0].size == Catch::Approx{34.16});
-      CHECK(bids[8].price == Catch::Approx{4474.89});
-      CHECK(bids[8].size == Catch::Approx{92.87});
-      CHECK(data.checksum == 1990051938);
-      CHECK(data.pseq == 1352182127478939650);
-      CHECK(data.seq == 1352182127898370048);
-      CHECK(data.ts == 1758111262297ms);
-      CHECK(book.ts == 1758111262300ms);
-      */
+  core::json::BufferStack buffers{8192, 3};
+  // simple
+  json::Book obj{message, buffers};
+  CHECK(obj.sequence == 38514847027);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &event) override {
+      found = true;
+      auto &[trace_info, book] = event;
+      CHECK(book.sequence == 38514847027);
     }
-    void operator()(Trace<json::Trades> const &) { FAIL(); }
-    void operator()(Trace<json::Market24h> const &) { FAIL(); }
-    void operator()(Trace<json::Market24h2> const &) { FAIL(); }
-    void operator()(Trace<json::Kline> const &) { FAIL(); }
-    void operator()(Trace<json::IndexMarket24h> const &) { FAIL(); }
-    void operator()(Trace<json::AccountsOrdersPositions> const &) { FAIL(); }
-    void operator()(Trace<json::AccountsOrdersPositions2> const &) { FAIL(); }
-    void operator()(Trace<json::PositionInfo> const &) { FAIL(); }
-    size_t count = 0;
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
   } handler;
-  TraceInfo trace_info;
-  json::Parser::dispatch(handler, message, buffer_stack, trace_info, false);
-  CHECK(handler.count == 1);
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }

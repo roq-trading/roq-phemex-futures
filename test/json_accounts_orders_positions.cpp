@@ -4,8 +4,7 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex_futures/json/accounts_orders_positions.hpp"
-#include "roq/phemex_futures/json/accounts_orders_positions2.hpp"
+#include "roq/phemex_futures/json/parser.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
@@ -38,8 +37,33 @@ TEST_CASE("coin_m_simple", "[json_accounts_orders_positions]") {
                  R"("orders":[],)"
                  R"("positions":[])"
                  R"(})";
-  core::json::BufferStack buffer{8192, 1};
-  json::AccountsOrdersPositions obj{message, buffer};
+  core::json::BufferStack buffers{8192, 1};
+  // simple
+  json::AccountsOrdersPositions obj{message, buffers};
+  CHECK(obj.sequence == 639401975);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &event) override {
+      found = true;
+      auto &[trace_info, accounts_orders_positions] = event;
+      CHECK(accounts_orders_positions.sequence == 639401975);
+    }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }
 
 TEST_CASE("coin_m_orders", "[json_accounts_orders_positions]") {
@@ -122,8 +146,33 @@ TEST_CASE("coin_m_orders", "[json_accounts_orders_positions]") {
                  R"(],)"
                  R"("positions":[])"
                  R"(})";
-  core::json::BufferStack buffer{8192, 1};
-  json::AccountsOrdersPositions obj{message, buffer};
+  core::json::BufferStack buffers{8192, 1};
+  // simple
+  json::AccountsOrdersPositions obj{message, buffers};
+  CHECK(obj.sequence == 641746873);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &event) override {
+      found = true;
+      auto &[trace_info, accounts_orders_positions] = event;
+      CHECK(accounts_orders_positions.sequence == 641746873);
+    }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &) override { FAIL(); }
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }
 
 TEST_CASE("usd_m_simple", "[json_accounts_orders_positions]") {
@@ -147,8 +196,34 @@ TEST_CASE("usd_m_simple", "[json_accounts_orders_positions]") {
                  R"("orders_p":[],)"
                  R"("positions_p":[])"
                  R"(})";
-  core::json::BufferStack buffer{8192, 1};
-  json::AccountsOrdersPositions2 obj{message, buffer};
+  core::json::BufferStack buffers{8192, 1};
+  // simple
+  json::AccountsOrdersPositions2 obj{message, buffers};
+  CHECK(obj.sequence == 1755327186);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &event) override {
+      found = true;
+      auto &[trace_info, accounts_orders_positions] = event;
+      CHECK(accounts_orders_positions.sequence == 1755327186);
+    }
+
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }
 
 TEST_CASE("usd_m_orders", "[json_accounts_orders_positions]") {
@@ -239,6 +314,32 @@ TEST_CASE("usd_m_orders", "[json_accounts_orders_positions]") {
                  R"(],)"
                  R"("positions_p":[])"
                  R"(})";
-  core::json::BufferStack buffer{8192, 1};
-  json::AccountsOrdersPositions2 obj{message, buffer};
+  core::json::BufferStack buffers{8192, 1};
+  // simple
+  json::AccountsOrdersPositions2 obj{message, buffers};
+  CHECK(obj.sequence == 1773392251);
+  // parser
+  struct Handler final : public json::Parser::Handler {
+    void operator()(Trace<json::Pong> const &) override { FAIL(); }
+    void operator()(Trace<json::Ack> const &) override { FAIL(); }
+    void operator()(Trace<json::Book> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h> const &) override { FAIL(); }
+    void operator()(Trace<json::Market24h2> const &) override { FAIL(); }
+    void operator()(Trace<json::Kline> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexMarket24h> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions> const &) override { FAIL(); }
+    void operator()(Trace<json::AccountsOrdersPositions2> const &event) override {
+      found = true;
+      auto &[trace_info, accounts_orders_positions] = event;
+      CHECK(accounts_orders_positions.sequence == 1773392251);
+    }
+
+    void operator()(Trace<json::PositionInfo> const &) override { FAIL(); }
+
+    bool found = false;
+  } handler;
+  auto res = json::Parser::dispatch(handler, message, buffers, {}, false);
+  CHECK(res == true);
+  CHECK(handler.found == true);
 }

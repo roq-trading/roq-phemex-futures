@@ -121,10 +121,9 @@ bool Parser::dispatch(
         mask |= BIT_POSITION_INFO;
         break;
     }
+    return false;  // note! the protocol forces us to parse everything
   };
-  core::json::Parser parser{message};
-  auto value = parser.root();
-  std::get<core::json::Object>(value).dispatch(helper);
+  core::json::Parser::dispatch<core::json::Object>(helper, message);
   if (mask == 0) [[unlikely]] {
     if (allow_unknown_event_types) {
       return false;

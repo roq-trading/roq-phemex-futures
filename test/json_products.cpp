@@ -203,5 +203,6 @@ TEST_CASE("simple", "[json_products]") {
       R"(})"
       R"(})";
   core::json::BufferStack buffer{65536, 2};
-  [[maybe_unused]] json::Products obj{message, buffer};
+  json::Products obj{message, buffer};
+  CHECK(obj.code == 0);
 }

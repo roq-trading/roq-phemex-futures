@@ -50,7 +50,8 @@ TEST_CASE("coin_m_simple", "[json_place_order_ack]") {
                  R"("execInst":"None")"
                  R"(})"
                  R"(})"sv;
-  [[maybe_unused]] json::PlaceOrderAck obj{message};
+  json::PlaceOrderAck obj{message};
+  CHECK(obj.code == 0);
 }
 
 TEST_CASE("usd_m_simple", "[json_place_order_ack]") {
@@ -91,5 +92,6 @@ TEST_CASE("usd_m_simple", "[json_place_order_ack]") {
                  R"("tpPxRp":"0")"
                  R"(})"
                  R"(})"sv;
-  [[maybe_unused]] json::PlaceOrderAck2 obj{message};
+  json::PlaceOrderAck2 obj{message};
+  CHECK(obj.code == 0);
 }
