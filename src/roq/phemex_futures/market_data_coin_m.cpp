@@ -217,7 +217,7 @@ void MarketDataCoinM::ping(std::chrono::nanoseconds now) {
 
 void MarketDataCoinM::subscribe(std::span<Symbol const> const &symbols) {
   for (auto &item : symbols) {
-    subscribe(item, shared_.api.market_data.orderbook, 0);
+    subscribe(item, shared_.api.market_data.orderbook, shared_.settings.ws.mbp_depth);
     subscribe(item, shared_.api.market_data.trade);
     subscribe(item, shared_.api.market_data.market24h);
     // subscribe(item, shared_.api.market_data.kline, DEFAULT_KLINE_PERIOD);
@@ -242,6 +242,16 @@ void MarketDataCoinM::subscribe(Symbol const &symbol, std::string_view const &to
 
 // note! book
 void MarketDataCoinM::subscribe(Symbol const &symbol, std::string_view const &topic, uint32_t depth) {
+  switch (depth) {
+    case 0:  // full
+    case 1:
+    case 5:
+    case 10:
+    case 30:
+      break;
+    default:
+      log::fatal("Unsupported: depth={}"sv, depth);
+  }
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"

@@ -30,6 +30,12 @@
       "required": true,
       "default": 20,
       "description": "Maximum number of symbols per connection"
+    },
+    {
+      "name": "mbp_depth",
+      "type": "std/uint32",
+      "default": 0,
+      "description": "Maximum depth to subscribe (0=full, 1, 5, 10, 30)"
     }
   ]
 }
