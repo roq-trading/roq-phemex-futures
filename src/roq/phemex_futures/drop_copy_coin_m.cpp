@@ -205,7 +205,7 @@ void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
 
 void DropCopyCoinM::login() {
   auto message = account_.create_ws_login(REQUEST_ID_AUTH);
-  log::warn("DEBUG message={}"sv, message);
+  // log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }
 
@@ -340,19 +340,14 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
     }
   }
   for (auto &item : accounts_orders_positions.orders) {
+    /*
     log::warn("DEBUG item={}"sv, item);
     log::warn(
-        "DEBUG exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_ep={}, exec_fee_ev={}, exec_seq={}, last_liquidity_ind={}, trade_type={}"sv,
-        item.exec_status,
-        item.ord_status,
-        item.leaves_qty,
-        item.cum_qty,
-        item.exec_qty,
-        item.exec_price_ep,
-        item.exec_fee_ev,
-        item.exec_seq,
+        "DEBUG exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_ep={}, exec_fee_ev={}, exec_seq={}, last_liquidity_ind={},
+    trade_type={}"sv, item.exec_status, item.ord_status, item.leaves_qty, item.cum_qty, item.exec_qty, item.exec_price_ep, item.exec_fee_ev, item.exec_seq,
         item.last_liquidity_ind,
         item.trade_type);
+    */
     auto helper = [&](auto &security) {
       auto order_status = map(item.ord_status).template get<OrderStatus>();
       if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
@@ -457,7 +452,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
     }
   }
   for (auto &item : accounts_orders_positions.positions) {
-    log::warn("DEBUG item={}"sv, item);
+    // log::warn("DEBUG item={}"sv, item);
     auto helper = [&](auto &security) {
       auto external_account = fmt::format("{}"sv, item.account_id);
       auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  // scale ???

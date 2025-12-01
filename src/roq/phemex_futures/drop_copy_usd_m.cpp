@@ -205,7 +205,7 @@ void DropCopyUsdM::ping(std::chrono::nanoseconds now) {
 
 void DropCopyUsdM::login() {
   auto message = account_.create_ws_login(REQUEST_ID_AUTH);
-  log::warn("DEBUG message={}"sv, message);
+  // log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }
 
@@ -340,19 +340,14 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
   }
   for (auto &item : accounts_orders_positions.orders_p) {
     log::info<2>("item={}"sv, item);
+    /*
     log::warn("DEBUG item={}"sv, item);
     log::warn(
-        "DEBUG exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_rp={}, exec_fee_rv={}, exec_seq={}, last_liquidity_ind={}, trade_type={}"sv,
-        item.exec_status,
-        item.ord_status,
-        item.leaves_qty,
-        item.cum_qty,
-        item.exec_qty,
-        item.exec_price_rp,
-        item.exec_fee_rv,
-        item.exec_seq,
+        "DEBUG exec_status={}, ord_status={}, leaves_qty={}, cum_qty={}, exec_qty={}, exec_price_rp={}, exec_fee_rv={}, exec_seq={}, last_liquidity_ind={},
+    trade_type={}"sv, item.exec_status, item.ord_status, item.leaves_qty, item.cum_qty, item.exec_qty, item.exec_price_rp, item.exec_fee_rv, item.exec_seq,
         item.last_liquidity_ind,
         item.trade_type);
+    */
     auto order_status = map(item.ord_status).template get<OrderStatus>();
     if (update_type == UpdateType::SNAPSHOT && utils::is_order_complete(order_status)) {  // download open orders
       continue;
@@ -449,7 +444,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
   }
   for (auto &item : accounts_orders_positions.positions_p) {
     log::info<2>("item={}"sv, item);
-    log::warn("DEBUG item={}"sv, item);
+    // log::warn("DEBUG item={}"sv, item);
     auto external_account = fmt::format("{}"sv, item.account_id);
     if (utils::compare(item.assigned_pos_balance_rv, 0.0) < 0) {
       log::fatal("Unexpected: {}"sv, item);

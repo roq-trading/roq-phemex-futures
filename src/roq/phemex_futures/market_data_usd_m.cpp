@@ -310,7 +310,7 @@ void MarketDataUsdM::operator()(Trace<json::Ack> const &event) {
   profile_.ack([&]() {
     auto &[trace_info, ack] = event;
     if (ack.result.status != json::AckResultStatus::SUCCESS) {
-      log::warn("DEBUG ack={}"sv, ack);
+      log::error("ack={}"sv, ack);
     }
   });
 }
@@ -511,10 +511,7 @@ void MarketDataUsdM::operator()(Trace<json::PositionInfo> const &) {
 
 void MarketDataUsdM::check_subscribe_queue(std::chrono::nanoseconds now) {
   auto can_request = [&](auto now) { return shared_.rate_limiter.can_request(now); };
-  auto request = [&](auto &message) {
-    log::warn("{}"sv, message);
-    (*connection_).send_text(message);
-  };
+  auto request = [&](auto &message) { (*connection_).send_text(message); };
   subscribe_queue_.dispatch(can_request, request, now);
 }
 
