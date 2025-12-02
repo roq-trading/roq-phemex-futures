@@ -34,9 +34,9 @@ namespace roq {
 namespace phemex_futures {
 
 struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Handler {
-  OrderEntryCoinM(OrderEntry::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+  OrderEntryCoinM(OrderEntry::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, bool master);
 
-  bool ready() const { return status_ == ConnectionStatus::READY; }
+  bool ready() const override;
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
@@ -95,6 +95,7 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
   // config
   uint16_t const stream_id_;
   std::string const name_;
+  bool const master_;
   // connection
   std::unique_ptr<web::rest::Client> connection_;
   // buffers

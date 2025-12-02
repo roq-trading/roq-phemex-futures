@@ -228,6 +228,7 @@ void DropCopyCoinM::subscribe(uint64_t id, std::string_view const &topic) {
 }
 
 void DropCopyCoinM::parse(std::string_view const &message) {
+  log::debug("{}"sv, message);
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
@@ -356,6 +357,12 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
       auto external_account = fmt::format("{}"sv, item.account_id);
       auto price = static_cast<double>(item.price_ep) / security.price_factor;
       auto stop_price = static_cast<double>(item.stop_px_ep) / security.price_factor;
+      auto exchange_or_request_id = [&]() {
+        if (std::empty(item.cl_ord_id)) {
+          return item.order_id;
+        }
+        return item.cl_ord_id;
+      }();
       auto order_update = server::oms::OrderUpdate{
           .account = account_.name,
           .exchange = shared_.settings.exchange,
@@ -393,14 +400,14 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
       auto user_id = SOURCE_NONE;
       auto order_id = ORDER_ID_NONE;
       auto strategy_id = STRATEGY_ID_NONE;
-      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&](auto &order) {
+      if (shared_.update_order(exchange_or_request_id, stream_id_, trace_info, order_update, [&](auto &order) {
             user_id = order.user_id;
             order_id = order.order_id;
             strategy_id = order.strategy_id;
           })) {
         log::warn("DEBUG order_update={}"sv, order_update);
       } else {
-        log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, item.cl_ord_id);
+        log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, exchange_or_request_id);
       }
       if (item.trade_type == json::TradeType::TRADE) {
         if (item.exec_status != json::ExecStatus::TAKER_FILL && item.exec_status != json::ExecStatus::MAKER_FILL) {
@@ -443,7 +450,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
             .strategy_id = {},
         };
         log::warn("DEBUG trade_update={}"sv, trade_update);
-        create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, item.cl_ord_id);
+        create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, exchange_or_request_id);
       }
     };
     if (shared_.find_security(item.symbol, helper)) {

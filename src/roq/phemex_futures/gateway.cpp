@@ -62,18 +62,24 @@ template <typename R>
 auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
-  switch (shared.api.type) {
-    using enum API::Type;
-    case COIN_M:
-      for (auto &[name, account] : accounts) {
-        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, *account, shared));
+  if (!shared.settings.misc.number_of_order_entry_connections) {
+    log::fatal("Unexpected: --number_of_order_entry_connections={}"sv, shared.settings.misc.number_of_order_entry_connections);
+  }
+  for (auto &[name, account] : accounts) {
+    std::vector<std::unique_ptr<OrderEntry>> order_entry;
+    for (size_t i = 0; i < shared.settings.misc.number_of_order_entry_connections; ++i) {
+      auto master = i == 0;
+      switch (shared.api.type) {
+        using enum API::Type;
+        case COIN_M:
+          order_entry.emplace_back(std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, *account, shared, master));
+          break;
+        case USD_M:
+          order_entry.emplace_back(std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, *account, shared, master));
+          break;
       }
-      break;
-    case USD_M:
-      for (auto &[name, account] : accounts) {
-        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, *account, shared));
-      }
-      break;
+    }
+    result.try_emplace(static_cast<std::string_view>(name), std::move(order_entry));
   }
   return result;
 }
@@ -260,7 +266,7 @@ void Gateway::dispatch_helper(auto &self, Args &&...args) {
   auto helper = [&](auto &target) { target(args...); };
   helper(*self.rest_);
   for (auto &[_, order_entry] : self.order_entry_) {
-    helper(*order_entry);
+    helper(order_entry);
   }
   for (auto &[_, drop_copy] : self.drop_copy_) {
     if (static_cast<bool>(drop_copy)) {
@@ -275,9 +281,47 @@ void Gateway::dispatch_helper(auto &self, Args &&...args) {
 OrderEntry &Gateway::get_order_entry(std::string_view const &account) {
   auto iter = order_entry_.find(account);
   if (iter != std::end(order_entry_)) {
-    return *(*iter).second;
+    return (*iter).second.get_next();
   }
   throw RuntimeError(R"(Unknown account="{}")"sv, account);
+}
+
+// OrderEntryRR
+
+Gateway::OrderEntryRR::OrderEntryRR(std::vector<std::unique_ptr<OrderEntry>> &&order_entry) : order_entry_{std::move(order_entry)} {
+  for (auto &item : order_entry_) {
+    if (item == nullptr) {
+      log::fatal("HERE"sv);
+    }
+  }
+}
+
+template <typename... Args>
+void Gateway::OrderEntryRR::operator()(Args &&...args) {
+  for (auto &item : order_entry_) {
+    (*item)(args...);
+  }
+}
+
+template <typename... Args>
+void Gateway::OrderEntryRR::operator()(Args &&...args) const {
+  for (auto &item : order_entry_) {
+    (*item)(args...);
+  }
+}
+
+OrderEntry &Gateway::OrderEntryRR::get_next() {
+  auto length = std::size(order_entry_);
+  for (size_t offset = 0; offset < length; ++offset) {
+    auto index = (index_ + offset) % length;
+    auto &order_entry = *(order_entry_[index]);
+    if (!order_entry.ready()) {
+      continue;
+    }
+    index_ = (index + 1) % length;
+    return order_entry;
+  }
+  throw server::oms::NotReady{"get_next"sv};
 }
 
 }  // namespace phemex_futures

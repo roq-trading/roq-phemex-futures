@@ -76,6 +76,22 @@ struct Gateway final : public server::Handler, public Rest::Handler, public Orde
 
   OrderEntry &get_order_entry(std::string_view const &account);
 
+  struct OrderEntryRR final {
+    OrderEntryRR(std::vector<std::unique_ptr<OrderEntry>> &&);
+
+    template <typename... Args>
+    void operator()(Args &&...);
+
+    template <typename... Args>
+    void operator()(Args &&...) const;
+
+    OrderEntry &get_next();
+
+   private:
+    std::vector<std::unique_ptr<OrderEntry>> order_entry_;
+    size_t index_ = {};
+  };
+
  private:
   server::Dispatcher &dispatcher_;
   // config
@@ -90,7 +106,7 @@ struct Gateway final : public server::Handler, public Rest::Handler, public Orde
   uint16_t stream_id_ = {};
   // streams
   std::unique_ptr<Rest> rest_;
-  utils::unordered_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
+  utils::unordered_map<std::string, OrderEntryRR> order_entry_;
   utils::unordered_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
 };

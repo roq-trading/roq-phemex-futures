@@ -81,9 +81,9 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-OrderEntryUsdM::OrderEntryUsdM(OrderEntry::Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)}, connection_{create_connection(*this, shared.settings, context)},
-      decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
+OrderEntryUsdM::OrderEntryUsdM(OrderEntry::Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, bool master)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)}, master_{master},
+      connection_{create_connection(*this, shared.settings, context)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -101,6 +101,10 @@ OrderEntryUsdM::OrderEntryUsdM(OrderEntry::Handler &handler, io::Context &contex
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
       account_{account}, shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
+}
+
+bool OrderEntryUsdM::ready() const {
+  return status_ == ConnectionStatus::READY;
 }
 
 void OrderEntryUsdM::operator()(Event<Start> const &) {
