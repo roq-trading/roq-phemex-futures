@@ -453,7 +453,8 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
     // log::warn("DEBUG item={}"sv, item);
     auto external_account = fmt::format("{}"sv, item.account_id);
     if (utils::compare(item.assigned_pos_balance_rv, 0.0) < 0) {
-      log::fatal("Unexpected: {}"sv, item);
+      log::error("*** PLEASE REPORT *** {}"sv, item);
+      continue;
     }
     auto side = map(item.side).template get<Side>();
     auto long_quantity = side == Side::BUY ? item.assigned_pos_balance_rv : 0.0;

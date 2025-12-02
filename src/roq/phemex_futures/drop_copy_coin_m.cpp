@@ -464,7 +464,8 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
       auto external_account = fmt::format("{}"sv, item.account_id);
       auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  // scale ???
       if (utils::compare(assigned_pos_balance, 0.0) < 0) {
-        log::fatal("Unexpected: {}"sv, item);
+        log::error("*** PLEASE REPORT *** {}"sv, item);
+        return;
       }
       auto side = map(item.side).template get<Side>();
       auto long_quantity = side == Side::BUY ? assigned_pos_balance : 0.0;
