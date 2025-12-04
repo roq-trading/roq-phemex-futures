@@ -1,6 +1,6 @@
 set(TARGET_NAME "${PROJECT_NAME}-json")
 
-set(SOURCES encoder.cpp map.cpp parser.cpp utils.cpp)
+set(SOURCES encoder.cpp map.cpp parser.cpp parser_2.cpp utils.cpp)
 
 include(RoqAutogen)
 
@@ -21,7 +21,7 @@ set(AUTOGEN_SCHEMAS
     book_data_item.json
     book_data.json
     book.json
-    # cancel_all_orders_ack2.json
+    cancel_all_orders_ack2.json
     cancel_all_orders_ack.json
     cancel_order_ack2_data.json
     cancel_order_ack2.json
@@ -33,6 +33,8 @@ set(AUTOGEN_SCHEMAS
     exec_status.json
     index_market24h_data.json
     index_market24h.json
+    kline2_data_item.json
+    kline2.json
     kline_data_item.json
     kline.json
     liq_status.json
@@ -48,6 +50,7 @@ set(AUTOGEN_SCHEMAS
     modify_order_ack2.json
     modify_order_ack_data.json
     modify_order_ack.json
+    orderbook.json
     order_status.json
     order_type.json
     place_order_ack2_data.json
@@ -68,6 +71,8 @@ set(AUTOGEN_SCHEMAS
     status.json
     stp_instruction.json
     time_in_force.json
+    trades2.json
+    trades2_trades_item.json
     trades.json
     trades_trades_item.json
     trade_type.json

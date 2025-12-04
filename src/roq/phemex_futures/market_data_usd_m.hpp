@@ -25,12 +25,12 @@
 #include "roq/phemex_futures/market_data.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
-#include "roq/phemex_futures/json/parser.hpp"
+#include "roq/phemex_futures/json/parser_2.hpp"
 
 namespace roq {
 namespace phemex_futures {
 
-struct MarketDataUsdM final : public MarketData, public web::socket::Client::Handler, public json::Parser::Handler {
+struct MarketDataUsdM final : public MarketData, public web::socket::Client::Handler, public json::Parser2::Handler {
   MarketDataUsdM(MarketData::Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
 
   uint16_t stream_id() const { return stream_id_; }
@@ -67,19 +67,17 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
 
   void parse(std::string_view const &message);
 
-  // json::Parser::Handler
+  // json::Parser2::Handler
   // - admin
   void operator()(Trace<json::Pong> const &) override;
   void operator()(Trace<json::Ack> const &) override;
   // - market-data
-  void operator()(Trace<json::Book> const &) override;
-  void operator()(Trace<json::Trades> const &) override;
-  void operator()(Trace<json::Market24h> const &) override;
+  void operator()(Trace<json::Orderbook> const &) override;
+  void operator()(Trace<json::Trades2> const &) override;
   void operator()(Trace<json::Market24h2> const &) override;
-  void operator()(Trace<json::Kline> const &) override;
+  void operator()(Trace<json::Kline2> const &) override;
   // - drop-copy
   void operator()(Trace<json::IndexMarket24h> const &) override;
-  void operator()(Trace<json::AccountsOrdersPositions> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
   void operator()(Trace<json::PositionInfo> const &) override;
 

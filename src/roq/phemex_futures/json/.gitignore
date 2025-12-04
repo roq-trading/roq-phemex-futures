@@ -16,6 +16,7 @@ action.hpp
 book_data_item.hpp
 book_data.hpp
 book.hpp
+cancel_all_orders_ack2.hpp
 cancel_all_orders_ack.hpp
 cancel_order_ack2_data.hpp
 cancel_order_ack2.hpp
@@ -27,6 +28,8 @@ exec_inst.hpp
 exec_status.hpp
 index_market24h_data.hpp
 index_market24h.hpp
+kline2_data_item.hpp
+kline2.hpp
 kline_data_item.hpp
 kline.hpp
 liq_status.hpp
@@ -42,6 +45,7 @@ modify_order_ack2_data.hpp
 modify_order_ack2.hpp
 modify_order_ack_data.hpp
 modify_order_ack.hpp
+orderbook.hpp
 order_status.hpp
 order_type.hpp
 place_order_ack2_data.hpp
@@ -62,6 +66,8 @@ side.hpp
 status.hpp
 stp_instruction.hpp
 time_in_force.hpp
+trades2.hpp
+trades2_trades_item.hpp
 trades.hpp
 trades_trades_item.hpp
 trade_type.hpp
@@ -83,6 +89,7 @@ action.cpp
 book_data_item.cpp
 book_data.cpp
 book.cpp
+cancel_all_orders_ack2.cpp
 cancel_all_orders_ack.cpp
 cancel_order_ack2_data.cpp
 cancel_order_ack2.cpp
@@ -94,6 +101,8 @@ exec_inst.cpp
 exec_status.cpp
 index_market24h_data.cpp
 index_market24h.cpp
+kline2_data_item.cpp
+kline2.cpp
 kline_data_item.cpp
 kline.cpp
 liq_status.cpp
@@ -109,6 +118,7 @@ modify_order_ack2_data.cpp
 modify_order_ack2.cpp
 modify_order_ack_data.cpp
 modify_order_ack.cpp
+orderbook.cpp
 order_status.cpp
 order_type.cpp
 place_order_ack2_data.cpp
@@ -129,6 +139,8 @@ side.cpp
 status.cpp
 stp_instruction.cpp
 time_in_force.cpp
+trades2.cpp
+trades2_trades_item.cpp
 trades.cpp
 trades_trades_item.cpp
 trade_type.cpp

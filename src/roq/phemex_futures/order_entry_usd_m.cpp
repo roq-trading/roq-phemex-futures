@@ -659,7 +659,7 @@ void OrderEntryUsdM::cancel_all_orders_ack(Trace<web::rest::Response> const &eve
     };
     auto handle_success = [&](auto &body) {
       log::warn(R"(DEBUG body="{}")"sv, body);
-      json::CancelAllOrdersAck cancel_all_orders_ack{body, decode_buffer_};
+      json::CancelAllOrdersAck2 cancel_all_orders_ack{body, decode_buffer_};
       if (cancel_all_orders_ack.code == 0) {
         Trace event_2{event, cancel_all_orders_ack};
         (*this)(event_2, user_id);
@@ -671,7 +671,7 @@ void OrderEntryUsdM::cancel_all_orders_ack(Trace<web::rest::Response> const &eve
   });
 }
 
-void OrderEntryUsdM::operator()(Trace<json::CancelAllOrdersAck> const &event, [[maybe_unused]] uint8_t user_id) {
+void OrderEntryUsdM::operator()(Trace<json::CancelAllOrdersAck2> const &event, [[maybe_unused]] uint8_t user_id) {
   auto &[trace_info, cancel_all_orders_ack] = event;
   log::info<2>("cancel_all_orders_ack={}"sv, cancel_all_orders_ack);
   log::warn("DEBUG cancel_all_orders_ack={}"sv, cancel_all_orders_ack);

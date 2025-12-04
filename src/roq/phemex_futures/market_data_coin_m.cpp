@@ -331,9 +331,6 @@ void MarketDataCoinM::operator()(Trace<json::Book> const &event) {
   profile_.book([&]() {
     auto &[trace_info, book] = event;
     log::info<3>("book={}"sv, book);
-    if (!std::empty(book.orderbook_p.bids) || !std::empty(book.orderbook_p.asks)) [[unlikely]] {
-      log::fatal("Unexpected"sv);
-    }
     auto helper = [&](auto &security) {
       auto &bids = shared_.bids;
       auto &asks = shared_.asks;
@@ -511,10 +508,6 @@ void MarketDataCoinM::operator()(Trace<json::Market24h> const &event) {
   });
 }
 
-void MarketDataCoinM::operator()(Trace<json::Market24h2> const &) {
-  log::fatal("Unexpected"sv);
-}
-
 void MarketDataCoinM::operator()(Trace<json::Kline> const &event) {
   profile_.kline([&]() {
     auto &[trace_info, kline] = event;
@@ -529,10 +522,6 @@ void MarketDataCoinM::operator()(Trace<json::IndexMarket24h> const &) {
 }
 
 void MarketDataCoinM::operator()(Trace<json::AccountsOrdersPositions> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void MarketDataCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &) {
   log::fatal("Unexpected"sv);
 }
 

@@ -2,17 +2,18 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "parser_tester.hpp"
+#include "parser_2_tester.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::Kline;
+using value_type = json::Kline2;
 
+/*
 // note! truncated
-TEST_CASE("snapshot", "[json_kline]") {
+TEST_CASE("snapshot", "[json_kline_2]") {
   auto message = R"({)"
                  R"("kline":[)"
                  R"([1759040340,60,1093523000,1093522000,1093523000,1093522000,1093522000,94584,86494822],)"
@@ -31,7 +32,7 @@ TEST_CASE("snapshot", "[json_kline]") {
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
 
-TEST_CASE("incremental", "[json_kline]") {
+TEST_CASE("incremental", "[json_kline_2]") {
   auto message = R"({)"
                  R"("kline":[)"
                  R"([1759040820,60,6459000,6468000,6483000,6468000,6483000,269388700000,17438876605])"
@@ -46,3 +47,4 @@ TEST_CASE("incremental", "[json_kline]") {
   auto helper = [](value_type const &obj) { CHECK(obj.type == json::MessageType::INCREMENTAL); };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
+*/

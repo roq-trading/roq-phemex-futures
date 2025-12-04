@@ -294,7 +294,7 @@ void MarketDataUsdM::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!json::Parser2::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -304,7 +304,7 @@ void MarketDataUsdM::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// json::Parser2::Handler
 
 // - admin
 
@@ -327,18 +327,15 @@ void MarketDataUsdM::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void MarketDataUsdM::operator()(Trace<json::Book> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Orderbook> const &event) {
   profile_.book([&]() {
-    auto &[trace_info, book] = event;
-    log::info<3>("book={}"sv, book);
-    if (!std::empty(book.book.bids) || !std::empty(book.book.asks)) [[unlikely]] {
-      log::fatal("Unexpected"sv);
-    }
+    auto &[trace_info, orderbook] = event;
+    log::info<3>("orderbook={}"sv, orderbook);
     auto &bids = shared_.bids;
     auto &asks = shared_.asks;
     bids.clear();
     asks.clear();
-    for (auto &item : book.orderbook_p.bids) {
+    for (auto &item : orderbook.orderbook_p.bids) {
       auto mbp_update = MBPUpdate{
           .price = item.price_ep,  // XXX HANS convert to double
           .quantity = item.qty,
@@ -349,7 +346,7 @@ void MarketDataUsdM::operator()(Trace<json::Book> const &event) {
       };
       bids.emplace_back(std::move(mbp_update));
     }
-    for (auto &item : book.orderbook_p.asks) {
+    for (auto &item : orderbook.orderbook_p.asks) {
       auto mbp_update = MBPUpdate{
           .price = item.price_ep,  // XXX HANS convert to double
           .quantity = item.qty,
@@ -364,12 +361,12 @@ void MarketDataUsdM::operator()(Trace<json::Book> const &event) {
       auto market_by_price_update = MarketByPriceUpdate{
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
-          .symbol = book.symbol,
+          .symbol = orderbook.symbol,
           .bids = bids,
           .asks = asks,
-          .update_type = map(book.type),
-          .exchange_time_utc = book.timestamp,
-          .exchange_sequence = utils::safe_cast{book.sequence},
+          .update_type = map(orderbook.type),
+          .exchange_time_utc = orderbook.timestamp,
+          .exchange_sequence = utils::safe_cast{orderbook.sequence},
           .sending_time_utc = {},
           .price_precision = {},
           .quantity_precision = {},
@@ -381,19 +378,16 @@ void MarketDataUsdM::operator()(Trace<json::Book> const &event) {
   });
 }
 
-void MarketDataUsdM::operator()(Trace<json::Trades> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Trades2> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
     log::info<3>("trades={}"sv, trades);
     if (trades.type != json::MessageType::INCREMENTAL) {  // note! drop snapshot
       return;
     }
-    if (!std::empty(trades.trades)) [[unlikely]] {
-      log::fatal("Unexpected"sv);
-    }
     auto &trades_2 = shared_.trades;
     trades_2.clear();
-    using timestamp_type = decltype(json::TradesTradesItem::timestamp);
+    using timestamp_type = decltype(json::Trades2TradesItem::timestamp);
     auto timestamp = timestamp_type{};
     for (auto &item : trades.trades_p) {
       auto item_2 = Trade{
@@ -420,10 +414,6 @@ void MarketDataUsdM::operator()(Trace<json::Trades> const &event) {
       create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
     }
   });
-}
-
-void MarketDataUsdM::operator()(Trace<json::Market24h> const &) {
-  log::fatal("Unexpected"sv);
 }
 
 void MarketDataUsdM::operator()(Trace<json::Market24h2> const &event) {
@@ -494,7 +484,7 @@ void MarketDataUsdM::operator()(Trace<json::Market24h2> const &event) {
   });
 }
 
-void MarketDataUsdM::operator()(Trace<json::Kline> const &event) {
+void MarketDataUsdM::operator()(Trace<json::Kline2> const &event) {
   profile_.kline([&]() {
     auto &[trace_info, kline] = event;
     log::info<3>("kline={}"sv, kline);
@@ -504,10 +494,6 @@ void MarketDataUsdM::operator()(Trace<json::Kline> const &event) {
 // - drop-copy
 
 void MarketDataUsdM::operator()(Trace<json::IndexMarket24h> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void MarketDataUsdM::operator()(Trace<json::AccountsOrdersPositions> const &) {
   log::fatal("Unexpected"sv);
 }
 

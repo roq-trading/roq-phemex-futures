@@ -25,7 +25,7 @@
 #include "roq/phemex_futures/order_entry_state.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
-#include "roq/phemex_futures/json/cancel_all_orders_ack.hpp"
+#include "roq/phemex_futures/json/cancel_all_orders_ack2.hpp"
 #include "roq/phemex_futures/json/cancel_order_ack2.hpp"
 #include "roq/phemex_futures/json/modify_order_ack2.hpp"
 #include "roq/phemex_futures/json/place_order_ack2.hpp"
@@ -79,7 +79,7 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   // cancel_all_orders
   void cancel_all_orders(Event<CancelAllOrders> const &, std::string_view const &request_id);
   void cancel_all_orders_ack(Trace<web::rest::Response> const &, uint8_t user_id);
-  void operator()(Trace<json::CancelAllOrdersAck> const &, uint8_t user_id);
+  void operator()(Trace<json::CancelAllOrdersAck2> const &, uint8_t user_id);
 
   // helpers
 

@@ -75,12 +75,10 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   void operator()(Trace<json::Book> const &) override;
   void operator()(Trace<json::Trades> const &) override;
   void operator()(Trace<json::Market24h> const &) override;
-  void operator()(Trace<json::Market24h2> const &) override;
   void operator()(Trace<json::Kline> const &) override;
   // - drop-copy
   void operator()(Trace<json::IndexMarket24h> const &) override;
   void operator()(Trace<json::AccountsOrdersPositions> const &) override;
-  void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
   void operator()(Trace<json::PositionInfo> const &) override;
 
   void check_subscribe_queue(std::chrono::nanoseconds now);

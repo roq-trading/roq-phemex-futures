@@ -232,7 +232,7 @@ void DropCopyUsdM::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!json::Parser2::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -242,7 +242,7 @@ void DropCopyUsdM::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// json::Parser2::Handler
 
 // - admin
 
@@ -283,15 +283,11 @@ void DropCopyUsdM::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void DropCopyUsdM::operator()(Trace<json::Book> const &) {
+void DropCopyUsdM::operator()(Trace<json::Orderbook> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyUsdM::operator()(Trace<json::Trades> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void DropCopyUsdM::operator()(Trace<json::Market24h> const &) {
+void DropCopyUsdM::operator()(Trace<json::Trades2> const &) {
   log::fatal("Unexpected"sv);
 }
 
@@ -299,7 +295,7 @@ void DropCopyUsdM::operator()(Trace<json::Market24h2> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyUsdM::operator()(Trace<json::Kline> const &) {
+void DropCopyUsdM::operator()(Trace<json::Kline2> const &) {
   log::fatal("Unexpected"sv);
 }
 
@@ -308,10 +304,6 @@ void DropCopyUsdM::operator()(Trace<json::Kline> const &) {
 void DropCopyUsdM::operator()(Trace<json::IndexMarket24h> const &event) {
   auto &[trace_info, index_market24h] = event;
   log::info<2>("index_market24h={}"sv, index_market24h);
-}
-
-void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions> const &) {
-  log::fatal("Unexpected"sv);
 }
 
 void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event) {

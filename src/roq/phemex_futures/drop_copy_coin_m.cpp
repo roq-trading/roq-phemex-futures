@@ -296,10 +296,6 @@ void DropCopyCoinM::operator()(Trace<json::Market24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyCoinM::operator()(Trace<json::Market24h2> const &) {
-  log::fatal("Unexpected"sv);
-}
-
 void DropCopyCoinM::operator()(Trace<json::Kline> const &) {
   log::fatal("Unexpected"sv);
 }
@@ -547,10 +543,6 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
       log::warn("*** MISSING SYMBOL *** ({})"sv, item.symbol);
     }
   }
-}
-
-void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions2> const &) {
-  log::fatal("Unexpected"sv);
 }
 
 void DropCopyCoinM::operator()(Trace<json::PositionInfo> const &event) {

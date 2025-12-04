@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2025, Hans Erik Thrane */
 
-#include "roq/phemex_futures/json/parser.hpp"
+#include "roq/phemex_futures/json/parser_2.hpp"
 
 #include "roq/logging.hpp"
 
@@ -19,7 +19,7 @@ namespace json {
 namespace {
 auto const BIT_ID = uint16_t{1} << 0;
 // market-data
-auto const BIT_BOOK = uint16_t{1} << 1;
+auto const BIT_ORDERBOOK = uint16_t{1} << 1;
 auto const BIT_TRADES = uint16_t{1} << 2;
 auto const BIT_MARKET24H = uint16_t{1} << 3;
 auto const BIT_KLINE = uint16_t{1} << 4;
@@ -41,7 +41,7 @@ void dispatch_helper(auto &handler, auto &message, auto &buffer_stack, auto &tra
 
 // === IMPLEMENTATION ===
 
-bool Parser::dispatch(
+bool Parser2::dispatch(
     Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info, bool allow_unknown_event_types) {
   uint16_t mask = {};
   auto pong = true;
@@ -71,24 +71,24 @@ bool Parser::dispatch(
       case TYPE:
         break;
       case BOOK:
-        mask |= BIT_BOOK;
         break;
       case ORDERBOOK_P:
+        mask |= BIT_ORDERBOOK;
         break;
       case TRADES:
-        mask |= BIT_TRADES;
         break;
       case TRADES_P:
+        mask |= BIT_TRADES;
         break;
       case MARKET24H:
-        mask |= BIT_MARKET24H;
         break;
       case MARKET24H_P:
+        mask |= BIT_MARKET24H;
         break;
       case KLINE:
-        mask |= BIT_KLINE;
         break;
       case KLINE_P:
+        mask |= BIT_KLINE;
         break;
       case DEPTH:
         break;
@@ -106,11 +106,11 @@ bool Parser::dispatch(
       case ACCOUNTS:
       case ORDERS:
       case POSITIONS:
-        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS;
         break;
       case ACCOUNTS_P:
       case ORDERS_P:
       case POSITIONS_P:
+        mask |= BIT_ACCOUNTS_ORDERS_POSITIONS;
         break;
       case DTS:
         break;
@@ -138,24 +138,24 @@ bool Parser::dispatch(
   } else {
     assert(mask != 0);
     // market-data
-    if (mask & BIT_BOOK) {
-      dispatch_helper<Book>(handler, message, buffer_stack, trace_info);
+    if (mask & BIT_ORDERBOOK) {
+      dispatch_helper<Orderbook>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_TRADES) {
-      dispatch_helper<Trades>(handler, message, buffer_stack, trace_info);
+      dispatch_helper<Trades2>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_MARKET24H) {
-      dispatch_helper<Market24h>(handler, message, buffer_stack, trace_info);
+      dispatch_helper<Market24h2>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_KLINE) {
-      dispatch_helper<Kline>(handler, message, buffer_stack, trace_info);
+      dispatch_helper<Kline2>(handler, message, buffer_stack, trace_info);
     }
     // drop-copy
     if (mask & BIT_INDEX_MARKET24H) {
       dispatch_helper<IndexMarket24h>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_ACCOUNTS_ORDERS_POSITIONS) {
-      dispatch_helper<AccountsOrdersPositions>(handler, message, buffer_stack, trace_info);
+      dispatch_helper<AccountsOrdersPositions2>(handler, message, buffer_stack, trace_info);
     }
     if (mask & BIT_POSITION_INFO) {
       dispatch_helper<PositionInfo>(handler, message, buffer_stack, trace_info);

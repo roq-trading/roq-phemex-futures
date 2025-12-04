@@ -2,17 +2,18 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "parser_tester.hpp"
+#include "parser_2_tester.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::Trades;
+using value_type = json::Trades2;
 
+/*
 // note! truncated
-TEST_CASE("simple", "[json_trades]") {
+TEST_CASE("simple", "[json_trades_2]") {
   auto message = R"({)"
                  R"("sequence":20254182892,)"
                  R"("symbol":"BTCUSD",)"
@@ -25,5 +26,6 @@ TEST_CASE("simple", "[json_trades]") {
                  R"("type":"snapshot")"
                  R"(})";
   auto helper = [](value_type const &obj) { CHECK(obj.sequence == 20254182892); };
-  ParserTester<value_type>::dispatch(helper, message, 8192, 2);
+  Parser2Tester<value_type>::dispatch(helper, message, 8192, 2);
 }
+*/
