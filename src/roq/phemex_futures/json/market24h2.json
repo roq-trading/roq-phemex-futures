@@ -4,7 +4,7 @@
   "values": [
     {
       "name": "market24h_p",
-      "type": "roq/phemex_futures/json/Market24hData2",
+      "type": "roq/phemex_futures/json/Market24h2Data",
       "comment": "usd-m"
     },
     {

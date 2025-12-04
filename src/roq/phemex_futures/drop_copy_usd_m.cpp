@@ -229,6 +229,7 @@ void DropCopyUsdM::subscribe(uint64_t id, std::string_view const &topic) {
 
 void DropCopyUsdM::parse(std::string_view const &message) {
   profile_.parse([&]() {
+    log::info<5>(R"(message="{}")"sv, message);
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;

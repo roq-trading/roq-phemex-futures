@@ -11,7 +11,7 @@
       "type": "roq/phemex_futures/json/Side"
     },
     {
-      "name": "priceEp",
+      "name": "price",
       "type": "std/double"
     },
     {

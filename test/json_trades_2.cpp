@@ -11,21 +11,35 @@ using namespace std::literals;
 
 using value_type = json::Trades2;
 
-/*
 // note! truncated
-TEST_CASE("simple", "[json_trades_2]") {
+TEST_CASE("snapshot", "[json_trades_2]") {
   auto message = R"({)"
-                 R"("sequence":20254182892,)"
-                 R"("symbol":"BTCUSD",)"
-                 R"("trades":[)"
-                 R"([1758962421019961472,"Sell",1093078000,1],)"
-                 R"([1758962421019961472,"Sell",1093110000,1],)"
-                 R"([1758950929672637218,"Buy",1095929000,201],)"
-                 R"([1758950929672637218,"Buy",1095929000,201])"
+                 R"("dts":1764824672044962236,)"
+                 R"("mts":1764824662377238082,)"
+                 R"("sequence":7438923573,)"
+                 R"("symbol":"BTCUSDC",)"
+                 R"("trades_p":[)"
+                 R"([1764824662350987242,"Buy","93284","0.007"],)"
+                 R"([1764821929539054805,"Sell","93418.2","0.006"])"
                  R"(],)"
                  R"("type":"snapshot")"
                  R"(})";
-  auto helper = [](value_type const &obj) { CHECK(obj.sequence == 20254182892); };
+  auto helper = [](value_type const &obj) { CHECK(obj.dts == 1764824672044962236ns); };
   Parser2Tester<value_type>::dispatch(helper, message, 8192, 2);
 }
-*/
+
+TEST_CASE("incremental", "[json_trades_2]") {
+  auto message = R"({)"
+                 R"("dts":1764824672795878735,)"
+                 R"("mts":1764824672795057041,)"
+                 R"("sequence":54193715981,)"
+                 R"("symbol":"APTUSDT",)"
+                 R"("trades_p":[)"
+                 R"([1764824672778886833,"Buy","2.008","247.7"],)"
+                 R"([1764824672778886833,"Buy","2.008","266.1"])"
+                 R"(],)"
+                 R"("type":"incremental")"
+                 R"(})";
+  auto helper = [](value_type const &obj) { CHECK(obj.dts == 1764824672795878735ns); };
+  Parser2Tester<value_type>::dispatch(helper, message, 8192, 2);
+}

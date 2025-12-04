@@ -40,8 +40,8 @@ set(AUTOGEN_SCHEMAS
     liq_status.json
     liquidity_ind.json
     margin_mode.json
+    market24h2_data.json
     market24h2.json
-    market24h_data2.json
     market24h_data.json
     market24h.json
     message_field.json
@@ -50,6 +50,8 @@ set(AUTOGEN_SCHEMAS
     modify_order_ack2.json
     modify_order_ack_data.json
     modify_order_ack.json
+    orderbook_data_item.json
+    orderbook_data.json
     orderbook.json
     order_status.json
     order_type.json

@@ -35,8 +35,8 @@ kline.hpp
 liq_status.hpp
 liquidity_ind.hpp
 margin_mode.hpp
+market24h2_data.hpp
 market24h2.hpp
-market24h_data2.hpp
 market24h_data.hpp
 market24h.hpp
 message_field.hpp
@@ -45,6 +45,8 @@ modify_order_ack2_data.hpp
 modify_order_ack2.hpp
 modify_order_ack_data.hpp
 modify_order_ack.hpp
+orderbook_data_item.hpp
+orderbook_data.hpp
 orderbook.hpp
 order_status.hpp
 order_type.hpp
@@ -108,8 +110,8 @@ kline.cpp
 liq_status.cpp
 liquidity_ind.cpp
 margin_mode.cpp
+market24h2_data.cpp
 market24h2.cpp
-market24h_data2.cpp
 market24h_data.cpp
 market24h.cpp
 message_field.cpp
@@ -118,6 +120,8 @@ modify_order_ack2_data.cpp
 modify_order_ack2.cpp
 modify_order_ack_data.cpp
 modify_order_ack.cpp
+orderbook_data_item.cpp
+orderbook_data.cpp
 orderbook.cpp
 order_status.cpp
 order_type.cpp

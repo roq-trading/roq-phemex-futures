@@ -291,6 +291,7 @@ void MarketDataCoinM::subscribe(Symbol const &symbol, std::string_view const &to
 
 void MarketDataCoinM::parse(std::string_view const &message) {
   profile_.parse([&]() {
+    log::info<5>(R"(message="{}")"sv, message);
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
@@ -338,9 +339,10 @@ void MarketDataCoinM::operator()(Trace<json::Book> const &event) {
       asks.clear();
       for (auto &item : book.book.bids) {
         auto price = static_cast<double>(item.price_ep) / security.price_factor;
+        auto quantity = static_cast<double>(item.qty) / security.quantity_factor;
         auto mbp_update = MBPUpdate{
             .price = price,
-            .quantity = item.qty,
+            .quantity = quantity,
             .implied_quantity = NaN,
             .number_of_orders = {},
             .update_action = {},
@@ -350,9 +352,10 @@ void MarketDataCoinM::operator()(Trace<json::Book> const &event) {
       }
       for (auto &item : book.book.asks) {
         auto price = static_cast<double>(item.price_ep) / security.price_factor;
+        auto quantity = static_cast<double>(item.qty) / security.quantity_factor;
         auto mbp_update = MBPUpdate{
             .price = price,
-            .quantity = item.qty,
+            .quantity = quantity,
             .implied_quantity = NaN,
             .number_of_orders = {},
             .update_action = {},
@@ -403,11 +406,12 @@ void MarketDataCoinM::operator()(Trace<json::Trades> const &event) {
       auto timestamp = timestamp_type{};
       for (auto &item : trades.trades) {
         auto price = item.price_ep / security.price_factor;
+        auto quantity = static_cast<double>(item.qty) / security.quantity_factor;
         auto item_2 = Trade{
             .side = map(item.side),
             .price = price,
-            .quantity = item.qty,  // XXX HANS convert to double
-            .trade_id = {},        // note! nothing...
+            .quantity = quantity,
+            .trade_id = {},  // note! nothing...
             .taker_order_id = {},
             .maker_order_id = {},
         };

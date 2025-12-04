@@ -20,7 +20,7 @@
     },
     {
       "name": "orderbook_p",
-      "type": "roq/phemex_futures/json/BookData"
+      "type": "roq/phemex_futures/json/OrderbookData"
     },
     {
       "name": "timestamp",

@@ -4,11 +4,11 @@
   "values": [
     {
       "name": "price_ep",
-      "type": "std/double"
+      "type": "std/int64"
     },
     {
       "name": "qty",
-      "type": "std/double"
+      "type": "std/int64"
     }
   ]
 }

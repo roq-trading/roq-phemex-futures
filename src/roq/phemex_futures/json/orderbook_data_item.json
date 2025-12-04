@@ -1,0 +1,14 @@
+{
+  "name": "roq/phemex_futures/json/OrderbookDataItem",
+  "type": "by_index",
+  "values": [
+    {
+      "name": "price",
+      "type": "std/double"
+    },
+    {
+      "name": "qty",
+      "type": "std/double"
+    }
+  ]
+}

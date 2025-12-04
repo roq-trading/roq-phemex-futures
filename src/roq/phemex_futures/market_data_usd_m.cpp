@@ -291,6 +291,7 @@ void MarketDataUsdM::subscribe(Symbol const &symbol, std::string_view const &top
 
 void MarketDataUsdM::parse(std::string_view const &message) {
   profile_.parse([&]() {
+    log::info<5>(R"(message="{}")"sv, message);
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
@@ -337,7 +338,7 @@ void MarketDataUsdM::operator()(Trace<json::Orderbook> const &event) {
     asks.clear();
     for (auto &item : orderbook.orderbook_p.bids) {
       auto mbp_update = MBPUpdate{
-          .price = item.price_ep,  // XXX HANS convert to double
+          .price = item.price,
           .quantity = item.qty,
           .implied_quantity = NaN,
           .number_of_orders = {},
@@ -348,7 +349,7 @@ void MarketDataUsdM::operator()(Trace<json::Orderbook> const &event) {
     }
     for (auto &item : orderbook.orderbook_p.asks) {
       auto mbp_update = MBPUpdate{
-          .price = item.price_ep,  // XXX HANS convert to double
+          .price = item.price,
           .quantity = item.qty,
           .implied_quantity = NaN,
           .number_of_orders = {},
@@ -392,9 +393,9 @@ void MarketDataUsdM::operator()(Trace<json::Trades2> const &event) {
     for (auto &item : trades.trades_p) {
       auto item_2 = Trade{
           .side = map(item.side),
-          .price = item.price_ep,  // XXX HANS convert to double
-          .quantity = item.qty,    // XXX HANS convert to double
-          .trade_id = {},          // note! nothing...
+          .price = item.price,
+          .quantity = item.qty,
+          .trade_id = {},  // note! nothing...
           .taker_order_id = {},
           .maker_order_id = {},
       };

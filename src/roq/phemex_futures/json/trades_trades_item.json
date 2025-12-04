@@ -12,11 +12,11 @@
     },
     {
       "name": "priceEp",
-      "type": "std/double"
+      "type": "std/int64"
     },
     {
       "name": "qty",
-      "type": "std/double"
+      "type": "std/int64"
     }
   ]
 }
