@@ -1,20 +1,20 @@
 {
-  "name": "roq/phemex_futures/json/ProductsData",
+  "name": "roq/phemex_futures/json/ProductsAckData",
   "type": "dictionary",
   "values": [
     {
       "name": "currencies",
-      "type": "roq/phemex_futures/json/ProductsDataCurrenciesItem",
+      "type": "roq/phemex_futures/json/ProductsAckDataCurrenciesItem",
       "array": "std/span"
     },
     {
       "name": "products",
-      "type": "roq/phemex_futures/json/ProductsDataProductsItem",
+      "type": "roq/phemex_futures/json/ProductsAckDataProductsItem",
       "array": "std/span"
     },
     {
       "name": "perpProductsV2",
-      "type": "roq/phemex_futures/json/ProductsDataPerpProductsV2Item",
+      "type": "roq/phemex_futures/json/ProductsAckDataPerpProductsV2Item",
       "array": "std/span"
     },
     {

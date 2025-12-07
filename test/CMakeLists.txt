@@ -6,20 +6,20 @@ set(SOURCES
     json_accounts_orders_positions_2.cpp
     json_accounts_orders_positions.cpp
     json_book.cpp
-    json_cancel_order_ack_2.cpp
-    json_cancel_order_ack.cpp
     json_index_market24h.cpp
     json_kline_2.cpp
     json_kline.cpp
     json_market24h_2.cpp
     json_market24h.cpp
-    json_modify_order_ack_2.cpp
-    json_modify_order_ack.cpp
     json_orderbook.cpp
-    json_place_order_ack_2.cpp
-    json_place_order_ack.cpp
+    json_orders_cancel_ack_2.cpp
+    json_orders_cancel_ack.cpp
+    json_orders_create_ack_2.cpp
+    json_orders_create_ack.cpp
+    json_orders_replace_ack_2.cpp
+    json_orders_replace_ack.cpp
     json_position_info.cpp
-    json_products.cpp
+    json_products_ack.cpp
     json_trades_2.cpp
     json_trades.cpp
     main.cpp)

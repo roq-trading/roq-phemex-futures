@@ -4,15 +4,17 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex_futures/json/products.hpp"
+#include "roq/phemex_futures/json/products_ack.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
+using value_type = json::ProductsAck;
+
 // note! reduced
-TEST_CASE("simple", "[json_products]") {
+TEST_CASE("simple", "[json_products_ack]") {
   auto message =
       R"({)"
       R"("code":0,)"
@@ -202,7 +204,8 @@ TEST_CASE("simple", "[json_products]") {
       R"("md5Checksum":"3e137ae32b5f8807e2e7b7a61a85be13")"
       R"(})"
       R"(})";
-  core::json::BufferStack buffer{65536, 2};
-  json::Products obj{message, buffer};
-  CHECK(obj.code == 0);
+  auto helper = [&](value_type const &obj) { CHECK(obj.code == 0); };
+  core::json::BufferStack buffers{65536, 2};
+  value_type obj{message, buffers};
+  helper(obj);
 }

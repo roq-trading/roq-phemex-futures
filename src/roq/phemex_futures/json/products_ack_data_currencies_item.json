@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/ProductsDataCurrenciesItem",
+  "name": "roq/phemex_futures/json/ProductsAckDataCurrenciesItem",
   "type": "dictionary",
   "values": [
     {

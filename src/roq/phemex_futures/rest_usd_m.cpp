@@ -139,6 +139,8 @@ void RestUsdM::operator()(ConnectionStatus status) {
   }
 }
 
+// web::rest::Client::Handler
+
 void RestUsdM::operator()(Trace<web::rest::Client::Connected> const &) {
   if (download_.downloading()) {
     download_.bump();
@@ -219,13 +221,13 @@ void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
       } else {
-        json::Products products{body, decode_buffer_};
-        if (products.code == 0) {
-          Trace event{trace_info, products};
+        json::ProductsAck products_ack{body, decode_buffer_};
+        if (products_ack.code == 0) {
+          Trace event{trace_info, products_ack};
           (*this)(event);
           download_.check(state);
         } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products.code), products.msg);
+          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products_ack.code), products_ack.msg);
         }
       }
     };
@@ -233,9 +235,9 @@ void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_
   });
 }
 
-void RestUsdM::operator()(Trace<json::Products> const &event) {
-  auto &[trace_info, products] = event;
-  log::info<4>("products={}"sv, products);
+void RestUsdM::operator()(Trace<json::ProductsAck> const &event) {
+  auto &[trace_info, products_ack] = event;
+  log::info<4>("products_ack={}"sv, products_ack);
   auto discard_helper = [&](auto &symbol, auto type, auto status) {
     switch (type) {
       using enum json::Type::type_t;
@@ -259,7 +261,7 @@ void RestUsdM::operator()(Trace<json::Products> const &event) {
     return shared_.discard_symbol(symbol);
   };
   std::vector<Symbol> symbols;
-  auto &data = products.data.perp_products_v2;
+  auto &data = products_ack.data.perp_products_v2;
   symbols.reserve(std::size(data));
   size_t counter = 0;
   for (size_t i = 0; i < std::size(data); ++i) {

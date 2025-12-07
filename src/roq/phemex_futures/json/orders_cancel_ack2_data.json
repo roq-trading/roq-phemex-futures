@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/PlaceOrderAckData",
+  "name": "roq/phemex_futures/json/OrdersCancelAck2Data",
   "type": "dictionary",
   "values": [
     {
@@ -35,19 +35,15 @@
       "type": "roq/phemex_futures/json/OrderType"
     },
     {
-      "name": "priceEp",
-      "type": "std/int64"
-    },
-    {
-      "name": "price",
+      "name": "priceRp",
       "type": "std/double"
     },
     {
-      "name": "orderQty",
+      "name": "orderQtyRq",
       "type": "std/double"
     },
     {
-      "name": "displayQty",
+      "name": "displayQtyRq",
       "type": "std/double"
     },
     {
@@ -55,43 +51,27 @@
       "type": "roq/phemex_futures/json/TimeInForce"
     },
     {
-      "name": "reduceOnly",
-      "type": "std/bool"
-    },
-    {
-      "name": "closedPnlEv",
-      "type": "std/int64"
-    },
-    {
-      "name": "closedPnl",
+      "name": "closedPnlRv",
       "type": "std/double"
     },
     {
-      "name": "closedSize",
+      "name": "closedSizeRq",
       "type": "std/double"
     },
     {
-      "name": "cumQty",
+      "name": "cumQtyRq",
       "type": "std/double"
     },
     {
-      "name": "cumValueEv",
-      "type": "std/int64"
-    },
-    {
-      "name": "cumValue",
+      "name": "cumValueRv",
       "type": "std/double"
     },
     {
-      "name": "leavesQty",
+      "name": "leavesQtyRq",
       "type": "std/double"
     },
     {
-      "name": "leavesValueEv",
-      "type": "std/int64"
-    },
-    {
-      "name": "leavesValue",
+      "name": "leavesValueRv",
       "type": "std/double"
     },
     {
@@ -99,11 +79,7 @@
       "type": "std/string_view"
     },
     {
-      "name": "stopPxEp",
-      "type": "std/int64"
-    },
-    {
-      "name": "stopPx",
+      "name": "stopPxRp",
       "type": "std/double"
     },
     {
@@ -111,12 +87,12 @@
       "type": "std/string_view"
     },
     {
-      "name": "pegOffsetValueEp",
-      "type": "std/int64"
+      "name": "pegOffsetValueRp",
+      "type": "std/double"
     },
     {
-      "name": "pegOffsetProportionEr",
-      "type": "std/int64"
+      "name": "pegOffsetProportionRr",
+      "type": "std/double"
     },
     {
       "name": "execStatus",
@@ -133,6 +109,22 @@
     {
       "name": "execInst",
       "type": "roq/phemex_futures/json/ExecInst"
+    },
+    {
+      "name": "takeProfitRp",
+      "type": "std/double"
+    },
+    {
+      "name": "stopLossRp",
+      "type": "std/double"
+    },
+    {
+      "name": "slPxRp",
+      "type": "std/double"
+    },
+    {
+      "name": "tpPxRp",
+      "type": "std/double"
     }
   ]
 }

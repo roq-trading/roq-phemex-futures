@@ -25,7 +25,7 @@
 #include "roq/phemex_futures/rest_state.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
-#include "roq/phemex_futures/json/products.hpp"
+#include "roq/phemex_futures/json/products_ack.hpp"
 
 namespace roq {
 namespace phemex_futures {
@@ -42,6 +42,8 @@ struct RestUsdM final : public Rest, public web::rest::Client::Handler {
   void operator()(metrics::Writer &) const override;
 
  protected:
+  // web::rest::Client::Handler
+
   void operator()(Trace<web::rest::Client::Connected> const &) override;
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
@@ -50,9 +52,11 @@ struct RestUsdM final : public Rest, public web::rest::Client::Handler {
 
   uint32_t download(RestState);
 
+  // products
+
   void get_products();
   void get_products_ack(Trace<web::rest::Response> const &, uint32_t sequence);
-  void operator()(Trace<json::Products> const &);
+  void operator()(Trace<json::ProductsAck> const &);
 
   void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 

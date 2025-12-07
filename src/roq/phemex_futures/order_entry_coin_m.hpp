@@ -25,10 +25,10 @@
 #include "roq/phemex_futures/order_entry_state.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
-#include "roq/phemex_futures/json/cancel_all_orders_ack.hpp"
-#include "roq/phemex_futures/json/cancel_order_ack.hpp"
-#include "roq/phemex_futures/json/modify_order_ack.hpp"
-#include "roq/phemex_futures/json/place_order_ack.hpp"
+#include "roq/phemex_futures/json/orders_all_ack.hpp"
+#include "roq/phemex_futures/json/orders_cancel_ack.hpp"
+#include "roq/phemex_futures/json/orders_create_ack.hpp"
+#include "roq/phemex_futures/json/orders_replace_ack.hpp"
 
 namespace roq {
 namespace phemex_futures {
@@ -53,6 +53,8 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
   uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id) override;
 
  protected:
+  // web::rest::Client::Handler
+
   void operator()(Trace<web::rest::Client::Connected> const &) override;
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
@@ -61,25 +63,29 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
 
   uint32_t download(OrderEntryState);
 
-  // place_order
-  void create_order(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
-  void create_order_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
-  void operator()(Trace<json::PlaceOrderAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  // orders-create
 
-  // modify_order
-  void modify_order(Event<ModifyOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
-  void modify_order_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
-  void operator()(Trace<json::ModifyOrderAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void orders_create(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
+  void orders_create_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void operator()(Trace<json::OrdersCreateAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
-  // cancel_order
-  void cancel_order(Event<CancelOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
-  void cancel_order_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
-  void operator()(Trace<json::CancelOrderAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  // orders-replace
 
-  // cancel_all_orders
-  void cancel_all_orders(Event<CancelAllOrders> const &, std::string_view const &request_id);
-  void cancel_all_orders_ack(Trace<web::rest::Response> const &, uint8_t user_id);
-  void operator()(Trace<json::CancelAllOrdersAck> const &, uint8_t user_id);
+  void orders_replace(Event<ModifyOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
+  void orders_replace_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void operator()(Trace<json::OrdersReplaceAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+
+  // orders-cancel
+
+  void orders_cancel(Event<CancelOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
+  void orders_cancel_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void operator()(Trace<json::OrdersCancelAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+
+  // orders-all
+
+  void orders_all(Event<CancelAllOrders> const &, std::string_view const &request_id);
+  void orders_all_ack(Trace<web::rest::Response> const &, uint8_t user_id);
+  void operator()(Trace<json::OrdersAllAck> const &, uint8_t user_id);
 
   // helpers
 
@@ -106,11 +112,11 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
   } counter_;
   struct {
     utils::metrics::Profile  //
-        create_order,
-        create_order_ack,                //
-        modify_order, modify_order_ack,  //
-        cancel_order, cancel_order_ack,  //
-        cancel_all_orders, cancel_all_orders_ack;
+        orders_create,
+        orders_create_ack,                   //
+        orders_replace, orders_replace_ack,  //
+        orders_cancel, orders_cancel_ack,    //
+        orders_all, orders_all_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;

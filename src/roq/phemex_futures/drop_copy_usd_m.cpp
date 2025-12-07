@@ -437,13 +437,11 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
           .user = {},
           .strategy_id = {},
       };
-      log::warn("DEBUG trade_update={}"sv, trade_update);
       create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, exchange_or_request_id);
     }
   }
   for (auto &item : accounts_orders_positions.positions_p) {
     log::info<2>("item={}"sv, item);
-    // log::warn("DEBUG item={}"sv, item);
     auto external_account = fmt::format("{}"sv, item.account_id);
     if (utils::compare(item.assigned_pos_balance_rv, 0.0) < 0) {
       log::error("*** PLEASE REPORT *** {}"sv, item);

@@ -401,7 +401,6 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
             order_id = order.order_id;
             strategy_id = order.strategy_id;
           })) {
-        log::warn("DEBUG order_update={}"sv, order_update);
       } else {
         log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, exchange_or_request_id);
       }
@@ -445,7 +444,6 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
             .user = {},
             .strategy_id = {},
         };
-        log::warn("DEBUG trade_update={}"sv, trade_update);
         create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, exchange_or_request_id);
       }
     };

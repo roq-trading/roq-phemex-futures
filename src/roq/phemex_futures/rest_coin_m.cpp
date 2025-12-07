@@ -139,6 +139,8 @@ void RestCoinM::operator()(ConnectionStatus status) {
   }
 }
 
+// web::rest::Client::Handler
+
 void RestCoinM::operator()(Trace<web::rest::Client::Connected> const &) {
   if (download_.downloading()) {
     download_.bump();
@@ -219,13 +221,13 @@ void RestCoinM::get_products_ack(Trace<web::rest::Response> const &event, uint32
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
       } else {
-        json::Products products{body, decode_buffer_};
-        if (products.code == 0) {
-          Trace event{trace_info, products};
+        json::ProductsAck products_ack{body, decode_buffer_};
+        if (products_ack.code == 0) {
+          Trace event{trace_info, products_ack};
           (*this)(event);
           download_.check(state);
         } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products.code), products.msg);
+          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products_ack.code), products_ack.msg);
         }
       }
     };
@@ -233,10 +235,10 @@ void RestCoinM::get_products_ack(Trace<web::rest::Response> const &event, uint32
   });
 }
 
-void RestCoinM::operator()(Trace<json::Products> const &event) {
-  auto &[trace_info, products] = event;
-  log::info<4>("products={}"sv, products);
-  for (auto &item : products.data.currencies) {
+void RestCoinM::operator()(Trace<json::ProductsAck> const &event) {
+  auto &[trace_info, products_ack] = event;
+  log::info<4>("products_ack={}"sv, products_ack);
+  for (auto &item : products_ack.data.currencies) {
     shared_.currency[item.currency] = tools::Currency{
         .value_factor = std::pow(10.0, item.value_scale),
     };
@@ -265,7 +267,7 @@ void RestCoinM::operator()(Trace<json::Products> const &event) {
     return shared_.discard_symbol(symbol);
   };
   std::vector<Symbol> symbols;
-  auto &data = products.data.products;
+  auto &data = products_ack.data.products;
   symbols.reserve(std::size(data));
   size_t counter = 0;
   for (size_t i = 0; i < std::size(data); ++i) {

@@ -31,7 +31,7 @@ auto map_time_in_force(auto time_in_force, auto execution_instructions) -> json:
 // === IMPLEMENTATION ===
 
 // no stp?
-std::string_view Encoder::create_order_coin_m(
+std::string_view Encoder::orders_create_coin_m(
     std::string &buffer,
     CreateOrder const &create_order,
     server::oms::Order const &order,
@@ -44,7 +44,7 @@ std::string_view Encoder::create_order_coin_m(
   auto time_in_force = map_time_in_force(create_order.time_in_force, create_order.execution_instructions);
   auto reduce_only = [&]() { return create_order.execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE); }();
   auto price = create_order.price * security.price_factor;  // note!
-  log::warn("DEBUG scaling price {} => {}"sv, create_order.price, price);
+  log::info<2>("DEBUG scaling price {} => {}"sv, create_order.price, price);
   fmt::format_to(
       std::back_inserter(buffer),
       "?clOrdID={}"
@@ -73,7 +73,7 @@ std::string_view Encoder::create_order_coin_m(
 }
 
 // XXX FIXME TODO stpInstruction
-std::string_view Encoder::create_order_usd_m(
+std::string_view Encoder::orders_create_usd_m(
     std::string &buffer, CreateOrder const &create_order, server::oms::Order const &order, std::string_view const &request_id) {
   buffer.clear();
   auto side = map(create_order.side).template get<json::Side>();
@@ -108,7 +108,7 @@ std::string_view Encoder::create_order_usd_m(
   return buffer;
 }
 
-std::string_view Encoder::modify_order_coin_m(
+std::string_view Encoder::orders_replace_coin_m(
     std::string &buffer, ModifyOrder const &modify_order, server::oms::Order const &order, [[maybe_unused]] std::string_view const &request_id) {
   buffer.clear();
   if (std::empty(order.external_order_id)) {
@@ -126,7 +126,7 @@ std::string_view Encoder::modify_order_coin_m(
   return buffer;
 }
 
-std::string_view Encoder::modify_order_usd_m(
+std::string_view Encoder::orders_replace_usd_m(
     std::string &buffer, ModifyOrder const &modify_order, server::oms::Order const &order, [[maybe_unused]] std::string_view const &request_id) {
   buffer.clear();
   if (std::empty(order.external_order_id)) {
@@ -150,7 +150,7 @@ std::string_view Encoder::modify_order_usd_m(
   return buffer;
 }
 
-std::string_view Encoder::cancel_order_coin_m(
+std::string_view Encoder::orders_cancel_coin_m(
     std::string &buffer, CancelOrder const &, server::oms::Order const &order, [[maybe_unused]] std::string_view const &request_id) {
   assert(!std::empty(order.symbol));
   buffer.clear();
@@ -163,7 +163,7 @@ std::string_view Encoder::cancel_order_coin_m(
   return buffer;
 }
 
-std::string_view Encoder::cancel_order_usd_m(
+std::string_view Encoder::orders_cancel_usd_m(
     std::string &buffer, CancelOrder const &, server::oms::Order const &order, [[maybe_unused]] std::string_view const &request_id) {
   assert(!std::empty(order.symbol));
   buffer.clear();
@@ -182,7 +182,7 @@ std::string_view Encoder::cancel_order_usd_m(
   return buffer;
 }
 
-std::string_view Encoder::cancel_all_orders(
+std::string_view Encoder::orders_all(
     std::string &buffer, CancelAllOrders const &, std::string_view const &symbol, [[maybe_unused]] std::string_view const &request_id) {
   buffer.clear();
   fmt::format_to(std::back_inserter(buffer), "?symbol={}"sv, symbol);

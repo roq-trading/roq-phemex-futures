@@ -21,12 +21,6 @@ set(AUTOGEN_SCHEMAS
     book_data_item.json
     book_data.json
     book.json
-    cancel_all_orders_ack2.json
-    cancel_all_orders_ack.json
-    cancel_order_ack2_data.json
-    cancel_order_ack2.json
-    cancel_order_ack_data.json
-    cancel_order_ack.json
     event.json
     event_type.json
     exec_inst.json
@@ -46,29 +40,35 @@ set(AUTOGEN_SCHEMAS
     market24h.json
     message_field.json
     message_type.json
-    modify_order_ack2_data.json
-    modify_order_ack2.json
-    modify_order_ack_data.json
-    modify_order_ack.json
     orderbook_data_item.json
     orderbook_data.json
     orderbook.json
+    orders_all_ack2.json
+    orders_all_ack.json
+    orders_cancel_ack2_data.json
+    orders_cancel_ack2.json
+    orders_cancel_ack_data.json
+    orders_cancel_ack.json
+    orders_create_ack2_data.json
+    orders_create_ack2.json
+    orders_create_ack_data.json
+    orders_create_ack.json
+    orders_replace_ack2_data.json
+    orders_replace_ack2.json
+    orders_replace_ack_data.json
+    orders_replace_ack.json
     order_status.json
     order_type.json
-    place_order_ack2_data.json
-    place_order_ack2.json
-    place_order_ack_data.json
-    place_order_ack.json
     pong.json
     position_info.json
     position_info_position_info.json
     pos_mode.json
     pos_side.json
-    products_data_currencies_item.json
-    products_data.json
-    products_data_perp_products_v2_item.json
-    products_data_products_item.json
-    products.json
+    products_ack_data_currencies_item.json
+    products_ack_data.json
+    products_ack_data_perp_products_v2_item.json
+    products_ack_data_products_item.json
+    products_ack.json
     side.json
     status.json
     stp_instruction.json

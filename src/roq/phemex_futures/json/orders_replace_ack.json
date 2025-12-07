@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/PlaceOrderAck",
+  "name": "roq/phemex_futures/json/OrdersReplaceAck",
   "type": "dictionary",
   "values": [
     {
@@ -16,7 +16,7 @@
     },
     {
       "name": "data",
-      "type": "roq/phemex_futures/json/PlaceOrderAckData"
+      "type": "roq/phemex_futures/json/OrdersReplaceAckData"
     }
   ]
 }

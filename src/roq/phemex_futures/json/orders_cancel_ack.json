@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/CancelAllOrdersAck",
+  "name": "roq/phemex_futures/json/OrdersCancelAck",
   "type": "dictionary",
   "values": [
     {
@@ -11,8 +11,12 @@
       "type": "std/string_view"
     },
     {
+      "name": "requestTime",
+      "type": "std/milliseconds"
+    },
+    {
       "name": "data",
-      "type": "std/int32"
+      "type": "roq/phemex_futures/json/OrdersCancelAckData"
     }
   ]
 }

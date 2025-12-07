@@ -27,10 +27,10 @@ auto const API_COIN_M = API{
         .accounts_orders_positions = "aop"sv,
         .open_orders = "/orders/activeList"sv,
         .fill_history = "/exchange/order/trade"sv,
-        .create_order = "/orders/create"sv,
-        .modify_order = "/orders/replace"sv,
-        .cancel_order = "/orders/cancel"sv,
-        .cancel_all_orders = "/orders/all"sv,
+        .orders_create = "/orders/create"sv,
+        .orders_replace = "/orders/replace"sv,
+        .orders_cancel = "/orders/cancel"sv,
+        .orders_all = "/orders/all"sv,
     },
 };
 auto const API_USD_M = API{
@@ -46,10 +46,10 @@ auto const API_USD_M = API{
         .accounts_orders_positions = "aop_p"sv,
         .open_orders = "/g-orders/activeList"sv,
         .fill_history = "/exchange/order/v2/tradingList"sv,
-        .create_order = "/g-orders/create"sv,
-        .modify_order = "/g-orders/replace"sv,
-        .cancel_order = "/g-orders/cancel"sv,
-        .cancel_all_orders = "/g-orders/all"sv,
+        .orders_create = "/g-orders/create"sv,
+        .orders_replace = "/g-orders/replace"sv,
+        .orders_cancel = "/g-orders/cancel"sv,
+        .orders_all = "/g-orders/all"sv,
     },
 };
 }  // namespace

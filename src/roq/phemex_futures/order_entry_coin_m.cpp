@@ -88,14 +88,14 @@ OrderEntryCoinM::OrderEntryCoinM(OrderEntry::Handler &handler, io::Context &cont
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
-          .create_order = create_metrics(shared.settings, name_, "create_order"sv),
-          .create_order_ack = create_metrics(shared.settings, name_, "create_order_ack"sv),
-          .modify_order = create_metrics(shared.settings, name_, "modify_order"sv),
-          .modify_order_ack = create_metrics(shared.settings, name_, "modify_order_ack"sv),
-          .cancel_order = create_metrics(shared.settings, name_, "cancel_order"sv),
-          .cancel_order_ack = create_metrics(shared.settings, name_, "cancel_order_ack"sv),
-          .cancel_all_orders = create_metrics(shared.settings, name_, "cancel_all_orders"sv),
-          .cancel_all_orders_ack = create_metrics(shared.settings, name_, "cancel_all_orders_ack"sv),
+          .orders_create = create_metrics(shared.settings, name_, "orders_create"sv),
+          .orders_create_ack = create_metrics(shared.settings, name_, "orders_create_ack"sv),
+          .orders_replace = create_metrics(shared.settings, name_, "orders_replace"sv),
+          .orders_replace_ack = create_metrics(shared.settings, name_, "orders_replace_ack"sv),
+          .orders_cancel = create_metrics(shared.settings, name_, "orders_cancel"sv),
+          .orders_cancel_ack = create_metrics(shared.settings, name_, "orders_cancel_ack"sv),
+          .orders_all = create_metrics(shared.settings, name_, "orders_all"sv),
+          .orders_all_ack = create_metrics(shared.settings, name_, "orders_all_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
@@ -128,20 +128,20 @@ void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
       // profile
-      .write(profile_.create_order, metrics::Type::PROFILE)
-      .write(profile_.create_order_ack, metrics::Type::PROFILE)
-      .write(profile_.modify_order, metrics::Type::PROFILE)
-      .write(profile_.modify_order_ack, metrics::Type::PROFILE)
-      .write(profile_.cancel_order, metrics::Type::PROFILE)
-      .write(profile_.cancel_order_ack, metrics::Type::PROFILE)
-      .write(profile_.cancel_all_orders, metrics::Type::PROFILE)
-      .write(profile_.cancel_all_orders_ack, metrics::Type::PROFILE)
+      .write(profile_.orders_create, metrics::Type::PROFILE)
+      .write(profile_.orders_create_ack, metrics::Type::PROFILE)
+      .write(profile_.orders_replace, metrics::Type::PROFILE)
+      .write(profile_.orders_replace_ack, metrics::Type::PROFILE)
+      .write(profile_.orders_cancel, metrics::Type::PROFILE)
+      .write(profile_.orders_cancel_ack, metrics::Type::PROFILE)
+      .write(profile_.orders_all, metrics::Type::PROFILE)
+      .write(profile_.orders_all_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
 uint16_t OrderEntryCoinM::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
-  create_order(event, order, request_id);
+  orders_create(event, order, request_id);
   return stream_id_;
 }
 
@@ -152,21 +152,23 @@ uint16_t OrderEntryCoinM::operator()(
     [[maybe_unused]] std::string_view const &previous_request_id) {
   throw server::oms::NotSupported{"not supported"sv};
   /*
-  modify_order(event, order, request_id, previous_request_id);
+  orders_replace(event, order, request_id, previous_request_id);
   return stream_id_;
   */
 }
 
 uint16_t OrderEntryCoinM::operator()(
     Event<CancelOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
-  cancel_order(event, order, request_id, previous_request_id);
+  orders_cancel(event, order, request_id, previous_request_id);
   return stream_id_;
 }
 
 uint16_t OrderEntryCoinM::operator()(Event<CancelAllOrders> const &event, std::string_view const &request_id) {
-  cancel_all_orders(event, request_id);
+  orders_all(event, request_id);
   return stream_id_;
 }
+
+// web::rest::Client::Handler
 
 void OrderEntryCoinM::operator()(Trace<web::rest::Client::Connected> const &) {
   if (download_.downloading()) {
@@ -232,17 +234,17 @@ uint32_t OrderEntryCoinM::download(OrderEntryState state) {
   return 0;
 }
 
-// place_order
+// orders-create
 
-void OrderEntryCoinM::create_order(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
-  profile_.create_order([&]() {
+void OrderEntryCoinM::orders_create(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
+  profile_.orders_create([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, create_order] = event;
     auto helper = [&](auto &security) {
-      auto path = shared_.api.order_management.create_order;
-      auto query = json::Encoder::create_order_coin_m(encode_buffer_, create_order, order, request_id, security);
+      auto path = shared_.api.order_management.orders_create;
+      auto query = json::Encoder::orders_create_coin_m(encode_buffer_, create_order, order, request_id, security);
       auto headers = account_.create_headers(path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::PUT,
@@ -254,12 +256,12 @@ void OrderEntryCoinM::create_order(Event<CreateOrder> const &event, server::oms:
           .body = {},
           .quality_of_service = {},
       };
-      log::warn("DEBUG request={}"sv, request);
+      log::info<2>("DEBUG request={}"sv, request);
       auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
         uint32_t version = 1;
         TraceInfo trace_info;
         Trace event{trace_info, response};
-        create_order_ack(event, user_id, order_id, version);
+        orders_create_ack(event, user_id, order_id, version);
       };
       (*connection_)(request_id, request, callback);
     };
@@ -271,8 +273,8 @@ void OrderEntryCoinM::create_order(Event<CreateOrder> const &event, server::oms:
   });
 }
 
-void OrderEntryCoinM::create_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
-  profile_.create_order_ack([&]() {
+void OrderEntryCoinM::orders_create_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+  profile_.orders_create_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -290,24 +292,23 @@ void OrderEntryCoinM::create_order_ack(Trace<web::rest::Response> const &event, 
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
-      json::PlaceOrderAck create_order_ack{body, decode_buffer_};
-      if (create_order_ack.code == 0) {
-        Trace event_2{event, create_order_ack};
+      // log::warn(R"(DEBUG body="{}")"sv, body);
+      json::OrdersCreateAck orders_create_ack{body, decode_buffer_};
+      if (orders_create_ack.code == 0) {
+        Trace event_2{event, orders_create_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(create_order_ack.code), create_order_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_create_ack.code), orders_create_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryCoinM::operator()(Trace<json::PlaceOrderAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
-  auto &[trace_info, create_order_ack] = event;
-  log::info<2>("create_order_ack={}"sv, create_order_ack);
-  log::warn("DEBUG create_order_ack={}"sv, create_order_ack);
-  auto &data = create_order_ack.data;
+void OrderEntryCoinM::operator()(Trace<json::OrdersCreateAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+  auto &[trace_info, orders_create_ack] = event;
+  log::info<2>("orders_create_ack={}"sv, orders_create_ack);
+  auto &data = orders_create_ack.data;
   auto response = server::oms::Response{
       .request_type = RequestType::CREATE_ORDER,
       .origin = Origin::EXCHANGE,
@@ -351,26 +352,26 @@ void OrderEntryCoinM::operator()(Trace<json::PlaceOrderAck> const &event, uint8_
       .max_response_version = {},
       .max_accepted_version = {},
       .update_type = UpdateType::INCREMENTAL,
-      .sending_time_utc = create_order_ack.request_time,  // ???
+      .sending_time_utc = orders_create_ack.request_time,  // ???
   };
   Trace event_2{trace_info, response};
   (*this)(event_2, user_id, order_id, order_update);
 }
 
-// modify_order
+// orders-replace
 
-void OrderEntryCoinM::modify_order(
+void OrderEntryCoinM::orders_replace(
     Event<ModifyOrder> const &event,
     server::oms::Order const &order,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
-  profile_.modify_order([&]() {
+  profile_.orders_replace([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, modify_order] = event;
-    auto path = shared_.api.order_management.modify_order;
-    auto query = json::Encoder::modify_order_coin_m(encode_buffer_, modify_order, order, request_id);
+    auto path = shared_.api.order_management.orders_replace;
+    auto query = json::Encoder::orders_replace_coin_m(encode_buffer_, modify_order, order, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -382,19 +383,19 @@ void OrderEntryCoinM::modify_order(
         .body = {},
         .quality_of_service = {},
     };
-    // log::warn("DEBUG request={}"sv, request);
+    log::info<2>("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = modify_order.order_id, version = modify_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
       Trace event{trace_info, response};
-      modify_order_ack(event, user_id, order_id, version);
+      orders_replace_ack(event, user_id, order_id, version);
     };
     (*connection_)(request_id, request, callback);
   });
 }
 
-void OrderEntryCoinM::modify_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
-  profile_.modify_order_ack([&]() {
+void OrderEntryCoinM::orders_replace_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+  profile_.orders_replace_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -412,13 +413,12 @@ void OrderEntryCoinM::modify_order_ack(Trace<web::rest::Response> const &event, 
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
-      json::ModifyOrderAck modify_order_ack{body, decode_buffer_};
-      if (modify_order_ack.code == 0) {
-        Trace event_2{event, modify_order_ack};
+      json::OrdersReplaceAck orders_replace_ack{body, decode_buffer_};
+      if (orders_replace_ack.code == 0) {
+        Trace event_2{event, orders_replace_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(modify_order_ack.code), modify_order_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_replace_ack.code), orders_replace_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -426,26 +426,25 @@ void OrderEntryCoinM::modify_order_ack(Trace<web::rest::Response> const &event, 
 }
 
 void OrderEntryCoinM::operator()(
-    Trace<json::ModifyOrderAck> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
-  auto &[trace_info, modify_order_ack] = event;
-  log::info<2>("modify_order_ack={}"sv, modify_order_ack);
-  log::warn("DEBUG modify_order_ack={}"sv, modify_order_ack);
+    Trace<json::OrdersReplaceAck> const &event, [[maybe_unused]] uint8_t user_id, [[maybe_unused]] uint64_t order_id, [[maybe_unused]] uint32_t version) {
+  auto &[trace_info, orders_replace_ack] = event;
+  log::info<2>("orders_replace_ack={}"sv, orders_replace_ack);
 }
 
-// cancel_order
+// orders-cancel
 
-void OrderEntryCoinM::cancel_order(
+void OrderEntryCoinM::orders_cancel(
     Event<CancelOrder> const &event,
     server::oms::Order const &order,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
-  profile_.cancel_order([&]() {
+  profile_.orders_cancel([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, cancel_order] = event;
-    auto path = shared_.api.order_management.cancel_order;
-    auto query = json::Encoder::cancel_order_coin_m(encode_buffer_, cancel_order, order, request_id);
+    auto path = shared_.api.order_management.orders_cancel;
+    auto query = json::Encoder::orders_cancel_coin_m(encode_buffer_, cancel_order, order, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,
@@ -457,19 +456,19 @@ void OrderEntryCoinM::cancel_order(
         .body = {},
         .quality_of_service = {},
     };
-    log::warn("DEBUG request={}"sv, request);
+    log::info<2>("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = cancel_order.order_id, version = cancel_order.version](
                         [[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
       Trace event{trace_info, response};
-      cancel_order_ack(event, user_id, order_id, version);
+      orders_cancel_ack(event, user_id, order_id, version);
     };
     (*connection_)(request_id, request, callback);
   });
 }
 
-void OrderEntryCoinM::cancel_order_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
-  profile_.cancel_order_ack([&]() {
+void OrderEntryCoinM::orders_cancel_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+  profile_.orders_cancel_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -487,24 +486,22 @@ void OrderEntryCoinM::cancel_order_ack(Trace<web::rest::Response> const &event, 
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
-      json::CancelOrderAck cancel_order_ack{body, decode_buffer_};
-      if (cancel_order_ack.code == 0) {
-        Trace event_2{event, cancel_order_ack};
+      json::OrdersCancelAck orders_cancel_ack{body, decode_buffer_};
+      if (orders_cancel_ack.code == 0) {
+        Trace event_2{event, orders_cancel_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(cancel_order_ack.code), cancel_order_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_cancel_ack.code), orders_cancel_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryCoinM::operator()(Trace<json::CancelOrderAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
-  auto &[trace_info, cancel_order_ack] = event;
-  log::info<2>("cancel_order_ack={}"sv, cancel_order_ack);
-  log::warn("DEBUG cancel_order_ack={}"sv, cancel_order_ack);
-  auto &data = cancel_order_ack.data;
+void OrderEntryCoinM::operator()(Trace<json::OrdersCancelAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+  auto &[trace_info, orders_cancel_ack] = event;
+  log::info<2>("orders_cancel_ack={}"sv, orders_cancel_ack);
+  auto &data = orders_cancel_ack.data;
   auto response = server::oms::Response{
       .request_type = RequestType::CANCEL_ORDER,
       .origin = Origin::EXCHANGE,
@@ -548,23 +545,23 @@ void OrderEntryCoinM::operator()(Trace<json::CancelOrderAck> const &event, uint8
       .max_response_version = {},
       .max_accepted_version = {},
       .update_type = UpdateType::INCREMENTAL,
-      .sending_time_utc = cancel_order_ack.request_time,
+      .sending_time_utc = orders_cancel_ack.request_time,
   };
   Trace event_2{trace_info, response};
   (*this)(event_2, user_id, order_id, order_update);
 }
 
-// cancel_all_orders
+// orders-all
 
-void OrderEntryCoinM::cancel_all_orders(Event<CancelAllOrders> const &event, std::string_view const &request_id) {
-  profile_.cancel_all_orders([&]() {
+void OrderEntryCoinM::orders_all(Event<CancelAllOrders> const &event, std::string_view const &request_id) {
+  profile_.orders_all([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, cancel_all_orders] = event;
-    auto path = shared_.api.order_management.cancel_all_orders;
+    auto path = shared_.api.order_management.orders_all;
     auto helper = [&](auto &symbol) {
-      auto query = json::Encoder::cancel_all_orders(encode_buffer_, cancel_all_orders, symbol, request_id);
+      auto query = json::Encoder::orders_all(encode_buffer_, cancel_all_orders, symbol, request_id);
       auto headers = account_.create_headers(path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::DELETE,
@@ -576,11 +573,11 @@ void OrderEntryCoinM::cancel_all_orders(Event<CancelAllOrders> const &event, std
           .body = {},
           .quality_of_service = {},
       };
-      log::warn("DEBUG request={}"sv, request);
+      log::info<2>("DEBUG request={}"sv, request);
       auto callback = [this, user_id = message_info.source]([[maybe_unused]] auto &request_id, auto &response) {
         TraceInfo trace_info;
         Trace event{trace_info, response};
-        cancel_all_orders_ack(event, user_id);
+        orders_all_ack(event, user_id);
       };
       (*connection_)(request_id, request, callback);
     };
@@ -591,11 +588,11 @@ void OrderEntryCoinM::cancel_all_orders(Event<CancelAllOrders> const &event, std
   });
 }
 
-void OrderEntryCoinM::cancel_all_orders_ack(Trace<web::rest::Response> const &event, [[maybe_unused]] uint8_t user_id) {
-  profile_.cancel_all_orders_ack([&]() {
+void OrderEntryCoinM::orders_all_ack(Trace<web::rest::Response> const &event, [[maybe_unused]] uint8_t user_id) {
+  profile_.orders_all_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      auto cancel_all_orders_ack = CancelAllOrdersAck{
+      auto orders_all_ack = CancelAllOrdersAck{
           .stream_id = stream_id_,
           .account = account_.name,
           .order_id = {},
@@ -614,27 +611,25 @@ void OrderEntryCoinM::cancel_all_orders_ack(Trace<web::rest::Response> const &ev
           .strategy_id = {},
       };
       TraceInfo trace_info;
-      Trace event_2{trace_info, cancel_all_orders_ack};
+      Trace event_2{trace_info, orders_all_ack};
       shared_(event_2);
     };
     auto handle_success = [&](auto &body) {
-      log::warn(R"(DEBUG body="{}")"sv, body);
-      json::CancelAllOrdersAck cancel_all_orders_ack{body, decode_buffer_};
-      if (cancel_all_orders_ack.code == 0) {
-        Trace event_2{event, cancel_all_orders_ack};
+      json::OrdersAllAck orders_all_ack{body, decode_buffer_};
+      if (orders_all_ack.code == 0) {
+        Trace event_2{event, orders_all_ack};
         (*this)(event_2, user_id);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(cancel_all_orders_ack.code), cancel_all_orders_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_all_ack.code), orders_all_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryCoinM::operator()(Trace<json::CancelAllOrdersAck> const &event, [[maybe_unused]] uint8_t user_id) {
-  auto &[trace_info, cancel_all_orders_ack] = event;
-  log::info<2>("cancel_all_orders_ack={}"sv, cancel_all_orders_ack);
-  log::warn("DEBUG cancel_all_orders_ack={}"sv, cancel_all_orders_ack);
+void OrderEntryCoinM::operator()(Trace<json::OrdersAllAck> const &event, [[maybe_unused]] uint8_t user_id) {
+  auto &[trace_info, orders_all_ack] = event;
+  log::info<2>("orders_all_ack={}"sv, orders_all_ack);
 }
 
 // helpers

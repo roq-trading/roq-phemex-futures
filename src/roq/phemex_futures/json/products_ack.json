@@ -1,5 +1,5 @@
 {
-  "name": "roq/phemex_futures/json/CancelAllOrdersAck2",
+  "name": "roq/phemex_futures/json/ProductsAck",
   "type": "dictionary",
   "values": [
     {
@@ -12,7 +12,7 @@
     },
     {
       "name": "data",
-      "type": "std/int32"
+      "type": "roq/phemex_futures/json/ProductsAckData"
     }
   ]
 }
