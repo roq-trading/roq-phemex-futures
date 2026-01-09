@@ -285,6 +285,7 @@ void OrderEntryCoinM::orders_create_ack(Trace<web::rest::Response> const &event,
           .text = text,
           .version = version,
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -317,6 +318,7 @@ void OrderEntryCoinM::operator()(Trace<json::OrdersCreateAck> const &event, uint
       .text = {},
       .version = version,
       .request_id = {},
+      .external_order_id = {},
       .quantity = data.order_qty,
       .price = data.price,
   };
@@ -406,6 +408,7 @@ void OrderEntryCoinM::orders_replace_ack(Trace<web::rest::Response> const &event
           .text = text,
           .version = version,
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -479,6 +482,7 @@ void OrderEntryCoinM::orders_cancel_ack(Trace<web::rest::Response> const &event,
           .text = text,
           .version = version,
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -510,6 +514,7 @@ void OrderEntryCoinM::operator()(Trace<json::OrdersCancelAck> const &event, uint
       .text = {},
       .version = version,
       .request_id = {},
+      .external_order_id = {},
       .quantity = data.order_qty,
       .price = data.price,
   };

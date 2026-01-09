@@ -278,6 +278,7 @@ void OrderEntryUsdM::orders_create_ack(Trace<web::rest::Response> const &event, 
           .text = text,
           .version = version,
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -309,6 +310,7 @@ void OrderEntryUsdM::operator()(Trace<json::OrdersCreateAck2> const &event, uint
       .text = {},
       .version = version,
       .request_id = {},
+      .external_order_id = {},
       .quantity = data.order_qty_rq,
       .price = data.price_rp,
   };
@@ -398,6 +400,7 @@ void OrderEntryUsdM::orders_replace_ack(Trace<web::rest::Response> const &event,
           .text = text,
           .version = version,
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -429,6 +432,7 @@ void OrderEntryUsdM::operator()(Trace<json::OrdersReplaceAck2> const &event, uin
       .text = {},
       .version = version,
       .request_id = {},
+      .external_order_id = {},
       .quantity = data.order_qty_rq,
       .price = data.price_rp,
   };
@@ -518,6 +522,7 @@ void OrderEntryUsdM::orders_cancel_ack(Trace<web::rest::Response> const &event, 
           .text = text,
           .version = version,
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -549,6 +554,7 @@ void OrderEntryUsdM::operator()(Trace<json::OrdersCancelAck2> const &event, uint
       .text = {},
       .version = version,
       .request_id = {},
+      .external_order_id = {},
       .quantity = data.order_qty_rq,
       .price = data.price_rp,
   };
