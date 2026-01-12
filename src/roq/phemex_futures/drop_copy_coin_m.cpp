@@ -509,7 +509,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
    */
   for (auto &item : accounts_orders_positions.positions) {
     // log::warn("DEBUG item={}"sv, item);
-    auto helper = [&](auto &security) {
+    auto helper = [&]([[maybe_unused]] auto &security) {
       auto external_account = fmt::format("{}"sv, item.account_id);
       auto assigned_pos_balance = static_cast<double>(item.assigned_pos_balance_ev);  // scale ???
       if (utils::compare(assigned_pos_balance, 0.0) < 0) {
