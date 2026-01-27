@@ -11,7 +11,7 @@ namespace phemex_futures {
 
 struct Rest {
   struct SymbolsUpdate final {
-    std::vector<Symbol> &symbols;
+    std::span<Symbol const> symbols;
   };
 
   struct Handler {

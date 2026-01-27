@@ -81,7 +81,6 @@ struct RestUsdM final : public Rest, public web::rest::Client::Handler {
   } latency_;
   // cache
   Shared &shared_;
-  utils::unordered_set<std::string> all_symbols_;
   // state
   ConnectionStatus status_ = {};
   core::Download<RestState> download_;
