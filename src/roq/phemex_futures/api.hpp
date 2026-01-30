@@ -36,6 +36,8 @@ struct API final {
 
   // factory
   static API create(Settings const &);
+
+  Type static parse_api(Settings const &);
 };
 
 }  // namespace phemex_futures

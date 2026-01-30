@@ -54,20 +54,10 @@ auto const API_USD_M = API{
 };
 }  // namespace
 
-// === HELPERS ===
-
-namespace {
-auto parse_api(auto &api) {
-  std::string tmp{api};
-  std::replace(tmp.begin(), tmp.end(), '-', '_');
-  return utils::parse_enum<API::Type>(tmp);
-}
-}  // namespace
-
 // === IMPLEMENTATION ===
 
 API API::create(Settings const &settings) {
-  auto key = parse_api(settings.api);
+  auto key = parse_api(settings);
   switch (key) {
     using enum Type;
     case COIN_M:
@@ -76,6 +66,12 @@ API API::create(Settings const &settings) {
       return API_USD_M;
   }
   log::fatal("Unexpected"sv);
+}
+
+API::Type API::parse_api(Settings const &settings) {
+  std::string tmp{settings.api};
+  std::replace(tmp.begin(), tmp.end(), '-', '_');
+  return utils::parse_enum<API::Type>(tmp);
 }
 
 }  // namespace phemex_futures
