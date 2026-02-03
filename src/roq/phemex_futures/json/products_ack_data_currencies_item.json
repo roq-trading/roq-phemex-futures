@@ -53,6 +53,10 @@
     {
       "name": "assetsPrecision",
       "type": "std/int32"
+    },
+    {
+      "name": "spotInnoStatus",
+      "type": "std/int32"
     }
   ]
 }
