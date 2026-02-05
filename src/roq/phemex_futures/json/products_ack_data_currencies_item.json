@@ -57,6 +57,10 @@
     {
       "name": "spotInnoStatus",
       "type": "std/int32"
+    },
+    {
+      "name": "timestamp",
+      "type": "std/seconds"
     }
   ]
 }

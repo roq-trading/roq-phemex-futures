@@ -369,6 +369,8 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .external_order_id = item.order_id,
         .client_order_id = item.cl_ord_id,
         .order_status = order_status,
+        .error = {},
+        .text = item.message,
         .quantity = item.order_qty,
         .price = item.price_rp,
         .stop_price = item.stop_px_rp,

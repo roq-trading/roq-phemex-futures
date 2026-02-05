@@ -376,6 +376,8 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
           .external_order_id = item.order_id,
           .client_order_id = item.cl_ord_id,
           .order_status = order_status,
+          .error = {},
+          .text = item.message,
           .quantity = item.order_qty,
           .price = price,
           .stop_price = stop_price,

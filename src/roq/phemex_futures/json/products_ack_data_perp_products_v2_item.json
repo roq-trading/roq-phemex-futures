@@ -141,6 +141,26 @@
     {
       "name": "maxOpenPosLeverage",
       "type": "std/double"
+    },
+    {
+      "name": "perpProductSubGroup",
+      "type": "std/string_view"
+    },
+    {
+      "name": "feeRateDiscountRate",
+      "type": "std/double"
+    },
+    {
+      "name": "feeRateDiscountImpactScope",
+      "type": "std/string_view"
+    },
+    {
+      "name": "feeRateDiscountStartTimestamp",
+      "type": "std/seconds"
+    },
+    {
+      "name": "feeRateDiscountEndTimestamp",
+      "type": "std/seconds"
     }
   ]
 }
