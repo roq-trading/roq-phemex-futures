@@ -141,8 +141,8 @@ void OrderEntryUsdM::operator()(metrics::Writer &writer) const {
 }
 
 uint16_t OrderEntryUsdM::operator()(
-    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &, std::string_view const &request_id) {
-  orders_create(event, order, request_id);
+    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
+  orders_create(event, order, ref_data, request_id);
   return stream_id_;
 }
 
@@ -162,10 +162,10 @@ uint16_t OrderEntryUsdM::operator()(
 uint16_t OrderEntryUsdM::operator()(
     Event<CancelOrder> const &event,
     server::oms::Order const &order,
-    server::oms::RefData const &,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
-  orders_cancel(event, order, request_id, previous_request_id);
+  orders_cancel(event, order, ref_data, request_id, previous_request_id);
   return stream_id_;
 }
 
@@ -242,14 +242,15 @@ uint32_t OrderEntryUsdM::download(OrderEntryState state) {
 
 // orders-create
 
-void OrderEntryUsdM::orders_create(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
+void OrderEntryUsdM::orders_create(
+    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   profile_.orders_create([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
     }
     auto &[message_info, create_order] = event;
     auto path = shared_.api.order_management.orders_create;
-    auto query = json::Encoder::orders_create_usd_m(encode_buffer_, create_order, order, request_id);
+    auto query = json::Encoder::orders_create_usd_m(encode_buffer_, create_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -365,6 +366,7 @@ void OrderEntryUsdM::operator()(Trace<json::OrdersCreateAck2> const &event, uint
 void OrderEntryUsdM::orders_replace(
     Event<ModifyOrder> const &event,
     server::oms::Order const &order,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
   profile_.orders_replace([&]() {
@@ -373,7 +375,7 @@ void OrderEntryUsdM::orders_replace(
     }
     auto &[message_info, modify_order] = event;
     auto path = shared_.api.order_management.orders_replace;
-    auto query = json::Encoder::orders_replace_usd_m(encode_buffer_, modify_order, order, request_id);
+    auto query = json::Encoder::orders_replace_usd_m(encode_buffer_, modify_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -489,6 +491,7 @@ void OrderEntryUsdM::operator()(Trace<json::OrdersReplaceAck2> const &event, uin
 void OrderEntryUsdM::orders_cancel(
     Event<CancelOrder> const &event,
     server::oms::Order const &order,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
   profile_.orders_cancel([&]() {
@@ -497,7 +500,7 @@ void OrderEntryUsdM::orders_cancel(
     }
     auto &[message_info, cancel_order] = event;
     auto path = shared_.api.order_management.orders_cancel;
-    auto query = json::Encoder::orders_cancel_usd_m(encode_buffer_, cancel_order, order, request_id);
+    auto query = json::Encoder::orders_cancel_usd_m(encode_buffer_, cancel_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,

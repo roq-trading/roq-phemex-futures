@@ -141,8 +141,8 @@ void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
 }
 
 uint16_t OrderEntryCoinM::operator()(
-    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &, std::string_view const &request_id) {
-  orders_create(event, order, request_id);
+    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
+  orders_create(event, order, ref_data, request_id);
   return stream_id_;
 }
 
@@ -162,10 +162,10 @@ uint16_t OrderEntryCoinM::operator()(
 uint16_t OrderEntryCoinM::operator()(
     Event<CancelOrder> const &event,
     server::oms::Order const &order,
-    server::oms::RefData const &,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
-  orders_cancel(event, order, request_id, previous_request_id);
+  orders_cancel(event, order, ref_data, request_id, previous_request_id);
   return stream_id_;
 }
 
@@ -242,7 +242,8 @@ uint32_t OrderEntryCoinM::download(OrderEntryState state) {
 
 // orders-create
 
-void OrderEntryCoinM::orders_create(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
+void OrderEntryCoinM::orders_create(
+    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   profile_.orders_create([&]() {
     if (!ready()) {
       throw server::oms::NotReady{"not ready"sv};
@@ -250,7 +251,7 @@ void OrderEntryCoinM::orders_create(Event<CreateOrder> const &event, server::oms
     auto &[message_info, create_order] = event;
     auto helper = [&](auto &security) {
       auto path = shared_.api.order_management.orders_create;
-      auto query = json::Encoder::orders_create_coin_m(encode_buffer_, create_order, order, request_id, security);
+      auto query = json::Encoder::orders_create_coin_m(encode_buffer_, create_order, order, ref_data, request_id, security);
       auto headers = account_.create_headers(path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::PUT,
@@ -373,6 +374,7 @@ void OrderEntryCoinM::operator()(Trace<json::OrdersCreateAck> const &event, uint
 void OrderEntryCoinM::orders_replace(
     Event<ModifyOrder> const &event,
     server::oms::Order const &order,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
   profile_.orders_replace([&]() {
@@ -381,7 +383,7 @@ void OrderEntryCoinM::orders_replace(
     }
     auto &[message_info, modify_order] = event;
     auto path = shared_.api.order_management.orders_replace;
-    auto query = json::Encoder::orders_replace_coin_m(encode_buffer_, modify_order, order, request_id);
+    auto query = json::Encoder::orders_replace_coin_m(encode_buffer_, modify_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -447,6 +449,7 @@ void OrderEntryCoinM::operator()(
 void OrderEntryCoinM::orders_cancel(
     Event<CancelOrder> const &event,
     server::oms::Order const &order,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
   profile_.orders_cancel([&]() {
@@ -455,7 +458,7 @@ void OrderEntryCoinM::orders_cancel(
     }
     auto &[message_info, cancel_order] = event;
     auto path = shared_.api.order_management.orders_cancel;
-    auto query = json::Encoder::orders_cancel_coin_m(encode_buffer_, cancel_order, order, request_id);
+    auto query = json::Encoder::orders_cancel_coin_m(encode_buffer_, cancel_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,

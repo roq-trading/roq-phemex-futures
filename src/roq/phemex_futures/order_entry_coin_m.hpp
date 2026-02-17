@@ -73,19 +73,29 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
 
   // orders-create
 
-  void orders_create(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
+  void orders_create(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
   void orders_create_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
   void operator()(Trace<json::OrdersCreateAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // orders-replace
 
-  void orders_replace(Event<ModifyOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
+  void orders_replace(
+      Event<ModifyOrder> const &,
+      server::oms::Order const &,
+      server::oms::RefData const &,
+      std::string_view const &request_id,
+      std::string_view const &previous_request_id);
   void orders_replace_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
   void operator()(Trace<json::OrdersReplaceAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // orders-cancel
 
-  void orders_cancel(Event<CancelOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
+  void orders_cancel(
+      Event<CancelOrder> const &,
+      server::oms::Order const &,
+      server::oms::RefData const &,
+      std::string_view const &request_id,
+      std::string_view const &previous_request_id);
   void orders_cancel_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
   void operator()(Trace<json::OrdersCancelAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
