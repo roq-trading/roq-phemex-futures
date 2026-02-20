@@ -10,6 +10,9 @@
     },
     {
       "name": "CloseOnTrigger"
+    },
+    {
+      "name": "Init"
     }
   ]
 }
