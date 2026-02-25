@@ -35,7 +35,7 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
 
   uint16_t stream_id() const { return stream_id_; }
 
-  bool ready() const { return status_ == ConnectionStatus::READY; }
+  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
@@ -56,7 +56,7 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   void operator()(web::socket::Client::Binary const &) override;
 
  private:
-  void operator()(ConnectionStatus);
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   void ping(std::chrono::nanoseconds now);
 
@@ -108,7 +108,7 @@ struct MarketDataCoinM final : public MarketData, public web::socket::Client::Ha
   // cache
   Shared &shared_;
   // state
-  ConnectionStatus status_ = {};
+  ConnectionStatus connection_status_ = {};
   std::chrono::nanoseconds next_ping_ = {};
   uint64_t request_id_ = {};
   // queue

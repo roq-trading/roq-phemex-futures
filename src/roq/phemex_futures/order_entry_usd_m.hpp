@@ -67,7 +67,7 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
 
-  void operator()(ConnectionStatus);
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   uint32_t download(OrderEntryState);
 
@@ -143,7 +143,7 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   Account &account_;
   Shared &shared_;
   // state
-  ConnectionStatus status_ = {};
+  ConnectionStatus connection_status_ = {};
   core::Download<OrderEntryState> download_;
   //
   std::string encode_buffer_;

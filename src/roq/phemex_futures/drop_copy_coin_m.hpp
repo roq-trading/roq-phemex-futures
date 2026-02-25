@@ -64,7 +64,7 @@ struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handle
   void operator()(Trace<json::PositionInfo> const &) override;
 
  private:
-  void operator()(ConnectionStatus);
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   void ping(std::chrono::nanoseconds now);
 
@@ -101,7 +101,7 @@ struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handle
   Shared &shared_;
   // state
   bool ready_ = false;
-  ConnectionStatus status_ = {};
+  ConnectionStatus connection_status_ = {};
   std::chrono::nanoseconds logon_timeout_ = {};
   std::chrono::nanoseconds next_ping_ = {};
 };
