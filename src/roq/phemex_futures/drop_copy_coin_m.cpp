@@ -322,6 +322,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
           .balance = account_balance,
           .hold = NaN,
           .borrowed = NaN,
+          .unrealized_pnl = NaN,
           .external_account = {},
           .update_type = update_type,
           .exchange_time_utc = {},  // ???

@@ -322,6 +322,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
         .balance = item.account_balance_rv,
         .hold = NaN,
         .borrowed = NaN,
+        .unrealized_pnl = NaN,
         .external_account = external_account,
         .update_type = update_type,
         .exchange_time_utc = {},  // ???
