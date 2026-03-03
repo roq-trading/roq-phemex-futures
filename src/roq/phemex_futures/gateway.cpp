@@ -43,16 +43,23 @@ auto create_accounts(auto &config) {
 }
 
 template <typename R>
-auto create_rest(auto &gateway, auto &context, auto &stream_id, auto &shared) {
+auto create_rest(auto &gateway, auto &context, auto &stream_id, auto &shared, auto &accounts, auto &master_account) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
+  auto &account = [&]() -> Account & {
+    auto iter = accounts.find(master_account);
+    if (iter == std::end(accounts)) [[unlikely]] {
+      throw RuntimeError{R"(Unknown account="{}")"sv, master_account};
+    }
+    return *(*iter).second;
+  }();
   switch (shared.api.type) {
     using enum API::Type;
     case COIN_M:
-      result = std::make_unique<RestCoinM>(gateway, context, ++stream_id, shared);
+      result = std::make_unique<RestCoinM>(gateway, context, ++stream_id, shared, account);
       break;
     case USD_M:
-      result = std::make_unique<RestUsdM>(gateway, context, ++stream_id, shared);
+      result = std::make_unique<RestUsdM>(gateway, context, ++stream_id, shared, account);
       break;
   }
   return result;
@@ -109,7 +116,7 @@ auto create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accou
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
     : dispatcher_{dispatcher}, master_account_{config.get_master_account()}, accounts_{create_accounts<decltype(accounts_)>(config)}, context_{context},
-      shared_{dispatcher, settings}, rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, shared_)},
+      shared_{dispatcher, settings}, rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, shared_, accounts_, master_account_)},
       order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_)},
       drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_)} {
 }

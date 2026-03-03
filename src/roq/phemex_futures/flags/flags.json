@@ -14,6 +14,11 @@
       "type": "std/string",
       "required": true,
       "description": "API (:code:`USD-M`, :code:`COIN-M`)"
+    },
+    {
+      "name": "vip",
+      "type": "std/bool",
+      "description": "VIP?"
     }
   ]
 }

@@ -77,7 +77,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-RestCoinM::RestCoinM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
+RestCoinM::RestCoinM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, Account &account)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -90,7 +90,7 @@ RestCoinM::RestCoinM(Rest::Handler &handler, io::Context &context, uint16_t stre
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
+      shared_{shared}, account_{account}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
 }
 
 void RestCoinM::operator()(Event<Start> const &) {

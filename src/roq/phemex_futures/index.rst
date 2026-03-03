@@ -184,6 +184,15 @@ Environments
    .. include:: flags/prod/flags.cfg
      :code: shell
 
+.. tab:: VIP
+
+   .. code-block:: shell
+
+      $ --flagfile $CONDA_PREFIX/share/roq-phemex-futures/flags/vip/flags.cfg
+
+   .. include:: flags/vip/flags.cfg
+     :code: shell
+
 .. tab:: Test
 
    .. code-block:: shell

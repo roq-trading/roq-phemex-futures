@@ -31,7 +31,7 @@ namespace roq {
 namespace phemex_futures {
 
 struct RestCoinM final : public Rest, public web::rest::Client::Handler {
-  RestCoinM(Rest::Handler &, io::Context &context, uint16_t stream_id, Shared &);
+  RestCoinM(Rest::Handler &, io::Context &context, uint16_t stream_id, Shared &, Account &);
 
   bool ready() const { return connection_status_ == ConnectionStatus::READY; }
 
@@ -81,6 +81,7 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
   } latency_;
   // cache
   Shared &shared_;
+  Account &account_;
   // state
   ConnectionStatus connection_status_ = {};
   core::Download<RestState> download_;
