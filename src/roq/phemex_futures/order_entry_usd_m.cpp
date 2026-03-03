@@ -203,6 +203,14 @@ void OrderEntryUsdM::operator()(Trace<web::rest::Client::Latency> const &event) 
   latency_.ping.update(latency.sample);
 }
 
+bool OrderEntryUsdM::get_ping_request(web::rest::Request &request) {
+  if (shared_.settings.vip) {
+    request.headers = account_.create_headers(request.path, request.query, request.body);
+    return true;
+  }
+  return false;
+}
+
 void OrderEntryUsdM::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
   connection_status_ = connection_status;
   TraceInfo trace_info;

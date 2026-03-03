@@ -168,6 +168,14 @@ void RestUsdM::operator()(Trace<web::rest::Client::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
+bool RestUsdM::get_ping_request(web::rest::Request &request) {
+  if (shared_.settings.vip) {
+    request.headers = account_.create_headers(request.path, request.query, request.body);
+    return true;
+  }
+  return false;
+}
+
 uint32_t RestUsdM::download(RestState state) {
   switch (state) {
     using enum RestState;
