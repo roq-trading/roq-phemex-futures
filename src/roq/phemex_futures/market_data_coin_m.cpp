@@ -37,8 +37,6 @@ auto const SUPPORTS = Mask{
 uint64_t const REQUEST_ID = 1'000'000;
 
 size_t const MAX_DECODE_BUFFER_DEPTH = 2;
-
-auto const DEFAULT_KLINE_PERIOD = 60s;
 }  // namespace
 
 // === HELPERS ===
@@ -219,7 +217,6 @@ void MarketDataCoinM::subscribe(std::span<Symbol const> const &symbols) {
     subscribe(item, shared_.api.market_data.orderbook, shared_.settings.ws.mbp_depth);
     subscribe(item, shared_.api.market_data.trade);
     subscribe(item, shared_.api.market_data.market24h);
-    // subscribe(item, shared_.api.market_data.kline, DEFAULT_KLINE_PERIOD);
   }
 }
 

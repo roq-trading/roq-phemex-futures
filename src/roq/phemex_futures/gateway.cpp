@@ -56,7 +56,7 @@ auto create_rest(auto &gateway, auto &context, auto &stream_id, auto &shared, au
   switch (shared.api.type) {
     using enum API::Type;
     case COIN_M:
-      result = std::make_unique<RestCoinM>(gateway, context, ++stream_id, shared, account);
+      result = std::make_unique<RestCoinM>(gateway, context, ++stream_id, shared);
       break;
     case USD_M:
       result = std::make_unique<RestUsdM>(gateway, context, ++stream_id, shared, account);
@@ -75,14 +75,13 @@ auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &acc
   for (auto &[name, account] : accounts) {
     std::vector<std::unique_ptr<OrderEntry>> order_entry;
     for (size_t i = 0; i < shared.settings.misc.number_of_order_entry_connections; ++i) {
-      auto master = i == 0;
       switch (shared.api.type) {
         using enum API::Type;
         case COIN_M:
-          order_entry.emplace_back(std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, *account, shared, master));
+          order_entry.emplace_back(std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, *account, shared));
           break;
         case USD_M:
-          order_entry.emplace_back(std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, *account, shared, master));
+          order_entry.emplace_back(std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, *account, shared));
           break;
       }
     }

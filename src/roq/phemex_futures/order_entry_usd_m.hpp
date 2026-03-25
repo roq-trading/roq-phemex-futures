@@ -34,7 +34,7 @@ namespace roq {
 namespace phemex_futures {
 
 struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handler {
-  OrderEntryUsdM(OrderEntry::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, bool master);
+  OrderEntryUsdM(OrderEntry::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
 
   bool ready() const override;
 
@@ -120,7 +120,6 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   // config
   uint16_t const stream_id_;
   std::string const name_;
-  bool const master_;
   // connection
   std::unique_ptr<web::rest::Client> connection_;
   // buffers

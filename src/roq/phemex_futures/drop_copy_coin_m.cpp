@@ -426,7 +426,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
         auto trade_update = TradeUpdate{
             .stream_id = stream_id_,
             .account = account_.name,
-            .order_id = {},
+            .order_id = order_id,
             .exchange = shared_.settings.exchange,
             .symbol = item.symbol,
             .side = map(item.side),
@@ -444,7 +444,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
             .exchange_sequence = utils::safe_cast(item.exec_seq),
             .sending_time_utc = accounts_orders_positions.timestamp,
             .user = {},
-            .strategy_id = {},
+            .strategy_id = strategy_id,
         };
         create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, exchange_or_request_id);
       }
