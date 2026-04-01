@@ -20,6 +20,9 @@ struct Settings final : public server::flags::Settings, public flags::Flags {
   flags::Misc misc;
   flags::REST rest;
   flags::WS ws;
+
+ private:
+  Settings(args::Parser const &, flags::Flags const &);
 };
 
 }  // namespace phemex_futures

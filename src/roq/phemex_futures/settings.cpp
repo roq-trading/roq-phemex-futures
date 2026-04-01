@@ -11,8 +11,11 @@ namespace phemex_futures {
 
 // === IMPLEMENTATION ===
 
-Settings::Settings(args::Parser const &args)
-    : server::flags::Settings{args, ROQ_PACKAGE_NAME, ROQ_BUILD_NUMBER}, flags::Flags{flags::Flags::create()}, misc{flags::Misc::create()},
+Settings::Settings(args::Parser const &args) : Settings{args, flags::Flags::create()} {
+}
+
+Settings::Settings(args::Parser const &args, flags::Flags const &flags)
+    : server::flags::Settings{args, ROQ_PACKAGE_NAME, ROQ_BUILD_NUMBER, flags.api}, flags::Flags{flags}, misc{flags::Misc::create()},
       rest{flags::REST::create()}, ws{flags::WS::create()} {
   log::info("settings={}"sv, *this);
 }
