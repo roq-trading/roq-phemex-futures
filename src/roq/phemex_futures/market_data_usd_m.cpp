@@ -308,7 +308,7 @@ void MarketDataUsdM::parse(std::string_view const &message) {
 void MarketDataUsdM::operator()(Trace<json::Pong> const &event) {
   profile_.pong([&]() {
     auto &[trace_info, pong] = event;
-    auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
+    [[maybe_unused]] auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
     // XXX HANS ExternalLatency
   });
 }
