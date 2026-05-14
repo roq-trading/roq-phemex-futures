@@ -225,9 +225,9 @@ void OrderEntryCoinM::operator()(ConnectionStatus connection_status, std::string
   create_trace_and_dispatch(handler_, trace_info, stream_status);
 }
 
-uint32_t OrderEntryCoinM::download(OrderEntryState state) {
+uint32_t OrderEntryCoinM::download(State state) {
   switch (state) {
-    using enum OrderEntryState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;

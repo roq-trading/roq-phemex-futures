@@ -168,9 +168,9 @@ void RestCoinM::operator()(Trace<web::rest::Client::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
-uint32_t RestCoinM::download(RestState state) {
+uint32_t RestCoinM::download(State state) {
   switch (state) {
-    using enum RestState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;
@@ -210,7 +210,7 @@ void RestCoinM::get_products() {
 }
 
 void RestCoinM::get_products_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
-  auto const state = RestState::PRODUCTS;
+  auto const state = State::PRODUCTS;
   profile_.products_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {

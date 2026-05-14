@@ -233,9 +233,9 @@ void OrderEntryUsdM::operator()(ConnectionStatus connection_status, std::string_
   create_trace_and_dispatch(handler_, trace_info, stream_status);
 }
 
-uint32_t OrderEntryUsdM::download(OrderEntryState state) {
+uint32_t OrderEntryUsdM::download(State state) {
   switch (state) {
-    using enum OrderEntryState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;

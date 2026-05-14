@@ -22,7 +22,6 @@
 
 #include "roq/phemex_futures/account.hpp"
 #include "roq/phemex_futures/rest.hpp"
-#include "roq/phemex_futures/rest_state.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
 #include "roq/phemex_futures/json/products_ack.hpp"
@@ -51,7 +50,13 @@ struct RestUsdM final : public Rest, public web::rest::Client::Handler {
 
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
-  uint32_t download(RestState);
+  enum class State {
+    UNDEFINED = 0,
+    PRODUCTS,
+    DONE,
+  };
+
+  uint32_t download(State);
 
   // products
 
@@ -85,7 +90,7 @@ struct RestUsdM final : public Rest, public web::rest::Client::Handler {
   Account &account_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<RestState> download_;
+  core::Download<State> download_;
 };
 
 }  // namespace phemex_futures

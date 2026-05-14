@@ -22,7 +22,6 @@
 
 #include "roq/phemex_futures/account.hpp"
 #include "roq/phemex_futures/order_entry.hpp"
-#include "roq/phemex_futures/order_entry_state.hpp"
 #include "roq/phemex_futures/shared.hpp"
 
 #include "roq/phemex_futures/json/orders_all_ack2.hpp"
@@ -70,7 +69,12 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
 
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
-  uint32_t download(OrderEntryState);
+  enum class State {
+    UNDEFINED = 0,
+    DONE,
+  };
+
+  uint32_t download(State);
 
   // orders-create
 
@@ -144,7 +148,7 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   Shared &shared_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<OrderEntryState> download_;
+  core::Download<State> download_;
   //
   std::string encode_buffer_;
 };

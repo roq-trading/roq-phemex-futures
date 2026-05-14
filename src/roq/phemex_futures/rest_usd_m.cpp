@@ -176,9 +176,9 @@ bool RestUsdM::get_ping_request(web::rest::Request &request) {
   return false;
 }
 
-uint32_t RestUsdM::download(RestState state) {
+uint32_t RestUsdM::download(State state) {
   switch (state) {
-    using enum RestState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;
@@ -218,7 +218,7 @@ void RestUsdM::get_products() {
 }
 
 void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_t sequence) {
-  auto const state = RestState::PRODUCTS;
+  auto const state = State::PRODUCTS;
   profile_.products_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
