@@ -16,7 +16,6 @@ set(SOURCES
     order_entry_usd_m.cpp
     rest_coin_m.cpp
     rest_usd_m.cpp
-    settings.cpp
     shared.cpp
     main.cpp)
 
@@ -44,7 +43,6 @@ target_link_libraries(
           roq-logging::roq-logging
           roq-logging::roq-logging-flags
           roq-server::roq-server
-          roq-server::roq-server-flags
           roq-utils::roq-utils
           roq-web::roq-web
           fmt::fmt
