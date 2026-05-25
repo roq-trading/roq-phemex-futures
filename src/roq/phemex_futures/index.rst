@@ -13,8 +13,8 @@
 .. |footnote-3| unicode:: U+2778
 
 
-roq-phemex-futures
-==================
+`roq-phemex-futures <https://github.com/roq-trading/roq-phemex-futures/>`__
+===========================================================================
 
 .. tab:: Unstable
 
@@ -256,6 +256,12 @@ Common
 * :ref:`Using Flags <abseil-cpp>`
 * :ref:`Gateway Flags <gateway-flags>`
 * :ref:`Gateway Config <gateway-config>`
+
+
+GitHub
+~~~~~~
+
+* `roq-phemex-futures <https://github.com/roq-trading/roq-phemex-futures/>`__
 
 
 Exchange
