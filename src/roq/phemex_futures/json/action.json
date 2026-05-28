@@ -19,6 +19,9 @@
     },
     {
       "name": "SettleFundingFee"
+    },
+    {
+      "name": "TransferAccBalance"
     }
   ]
 }

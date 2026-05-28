@@ -13,6 +13,9 @@
     },
     {
       "name": "Funding"
+    },
+    {
+      "name": "TransferIn"
     }
   ]
 }
