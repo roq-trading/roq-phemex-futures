@@ -1,9 +1,9 @@
 set(TARGET_NAME ${PROJECT_NAME})
 
 add_subdirectory(flags)
-add_subdirectory(json)
-add_subdirectory(tools)
 add_subdirectory(gateway)
+add_subdirectory(protocol)
+add_subdirectory(tools)
 
 set(SOURCES application.cpp main.cpp)
 

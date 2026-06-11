@@ -1,0 +1,234 @@
+{
+  "name": "roq/phemex_futures/protocol/json/AccountsOrdersPositions2PositionsItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "accountID",
+      "type": "std/int64"
+    },
+    {
+      "name": "assignedPosBalanceRv",
+      "type": "std/double"
+    },
+    {
+      "name": "avgEntryPriceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "bankruptCommRv",
+      "type": "std/double"
+    },
+    {
+      "name": "bankruptPriceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "buyLeavesQty",
+      "type": "std/double"
+    },
+    {
+      "name": "buyLeavesValueRv",
+      "type": "std/double"
+    },
+    {
+      "name": "buyValueToCostRr",
+      "type": "std/double"
+    },
+    {
+      "name": "createdAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "crossMarginWeightRv",
+      "type": "std/double"
+    },
+    {
+      "name": "crossSharedBalanceRv",
+      "type": "std/double"
+    },
+    {
+      "name": "cumClosedPnlRv",
+      "type": "std/double"
+    },
+    {
+      "name": "cumFundingFeeRv",
+      "type": "std/double"
+    },
+    {
+      "name": "cumPtFeeRv",
+      "type": "std/double"
+    },
+    {
+      "name": "cumTransactFeeRv",
+      "type": "std/double"
+    },
+    {
+      "name": "currency",
+      "type": "std/string_view"
+    },
+    {
+      "name": "curTermDiscountFeeRv",
+      "type": "std/double"
+    },
+    {
+      "name": "curTermPtFeeRv",
+      "type": "std/double"
+    },
+    {
+      "name": "curTermRealisedPnlRv",
+      "type": "std/double"
+    },
+    {
+      "name": "dataVer",
+      "type": "std/int64"
+    },
+    {
+      "name": "deleveragePercentileRr",
+      "type": "std/double"
+    },
+    {
+      "name": "displayLeverageRr",
+      "type": "std/double"
+    },
+    {
+      "name": "estimatedOrdLossRv",
+      "type": "std/double"
+    },
+    {
+      "name": "execSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeCostRv",
+      "type": "std/double"
+    },
+    {
+      "name": "freeQty",
+      "type": "std/double"
+    },
+    {
+      "name": "initMarginReqRr",
+      "type": "std/double"
+    },
+    {
+      "name": "lastFundingTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "lastTermEndTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "leverageRr",
+      "type": "std/double"
+    },
+    {
+      "name": "liquidationPriceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "maintMarginReqRr",
+      "type": "std/double"
+    },
+    {
+      "name": "makerFeeRateRr",
+      "type": "std/double"
+    },
+    {
+      "name": "markPriceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "minPosCostRv",
+      "type": "std/double"
+    },
+    {
+      "name": "orderCostRv",
+      "type": "std/double"
+    },
+    {
+      "name": "posCostRv",
+      "type": "std/double"
+    },
+    {
+      "name": "posMode",
+      "type": "roq/phemex_futures/protocol/json/PosMode"
+    },
+    {
+      "name": "posSide",
+      "type": "roq/phemex_futures/protocol/json/PosSide"
+    },
+    {
+      "name": "positionMarginRv",
+      "type": "std/double"
+    },
+    {
+      "name": "positionStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "riskLimitIndexId",
+      "type": "std/int32"
+    },
+    {
+      "name": "riskLimitRv",
+      "type": "std/double"
+    },
+    {
+      "name": "sellLeavesQty",
+      "type": "std/double"
+    },
+    {
+      "name": "sellLeavesValueRv",
+      "type": "std/double"
+    },
+    {
+      "name": "sellValueToCostRr",
+      "type": "std/double"
+    },
+    {
+      "name": "side",
+      "type": "roq/phemex_futures/protocol/json/Side"
+    },
+    {
+      "name": "size",
+      "type": "std/double"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takerFeeRateRr",
+      "type": "std/double"
+    },
+    {
+      "name": "term",
+      "type": "std/int32"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "unrealisedPnlRv",
+      "type": "std/double"
+    },
+    {
+      "name": "updatedAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "usedBalanceRv",
+      "type": "std/double"
+    },
+    {
+      "name": "userID",
+      "type": "std/int64"
+    },
+    {
+      "name": "valueRv",
+      "type": "std/double"
+    }
+  ]
+}

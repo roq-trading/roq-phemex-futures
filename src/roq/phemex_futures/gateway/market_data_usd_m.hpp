@@ -25,13 +25,13 @@
 #include "roq/phemex_futures/gateway/market_data.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
-#include "roq/phemex_futures/json/parser_2.hpp"
+#include "roq/phemex_futures/protocol/json/parser_2.hpp"
 
 namespace roq {
 namespace phemex_futures {
 namespace gateway {
 
-struct MarketDataUsdM final : public MarketData, public web::socket::Client::Handler, public json::Parser2::Handler {
+struct MarketDataUsdM final : public MarketData, public web::socket::Client::Handler, public protocol::json::Parser2::Handler {
   MarketDataUsdM(MarketData::Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
 
   uint16_t stream_id() const { return stream_id_; }
@@ -68,19 +68,19 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
 
   void parse(std::string_view const &message);
 
-  // json::Parser2::Handler
+  // protocol::json::Parser2::Handler
   // - admin
-  void operator()(Trace<json::Pong> const &) override;
-  void operator()(Trace<json::Ack> const &) override;
+  void operator()(Trace<protocol::json::Pong> const &) override;
+  void operator()(Trace<protocol::json::Ack> const &) override;
   // - market-data
-  void operator()(Trace<json::Orderbook> const &) override;
-  void operator()(Trace<json::Trades2> const &) override;
-  void operator()(Trace<json::Market24h2> const &) override;
-  void operator()(Trace<json::Kline2> const &) override;
+  void operator()(Trace<protocol::json::Orderbook> const &) override;
+  void operator()(Trace<protocol::json::Trades2> const &) override;
+  void operator()(Trace<protocol::json::Market24h2> const &) override;
+  void operator()(Trace<protocol::json::Kline2> const &) override;
   // - drop-copy
-  void operator()(Trace<json::IndexMarket24h> const &) override;
-  void operator()(Trace<json::AccountsOrdersPositions2> const &) override;
-  void operator()(Trace<json::PositionInfo> const &) override;
+  void operator()(Trace<protocol::json::IndexMarket24h> const &) override;
+  void operator()(Trace<protocol::json::AccountsOrdersPositions2> const &) override;
+  void operator()(Trace<protocol::json::PositionInfo> const &) override;
 
   void check_subscribe_queue(std::chrono::nanoseconds now);
 

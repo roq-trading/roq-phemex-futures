@@ -13,9 +13,9 @@
 
 #include "roq/server/oms/exceptions.hpp"
 
-#include "roq/phemex_futures/json/encoder.hpp"
-#include "roq/phemex_futures/json/map.hpp"
-#include "roq/phemex_futures/json/utils.hpp"
+#include "roq/phemex_futures/protocol/json/encoder.hpp"
+#include "roq/phemex_futures/protocol/json/map.hpp"
+#include "roq/phemex_futures/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -258,7 +258,7 @@ void OrderEntryUsdM::orders_create(
     }
     auto &[message_info, create_order] = event;
     auto path = shared_.api.order_management.orders_create;
-    auto query = json::Encoder::orders_create_usd_m(encode_buffer_, create_order, order, ref_data, request_id);
+    auto query = protocol::json::Encoder::orders_create_usd_m(encode_buffer_, create_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -301,19 +301,19 @@ void OrderEntryUsdM::orders_create_ack(Trace<web::rest::Response> const &event, 
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      json::OrdersCreateAck2 orders_create_ack{body, decode_buffer_};
+      protocol::json::OrdersCreateAck2 orders_create_ack{body, decode_buffer_};
       if (orders_create_ack.code == 0) {
         Trace event_2{event, orders_create_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_create_ack.code), orders_create_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_create_ack.code), orders_create_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryUsdM::operator()(Trace<json::OrdersCreateAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCreateAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, orders_create_ack] = event;
   log::info<2>("orders_create_ack={}"sv, orders_create_ack);
   auto &data = orders_create_ack.data;
@@ -383,7 +383,7 @@ void OrderEntryUsdM::orders_replace(
     }
     auto &[message_info, modify_order] = event;
     auto path = shared_.api.order_management.orders_replace;
-    auto query = json::Encoder::orders_replace_usd_m(encode_buffer_, modify_order, order, ref_data, request_id);
+    auto query = protocol::json::Encoder::orders_replace_usd_m(encode_buffer_, modify_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
@@ -426,19 +426,19 @@ void OrderEntryUsdM::orders_replace_ack(Trace<web::rest::Response> const &event,
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      json::OrdersReplaceAck2 orders_replace_ack{body, decode_buffer_};
+      protocol::json::OrdersReplaceAck2 orders_replace_ack{body, decode_buffer_};
       if (orders_replace_ack.code == 0) {
         Trace event_2{event, orders_replace_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_replace_ack.code), orders_replace_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_replace_ack.code), orders_replace_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryUsdM::operator()(Trace<json::OrdersReplaceAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersReplaceAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, orders_replace_ack] = event;
   log::info<2>("orders_replace_ack={}"sv, orders_replace_ack);
   auto &data = orders_replace_ack.data;
@@ -508,7 +508,7 @@ void OrderEntryUsdM::orders_cancel(
     }
     auto &[message_info, cancel_order] = event;
     auto path = shared_.api.order_management.orders_cancel;
-    auto query = json::Encoder::orders_cancel_usd_m(encode_buffer_, cancel_order, order, ref_data, request_id);
+    auto query = protocol::json::Encoder::orders_cancel_usd_m(encode_buffer_, cancel_order, order, ref_data, request_id);
     auto headers = account_.create_headers(path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,
@@ -551,19 +551,19 @@ void OrderEntryUsdM::orders_cancel_ack(Trace<web::rest::Response> const &event, 
       (*this)(event_2, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
-      json::OrdersCancelAck2 orders_cancel_ack{body, decode_buffer_};
+      protocol::json::OrdersCancelAck2 orders_cancel_ack{body, decode_buffer_};
       if (orders_cancel_ack.code == 0) {
         Trace event_2{event, orders_cancel_ack};
         (*this)(event_2, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_cancel_ack.code), orders_cancel_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_cancel_ack.code), orders_cancel_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryUsdM::operator()(Trace<json::OrdersCancelAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
+void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCancelAck2> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, orders_cancel_ack] = event;
   log::info<2>("orders_cancel_ack={}"sv, orders_cancel_ack);
   auto &data = orders_cancel_ack.data;
@@ -629,7 +629,7 @@ void OrderEntryUsdM::orders_all(Event<CancelAllOrders> const &event, std::string
     auto &[message_info, cancel_all_orders] = event;
     auto path = shared_.api.order_management.orders_all;
     auto helper = [&](auto &symbol) {
-      auto query = json::Encoder::orders_all(encode_buffer_, cancel_all_orders, symbol, request_id);
+      auto query = protocol::json::Encoder::orders_all(encode_buffer_, cancel_all_orders, symbol, request_id);
       auto headers = account_.create_headers(path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::DELETE,
@@ -683,19 +683,19 @@ void OrderEntryUsdM::orders_all_ack(Trace<web::rest::Response> const &event, [[m
       shared_(event_2);
     };
     auto handle_success = [&](auto &body) {
-      json::OrdersAllAck2 orders_all_ack{body, decode_buffer_};
+      protocol::json::OrdersAllAck2 orders_all_ack{body, decode_buffer_};
       if (orders_all_ack.code == 0) {
         Trace event_2{event, orders_all_ack};
         (*this)(event_2, user_id);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_all_ack.code), orders_all_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_all_ack.code), orders_all_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void OrderEntryUsdM::operator()(Trace<json::OrdersAllAck2> const &event, [[maybe_unused]] uint8_t user_id) {
+void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersAllAck2> const &event, [[maybe_unused]] uint8_t user_id) {
   auto &[trace_info, orders_all_ack] = event;
   log::info<2>("orders_all_ack={}"sv, orders_all_ack);
 }
@@ -730,8 +730,8 @@ void OrderEntryUsdM::process_response(web::rest::Response const &response, auto 
             assert(false);
             [[fallthrough]];
           default: {
-            // json::Message error{body};
-            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
+            // protocol::json::Message error{body};
+            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(error.code), error.msg);
           }
         }
         break;

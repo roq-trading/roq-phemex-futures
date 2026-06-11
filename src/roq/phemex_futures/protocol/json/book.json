@@ -1,0 +1,30 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Book",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "type",
+      "type": "roq/phemex_futures/protocol/json/MessageType"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "depth",
+      "type": "std/int32"
+    },
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    },
+    {
+      "name": "book",
+      "type": "roq/phemex_futures/protocol/json/BookData"
+    },
+    {
+      "name": "timestamp",
+      "type": "std/milliseconds"
+    }
+  ]
+}

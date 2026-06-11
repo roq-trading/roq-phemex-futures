@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Status",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Delisted"
+    },
+    {
+      "name": "Listed"
+    }
+  ]
+}

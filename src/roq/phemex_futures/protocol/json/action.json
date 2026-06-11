@@ -1,0 +1,27 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Action",
+  "type": "enum",
+  "values": [
+    {
+      "name": "New"
+    },
+    {
+      "name": "Cancel"
+    },
+    {
+      "name": "Replace"
+    },
+    {
+      "name": "LiqRequest"
+    },
+    {
+      "name": "SetLeverage"
+    },
+    {
+      "name": "SettleFundingFee"
+    },
+    {
+      "name": "TransferAccBalance"
+    }
+  ]
+}

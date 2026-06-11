@@ -1,0 +1,31 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Trades2",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "type",
+      "type": "roq/phemex_futures/protocol/json/MessageType"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    },
+    {
+      "name": "trades_p",
+      "type": "roq/phemex_futures/protocol/json/Trades2TradesItem",
+      "array": "std/span"
+    },
+    {
+      "name": "dts",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "mts",
+      "type": "std/nanoseconds"
+    }
+  ]
+}

@@ -9,7 +9,7 @@ using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::Orderbook;
+using value_type = protocol::json::Orderbook;
 
 // note! truncated
 TEST_CASE("snapshot", "[json_orderbook]") {

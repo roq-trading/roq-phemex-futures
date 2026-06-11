@@ -1,0 +1,37 @@
+{
+  "name": "roq/phemex_futures/protocol/json/AccountsOrdersPositions2",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "type",
+      "type": "roq/phemex_futures/protocol/json/EventType"
+    },
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    },
+    {
+      "name": "timestamp",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "version",
+      "type": "std/int64"
+    },
+    {
+      "name": "accounts_p",
+      "type": "roq/phemex_futures/protocol/json/AccountsOrdersPositions2AccountsItem",
+      "array": "std/span"
+    },
+    {
+      "name": "orders_p",
+      "type": "roq/phemex_futures/protocol/json/AccountsOrdersPositions2OrdersItem",
+      "array": "std/span"
+    },
+    {
+      "name": "positions_p",
+      "type": "roq/phemex_futures/protocol/json/AccountsOrdersPositions2PositionsItem",
+      "array": "std/span"
+    }
+  ]
+}

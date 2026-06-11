@@ -12,8 +12,8 @@
 
 #include "roq/utils/metrics/factory.hpp"
 
-#include "roq/phemex_futures/json/map.hpp"
-#include "roq/phemex_futures/json/utils.hpp"
+#include "roq/phemex_futures/protocol/json/map.hpp"
+#include "roq/phemex_futures/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -230,13 +230,13 @@ void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
       } else {
-        json::ProductsAck products_ack{body, decode_buffer_};
+        protocol::json::ProductsAck products_ack{body, decode_buffer_};
         if (products_ack.code == 0) {
           Trace event{trace_info, products_ack};
           (*this)(event);
           download_.check(state);
         } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(products_ack.code), products_ack.msg);
+          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(products_ack.code), products_ack.msg);
         }
       }
     };
@@ -244,12 +244,12 @@ void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_
   });
 }
 
-void RestUsdM::operator()(Trace<json::ProductsAck> const &event) {
+void RestUsdM::operator()(Trace<protocol::json::ProductsAck> const &event) {
   auto &[trace_info, products_ack] = event;
   log::info<4>("products_ack={}"sv, products_ack);
   auto discard_helper = [&](auto &symbol, auto type, auto status) {
     switch (type) {
-      using enum json::Type::type_t;
+      using enum protocol::json::Type::type_t;
       case UNDEFINED_INTERNAL:
       case UNKNOWN_INTERNAL:
       case SPOT:
@@ -259,7 +259,7 @@ void RestUsdM::operator()(Trace<json::ProductsAck> const &event) {
         break;
     };
     switch (status) {
-      using enum json::Status::type_t;
+      using enum protocol::json::Status::type_t;
       case UNDEFINED_INTERNAL:
       case UNKNOWN_INTERNAL:
       case DELISTED:
@@ -362,8 +362,8 @@ void RestUsdM::process_response(web::rest::Response const &response, auto error_
             assert(false);
             [[fallthrough]];
           default: {
-            // json::Message error{body};
-            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(error.code), error.msg);
+            // protocol::json::Message error{body};
+            // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(error.code), error.msg);
           }
         }
         break;

@@ -1,0 +1,16 @@
+{
+  "name": "roq/phemex_futures/protocol/json/BookData",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "asks",
+      "type": "roq/phemex_futures/protocol/json/BookDataItem",
+      "array": "std/span"
+    },
+    {
+      "name": "bids",
+      "type": "roq/phemex_futures/protocol/json/BookDataItem",
+      "array": "std/span"
+    }
+  ]
+}

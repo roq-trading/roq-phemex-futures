@@ -1,0 +1,25 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Market24h2",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "market24h_p",
+      "type": "roq/phemex_futures/protocol/json/Market24h2Data",
+      "comment": "usd-m"
+    },
+    {
+      "name": "timestamp",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "dts",
+      "type": "std/nanoseconds",
+      "comment": "usd-m"
+    },
+    {
+      "name": "mts",
+      "type": "std/nanoseconds",
+      "comment": "usd-m"
+    }
+  ]
+}

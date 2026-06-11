@@ -1,9 +1,0 @@
-{
-  "name": "roq/phemex_futures/json/LiqStatus",
-  "type": "enum",
-  "values": [
-    {
-      "name": "Normal"
-    }
-  ]
-}

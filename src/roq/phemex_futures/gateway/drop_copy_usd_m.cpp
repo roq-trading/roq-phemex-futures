@@ -12,8 +12,8 @@
 
 #include "roq/utils/metrics/factory.hpp"
 
-#include "roq/phemex_futures/json/map.hpp"
-#include "roq/phemex_futures/json/utils.hpp"
+#include "roq/phemex_futures/protocol/json/map.hpp"
+#include "roq/phemex_futures/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -233,7 +233,7 @@ void DropCopyUsdM::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser2::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser2::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -243,20 +243,20 @@ void DropCopyUsdM::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser2::Handler
+// protocol::json::Parser2::Handler
 
 // - admin
 
-void DropCopyUsdM::operator()(Trace<json::Pong> const &event) {
+void DropCopyUsdM::operator()(Trace<protocol::json::Pong> const &event) {
   auto &[trace_info, pong] = event;
   auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
   log::debug("pong={} (latency={}))"sv, pong, latency);
 }
 
 // note! sometimes seeing this: {"error":{"code":6012,"message":"invalid login token"},"id":1,"result":null}
-void DropCopyUsdM::operator()(Trace<json::Ack> const &event) {
+void DropCopyUsdM::operator()(Trace<protocol::json::Ack> const &event) {
   auto &[trace_info, ack] = event;
-  auto success = ack.result.status == json::AckResultStatus::SUCCESS;
+  auto success = ack.result.status == protocol::json::AckResultStatus::SUCCESS;
   auto auth_helper = [&]() {
     if (success) {
       subscribe();
@@ -284,30 +284,30 @@ void DropCopyUsdM::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void DropCopyUsdM::operator()(Trace<json::Orderbook> const &) {
+void DropCopyUsdM::operator()(Trace<protocol::json::Orderbook> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyUsdM::operator()(Trace<json::Trades2> const &) {
+void DropCopyUsdM::operator()(Trace<protocol::json::Trades2> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyUsdM::operator()(Trace<json::Market24h2> const &) {
+void DropCopyUsdM::operator()(Trace<protocol::json::Market24h2> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyUsdM::operator()(Trace<json::Kline2> const &) {
+void DropCopyUsdM::operator()(Trace<protocol::json::Kline2> const &) {
   log::fatal("Unexpected"sv);
 }
 
 // - drop-copy
 
-void DropCopyUsdM::operator()(Trace<json::IndexMarket24h> const &event) {
+void DropCopyUsdM::operator()(Trace<protocol::json::IndexMarket24h> const &event) {
   auto &[trace_info, index_market24h] = event;
   log::info<2>("index_market24h={}"sv, index_market24h);
 }
 
-void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event) {
+void DropCopyUsdM::operator()(Trace<protocol::json::AccountsOrdersPositions2> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
   auto update_type = map(accounts_orders_positions.type).template get<UpdateType>();
@@ -400,8 +400,8 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
     } else {
       log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, exchange_or_request_id);
     }
-    if (item.trade_type == json::TradeType::TRADE) {
-      if (item.exec_status != json::ExecStatus::TAKER_FILL && item.exec_status != json::ExecStatus::MAKER_FILL) {
+    if (item.trade_type == protocol::json::TradeType::TRADE) {
+      if (item.exec_status != protocol::json::ExecStatus::TAKER_FILL && item.exec_status != protocol::json::ExecStatus::MAKER_FILL) {
         log::fatal("Unexpected: {}"sv, item);
       }
       auto fill = Fill{
@@ -471,7 +471,7 @@ void DropCopyUsdM::operator()(Trace<json::AccountsOrdersPositions2> const &event
   }
 }
 
-void DropCopyUsdM::operator()(Trace<json::PositionInfo> const &event) {
+void DropCopyUsdM::operator()(Trace<protocol::json::PositionInfo> const &event) {
   auto &[trace_info, position_info] = event;
   log::info<2>("position_info={}"sv, position_info);
 }

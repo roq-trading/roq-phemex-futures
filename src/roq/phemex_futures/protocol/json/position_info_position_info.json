@@ -1,0 +1,30 @@
+{
+  "name": "roq/phemex_futures/protocol/json/PositionInfoPositionInfo",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "accountID",
+      "type": "std/int64"
+    },
+    {
+      "name": "light",
+      "type": "std/int32"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "userID",
+      "type": "std/int64"
+    },
+    {
+      "name": "marginMode",
+      "type": "roq/phemex_futures/protocol/json/MarginMode"
+    },
+    {
+      "name": "posSide",
+      "type": "roq/phemex_futures/protocol/json/PosSide"
+    }
+  ]
+}

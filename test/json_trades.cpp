@@ -9,7 +9,7 @@ using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::Trades;
+using value_type = protocol::json::Trades;
 
 // note! truncated
 TEST_CASE("simple", "[json_trades]") {

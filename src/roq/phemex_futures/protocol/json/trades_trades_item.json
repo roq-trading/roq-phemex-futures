@@ -1,0 +1,22 @@
+{
+  "name": "roq/phemex_futures/protocol/json/TradesTradesItem",
+  "type": "by_index",
+  "values": [
+    {
+      "name": "timestamp",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "side",
+      "type": "roq/phemex_futures/protocol/json/Side"
+    },
+    {
+      "name": "priceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "qty",
+      "type": "std/int64"
+    }
+  ]
+}

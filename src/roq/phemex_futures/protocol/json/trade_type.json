@@ -1,0 +1,21 @@
+{
+  "name": "roq/phemex_futures/protocol/json/TradeType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Replace"
+    },
+    {
+      "name": "Trade"
+    },
+    {
+      "name": "LiqTrade"
+    },
+    {
+      "name": "Funding"
+    },
+    {
+      "name": "TransferIn"
+    }
+  ]
+}

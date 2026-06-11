@@ -12,8 +12,8 @@
 
 #include "roq/utils/metrics/factory.hpp"
 
-#include "roq/phemex_futures/json/map.hpp"
-#include "roq/phemex_futures/json/utils.hpp"
+#include "roq/phemex_futures/protocol/json/map.hpp"
+#include "roq/phemex_futures/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -233,7 +233,7 @@ void DropCopyCoinM::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -243,20 +243,20 @@ void DropCopyCoinM::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// protocol::json::Parser::Handler
 
 // - admin
 
-void DropCopyCoinM::operator()(Trace<json::Pong> const &event) {
+void DropCopyCoinM::operator()(Trace<protocol::json::Pong> const &event) {
   auto &[trace_info, pong] = event;
   auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
   log::debug("pong={} (latency={}))"sv, pong, latency);
 }
 
 // note! sometimes seeing this: {"error":{"code":6012,"message":"invalid login token"},"id":1,"result":null}
-void DropCopyCoinM::operator()(Trace<json::Ack> const &event) {
+void DropCopyCoinM::operator()(Trace<protocol::json::Ack> const &event) {
   auto &[trace_info, ack] = event;
-  auto success = ack.result.status == json::AckResultStatus::SUCCESS;
+  auto success = ack.result.status == protocol::json::AckResultStatus::SUCCESS;
   auto auth_helper = [&]() {
     if (success) {
       subscribe();
@@ -284,30 +284,30 @@ void DropCopyCoinM::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void DropCopyCoinM::operator()(Trace<json::Book> const &) {
+void DropCopyCoinM::operator()(Trace<protocol::json::Book> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyCoinM::operator()(Trace<json::Trades> const &) {
+void DropCopyCoinM::operator()(Trace<protocol::json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyCoinM::operator()(Trace<json::Market24h> const &) {
+void DropCopyCoinM::operator()(Trace<protocol::json::Market24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopyCoinM::operator()(Trace<json::Kline> const &) {
+void DropCopyCoinM::operator()(Trace<protocol::json::Kline> const &) {
   log::fatal("Unexpected"sv);
 }
 
 // - drop-copy
 
-void DropCopyCoinM::operator()(Trace<json::IndexMarket24h> const &event) {
+void DropCopyCoinM::operator()(Trace<protocol::json::IndexMarket24h> const &event) {
   auto &[trace_info, index_market24h] = event;
   log::info<2>("index_market24h={}"sv, index_market24h);
 }
 
-void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event) {
+void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> const &event) {
   auto &[trace_info, accounts_orders_positions] = event;
   log::info<2>("accounts_orders_positions={}"sv, accounts_orders_positions);
   auto update_type = map(accounts_orders_positions.type).template get<UpdateType>();
@@ -407,8 +407,8 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
       } else {
         log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, exchange_or_request_id);
       }
-      if (item.trade_type == json::TradeType::TRADE) {
-        if (item.exec_status != json::ExecStatus::TAKER_FILL && item.exec_status != json::ExecStatus::MAKER_FILL) {
+      if (item.trade_type == protocol::json::TradeType::TRADE) {
+        if (item.exec_status != protocol::json::ExecStatus::TAKER_FILL && item.exec_status != protocol::json::ExecStatus::MAKER_FILL) {
           log::fatal("Unexpected: {}"sv, item);
         }
         auto fill = Fill{
@@ -546,7 +546,7 @@ void DropCopyCoinM::operator()(Trace<json::AccountsOrdersPositions> const &event
   }
 }
 
-void DropCopyCoinM::operator()(Trace<json::PositionInfo> const &event) {
+void DropCopyCoinM::operator()(Trace<protocol::json::PositionInfo> const &event) {
   auto &[trace_info, position_info] = event;
   log::info<2>("position_info={}"sv, position_info);
 }

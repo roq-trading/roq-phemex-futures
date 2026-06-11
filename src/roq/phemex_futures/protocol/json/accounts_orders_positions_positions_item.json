@@ -1,0 +1,218 @@
+{
+  "name": "roq/phemex_futures/protocol/json/AccountsOrdersPositionsPositionsItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "accountID",
+      "type": "std/int64"
+    },
+    {
+      "name": "assignedPosBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "avgEntryPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "bankruptCommEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "bankruptPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyLeavesQty",
+      "type": "std/double"
+    },
+    {
+      "name": "buyLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyROLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "buyValueToCostEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "createdAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "crossSharedBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumClosedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumFundingFeeEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "cumTransactFeeEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "currency",
+      "type": "std/string_view"
+    },
+    {
+      "name": "curTermRealisedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "dataVer",
+      "type": "std/int32"
+    },
+    {
+      "name": "deleveragePercentileEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "displayLeverageEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "estimatedOrdLossEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "execSeq",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "freeQty",
+      "type": "std/double"
+    },
+    {
+      "name": "initMarginReqEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "lastFundingTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "lastTermEndTime",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "leverageEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "liquidationPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "maintMarginReqEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "makerFeeRateEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "markPriceEp",
+      "type": "std/int64"
+    },
+    {
+      "name": "minPosCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "orderCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "posCostEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "positionMarginEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "positionStatus",
+      "type": "std/string_view"
+    },
+    {
+      "name": "riskLimitEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "riskLimitIndexId",
+      "type": "std/int32"
+    },
+    {
+      "name": "sellLeavesQty",
+      "type": "std/double"
+    },
+    {
+      "name": "sellLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "sellROLeavesValueEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "sellValueToCostEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "side",
+      "type": "roq/phemex_futures/protocol/json/Side"
+    },
+    {
+      "name": "size",
+      "type": "std/double"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "takerFeeRateEr",
+      "type": "std/int64"
+    },
+    {
+      "name": "term",
+      "type": "std/int32"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "unrealisedPnlEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "updatedAtNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "usedBalanceEv",
+      "type": "std/int64"
+    },
+    {
+      "name": "userID",
+      "type": "std/int64"
+    },
+    {
+      "name": "valueEv",
+      "type": "std/int64"
+    }
+  ]
+}

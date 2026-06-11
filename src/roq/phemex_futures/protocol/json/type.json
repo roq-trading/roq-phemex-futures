@@ -1,0 +1,15 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Type",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Spot"
+    },
+    {
+      "name": "Perpetual"
+    },
+    {
+      "name": "PerpetualV2"
+    }
+  ]
+}

@@ -22,7 +22,7 @@
 #include "roq/phemex_futures/gateway/order_entry_usd_m.hpp"
 #include "roq/phemex_futures/gateway/rest_usd_m.hpp"
 
-#include "roq/phemex_futures/json/utils.hpp"
+#include "roq/phemex_futures/protocol/json/utils.hpp"
 
 using namespace std::literals;
 

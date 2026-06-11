@@ -2,14 +2,14 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/phemex_futures/json/orders_create_ack2.hpp"
+#include "roq/phemex_futures/protocol/json/orders_create_ack2.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::OrdersCreateAck2;
+using value_type = protocol::json::OrdersCreateAck2;
 
 TEST_CASE("usd_m_simple", "[json_orders_create_ack2]") {
   auto message = R"({)"

@@ -1,0 +1,14 @@
+{
+  "name": "roq/phemex_futures/protocol/json/BookDataItem",
+  "type": "by_index",
+  "values": [
+    {
+      "name": "price_ep",
+      "type": "std/int64"
+    },
+    {
+      "name": "qty",
+      "type": "std/int64"
+    }
+  ]
+}

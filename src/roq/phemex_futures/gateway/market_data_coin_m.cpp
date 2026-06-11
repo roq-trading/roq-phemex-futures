@@ -15,8 +15,8 @@
 
 #include "roq/utils/metrics/factory.hpp"
 
-#include "roq/phemex_futures/json/map.hpp"
-#include "roq/phemex_futures/json/utils.hpp"
+#include "roq/phemex_futures/protocol/json/map.hpp"
+#include "roq/phemex_futures/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -292,7 +292,7 @@ void MarketDataCoinM::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -302,11 +302,11 @@ void MarketDataCoinM::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// protocol::json::Parser::Handler
 
 // - admin
 
-void MarketDataCoinM::operator()(Trace<json::Pong> const &event) {
+void MarketDataCoinM::operator()(Trace<protocol::json::Pong> const &event) {
   profile_.pong([&]() {
     auto &[trace_info, pong] = event;
     [[maybe_unused]] auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.source_receive_time) - std::chrono::milliseconds{pong.id};
@@ -314,10 +314,10 @@ void MarketDataCoinM::operator()(Trace<json::Pong> const &event) {
   });
 }
 
-void MarketDataCoinM::operator()(Trace<json::Ack> const &event) {
+void MarketDataCoinM::operator()(Trace<protocol::json::Ack> const &event) {
   profile_.ack([&]() {
     auto &[trace_info, ack] = event;
-    if (ack.result.status != json::AckResultStatus::SUCCESS) {
+    if (ack.result.status != protocol::json::AckResultStatus::SUCCESS) {
       log::error("ack={}"sv, ack);
     }
   });
@@ -325,7 +325,7 @@ void MarketDataCoinM::operator()(Trace<json::Ack> const &event) {
 
 // - market-data
 
-void MarketDataCoinM::operator()(Trace<json::Book> const &event) {
+void MarketDataCoinM::operator()(Trace<protocol::json::Book> const &event) {
   profile_.book([&]() {
     auto &[trace_info, book] = event;
     log::info<3>("book={}"sv, book);
@@ -386,11 +386,11 @@ void MarketDataCoinM::operator()(Trace<json::Book> const &event) {
   });
 }
 
-void MarketDataCoinM::operator()(Trace<json::Trades> const &event) {
+void MarketDataCoinM::operator()(Trace<protocol::json::Trades> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
     log::info<3>("trades={}"sv, trades);
-    if (trades.type != json::MessageType::INCREMENTAL) {  // note! drop snapshot
+    if (trades.type != protocol::json::MessageType::INCREMENTAL) {  // note! drop snapshot
       return;
     }
     if (!std::empty(trades.trades_p)) [[unlikely]] {
@@ -399,7 +399,7 @@ void MarketDataCoinM::operator()(Trace<json::Trades> const &event) {
     auto &trades_2 = shared_.trades;
     trades_2.clear();
     auto helper = [&](auto &security) {
-      using timestamp_type = decltype(json::TradesTradesItem::timestamp);
+      using timestamp_type = decltype(protocol::json::TradesTradesItem::timestamp);
       auto timestamp = timestamp_type{};
       for (auto &item : trades.trades) {
         auto price = item.price_ep / security.price_factor;
@@ -435,7 +435,7 @@ void MarketDataCoinM::operator()(Trace<json::Trades> const &event) {
   });
 }
 
-void MarketDataCoinM::operator()(Trace<json::Market24h> const &event) {
+void MarketDataCoinM::operator()(Trace<protocol::json::Market24h> const &event) {
   profile_.market24h([&]() {
     auto &[trace_info, market24h] = event;
     log::info<3>("market24h={}"sv, market24h);
@@ -509,7 +509,7 @@ void MarketDataCoinM::operator()(Trace<json::Market24h> const &event) {
   });
 }
 
-void MarketDataCoinM::operator()(Trace<json::Kline> const &event) {
+void MarketDataCoinM::operator()(Trace<protocol::json::Kline> const &event) {
   profile_.kline([&]() {
     auto &[trace_info, kline] = event;
     log::info<3>("kline={}"sv, kline);
@@ -518,15 +518,15 @@ void MarketDataCoinM::operator()(Trace<json::Kline> const &event) {
 
 // - drop-copy
 
-void MarketDataCoinM::operator()(Trace<json::IndexMarket24h> const &) {
+void MarketDataCoinM::operator()(Trace<protocol::json::IndexMarket24h> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketDataCoinM::operator()(Trace<json::AccountsOrdersPositions> const &) {
+void MarketDataCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketDataCoinM::operator()(Trace<json::PositionInfo> const &) {
+void MarketDataCoinM::operator()(Trace<protocol::json::PositionInfo> const &) {
   log::fatal("Unexpected"sv);
 }
 

@@ -23,7 +23,7 @@
 #include "roq/phemex_futures/gateway/rest.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
-#include "roq/phemex_futures/json/products_ack.hpp"
+#include "roq/phemex_futures/protocol/json/products_ack.hpp"
 
 namespace roq {
 namespace phemex_futures {
@@ -61,7 +61,7 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
 
   void get_products();
   void get_products_ack(Trace<web::rest::Response> const &, uint32_t sequence);
-  void operator()(Trace<json::ProductsAck> const &);
+  void operator()(Trace<protocol::json::ProductsAck> const &);
 
   void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 

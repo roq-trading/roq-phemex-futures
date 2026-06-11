@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex_futures/protocol/json/UserMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Unspecified"
+    },
+    {
+      "name": "Classic"
+    }
+  ]
+}

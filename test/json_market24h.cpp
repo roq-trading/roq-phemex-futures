@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Market24h;
+using value_type = protocol::json::Market24h;
 
 TEST_CASE("coin_m_simple", "[json_market24h]") {
   auto message = R"({)"

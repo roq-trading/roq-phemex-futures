@@ -4,14 +4,14 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/phemex_futures/json/products_ack.hpp"
+#include "roq/phemex_futures/protocol/json/products_ack.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::ProductsAck;
+using value_type = protocol::json::ProductsAck;
 
 // note! reduced
 TEST_CASE("simple", "[json_products_ack]") {

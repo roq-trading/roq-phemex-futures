@@ -9,7 +9,7 @@ using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::Kline2;
+using value_type = protocol::json::Kline2;
 
 /*
 // note! truncated
@@ -28,7 +28,7 @@ TEST_CASE("snapshot", "[json_kline_2]") {
                  R"("valueScale":8)"
                  R"(})"
                  R"(})";
-  auto helper = [](value_type const &obj) { CHECK(obj.type == json::MessageType::SNAPSHOT); };
+  auto helper = [](value_type const &obj) { CHECK(obj.type == protocol::json::MessageType::SNAPSHOT); };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
 
@@ -44,7 +44,7 @@ TEST_CASE("incremental", "[json_kline_2]") {
                  R"("type":"incremental",)"
                  R"("valueScale":8)"
                  R"(})";
-  auto helper = [](value_type const &obj) { CHECK(obj.type == json::MessageType::INCREMENTAL); };
+  auto helper = [](value_type const &obj) { CHECK(obj.type == protocol::json::MessageType::INCREMENTAL); };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
 */

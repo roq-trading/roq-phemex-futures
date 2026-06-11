@@ -1,0 +1,12 @@
+{
+  "name": "roq/phemex_futures/protocol/json/PosMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "OneWay"
+    },
+    {
+      "name": "Hedged"
+    }
+  ]
+}

@@ -2,14 +2,14 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/phemex_futures/json/orders_replace_ack.hpp"
+#include "roq/phemex_futures/protocol/json/orders_replace_ack.hpp"
 
 using namespace roq;
 using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::OrdersReplaceAck;
+using value_type = protocol::json::OrdersReplaceAck;
 
 TEST_CASE("coin_m_simple", "[json_orders_replace_ack]") {
   auto message = R"({)"

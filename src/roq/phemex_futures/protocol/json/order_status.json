@@ -1,0 +1,36 @@
+{
+  "name": "roq/phemex_futures/protocol/json/OrderStatus",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Created"
+    },
+    {
+      "name": "Init"
+    },
+    {
+      "name": "Untriggered"
+    },
+    {
+      "name": "Triggered"
+    },
+    {
+      "name": "Deactivated"
+    },
+    {
+      "name": "Rejected"
+    },
+    {
+      "name": "New"
+    },
+    {
+      "name": "PartiallyFilled"
+    },
+    {
+      "name": "Filled"
+    },
+    {
+      "name": "Canceled"
+    }
+  ]
+}

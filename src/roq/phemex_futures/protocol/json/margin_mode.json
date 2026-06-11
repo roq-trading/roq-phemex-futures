@@ -1,0 +1,9 @@
+{
+  "name": "roq/phemex_futures/protocol/json/MarginMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "Cross"
+    }
+  ]
+}

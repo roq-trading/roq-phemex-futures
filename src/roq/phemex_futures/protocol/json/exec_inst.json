@@ -1,0 +1,18 @@
+{
+  "name": "roq/phemex_futures/protocol/json/ExecInst",
+  "type": "enum",
+  "values": [
+    {
+      "name": "None"
+    },
+    {
+      "name": "ReduceOnly"
+    },
+    {
+      "name": "CloseOnTrigger"
+    },
+    {
+      "name": "Init"
+    }
+  ]
+}

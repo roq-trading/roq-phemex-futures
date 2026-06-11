@@ -24,10 +24,10 @@
 #include "roq/phemex_futures/gateway/order_entry.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
-#include "roq/phemex_futures/json/orders_all_ack.hpp"
-#include "roq/phemex_futures/json/orders_cancel_ack.hpp"
-#include "roq/phemex_futures/json/orders_create_ack.hpp"
-#include "roq/phemex_futures/json/orders_replace_ack.hpp"
+#include "roq/phemex_futures/protocol/json/orders_all_ack.hpp"
+#include "roq/phemex_futures/protocol/json/orders_cancel_ack.hpp"
+#include "roq/phemex_futures/protocol/json/orders_create_ack.hpp"
+#include "roq/phemex_futures/protocol/json/orders_replace_ack.hpp"
 
 namespace roq {
 namespace phemex_futures {
@@ -80,7 +80,7 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
 
   void orders_create(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
   void orders_create_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
-  void operator()(Trace<json::OrdersCreateAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void operator()(Trace<protocol::json::OrdersCreateAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // orders-replace
 
@@ -91,7 +91,7 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
       std::string_view const &request_id,
       std::string_view const &previous_request_id);
   void orders_replace_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
-  void operator()(Trace<json::OrdersReplaceAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void operator()(Trace<protocol::json::OrdersReplaceAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // orders-cancel
 
@@ -102,13 +102,13 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
       std::string_view const &request_id,
       std::string_view const &previous_request_id);
   void orders_cancel_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
-  void operator()(Trace<json::OrdersCancelAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
+  void operator()(Trace<protocol::json::OrdersCancelAck> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // orders-all
 
   void orders_all(Event<CancelAllOrders> const &, std::string_view const &request_id);
   void orders_all_ack(Trace<web::rest::Response> const &, uint8_t user_id);
-  void operator()(Trace<json::OrdersAllAck> const &, uint8_t user_id);
+  void operator()(Trace<protocol::json::OrdersAllAck> const &, uint8_t user_id);
 
   // helpers
 

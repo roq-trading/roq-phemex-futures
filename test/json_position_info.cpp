@@ -9,7 +9,7 @@ using namespace roq::phemex_futures;
 
 using namespace std::literals;
 
-using value_type = json::PositionInfo;
+using value_type = protocol::json::PositionInfo;
 
 TEST_CASE("simple", "[json_position_info]") {
   auto message = R"({)"

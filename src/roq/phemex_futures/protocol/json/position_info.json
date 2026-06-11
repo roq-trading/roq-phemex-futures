@@ -1,0 +1,14 @@
+{
+  "name": "roq/phemex_futures/protocol/json/PositionInfo",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "position_info",
+      "type": "roq/phemex_futures/protocol/json/PositionInfoPositionInfo"
+    },
+    {
+      "name": "sequence",
+      "type": "std/int64"
+    }
+  ]
+}

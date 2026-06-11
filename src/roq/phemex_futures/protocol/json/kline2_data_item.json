@@ -1,0 +1,42 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Kline2DataItem",
+  "type": "by_index",
+  "values": [
+    {
+      "name": "timestamp",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "interval",
+      "type": "std/seconds"
+    },
+    {
+      "name": "lastCloseEp",
+      "type": "std/double"
+    },
+    {
+      "name": "openEp",
+      "type": "std/double"
+    },
+    {
+      "name": "highEp",
+      "type": "std/double"
+    },
+    {
+      "name": "lowEp",
+      "type": "std/double"
+    },
+    {
+      "name": "closeEp",
+      "type": "std/double"
+    },
+    {
+      "name": "volume",
+      "type": "std/double"
+    },
+    {
+      "name": "turnoverEv",
+      "type": "std/double"
+    }
+  ]
+}
