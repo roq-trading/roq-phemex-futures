@@ -22,6 +22,9 @@
     },
     {
       "name": "TransferAccBalance"
+    },
+    {
+      "name": "SetFeeRate"
     }
   ]
 }
