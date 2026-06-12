@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "roq/compat.hpp"
-
 #include <string_view>
 
 #include "roq/phemex_futures/gateway/settings.hpp"
@@ -40,7 +38,7 @@ struct API final {
   // factory
   static API create(Settings const &);
 
-  ROQ_PUBLIC Type static parse_api(Settings const &);
+  static Type parse_api(Settings const &);
 };
 
 }  // namespace gateway
