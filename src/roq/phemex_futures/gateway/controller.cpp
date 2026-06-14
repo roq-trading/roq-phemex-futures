@@ -35,8 +35,8 @@ namespace gateway {
 // === CONSTANTS ===
 
 namespace {
-uint8_t const API_COIN_M = 0x0;
-uint8_t const API_USD_M = 0x1;
+uint8_t const API_COIN_M = 0x1;
+uint8_t const API_USD_M = 0x2;
 }  // namespace
 
 // === HELPERS ===
