@@ -43,6 +43,12 @@
     },
     {
       "name": "Init"
+    },
+    {
+      "name": "WaitToSendNew"
+    },
+    {
+      "name": "Replaced"
     }
   ]
 }

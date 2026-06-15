@@ -264,6 +264,8 @@ void RestCoinM::operator()(Trace<protocol::json::ProductsAck> const &event) {
         return true;
       case LISTED:
         break;
+      case BEING_SETTLED:
+        return true;
     }
     return shared_.discard_symbol(symbol);
   };
