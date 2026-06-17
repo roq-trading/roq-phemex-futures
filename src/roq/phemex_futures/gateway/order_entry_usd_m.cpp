@@ -326,8 +326,8 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCreateAck2> const &e
       .text = {},
       .version = version,
       .request_id = {},
-      .external_order_id = {},
-      .client_order_id = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
       .quantity = data.order_qty_rq,
       .price = data.price_rp,
   };
@@ -453,8 +453,8 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersReplaceAck2> const &
       .text = {},
       .version = version,
       .request_id = {},
-      .external_order_id = {},
-      .client_order_id = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
       .quantity = data.order_qty_rq,
       .price = data.price_rp,
   };
@@ -580,8 +580,8 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCancelAck2> const &e
       .text = {},
       .version = version,
       .request_id = {},
-      .external_order_id = {},
-      .client_order_id = {},
+      .external_order_id = data.order_id,
+      .client_order_id = data.cl_ord_id,
       .quantity = data.order_qty_rq,
       .price = data.price_rp,
   };
@@ -765,14 +765,6 @@ void OrderEntryUsdM::operator()(Trace<server::oms::Response> const &event, uint8
   if (shared_.update_order(user_id, order_id, stream_id_, trace_info, response, std::forward<Args>(args)..., []([[maybe_unused]] auto &order) {})) {
   } else {
     log::warn("Did not find order: user_id={}, order_id={}"sv, user_id, order_id);
-  }
-}
-
-void OrderEntryUsdM::operator()(Trace<server::oms::OrderUpdate> const &event, std::string_view const &client_order_id) {
-  auto &[trace_info, order_update] = event;
-  if (shared_.update_order(client_order_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
-  } else {
-    log::warn("*** EXTERNAL ORDER ***"sv);
   }
 }
 

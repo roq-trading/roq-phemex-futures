@@ -117,8 +117,6 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
   template <typename... Args>
   void operator()(Trace<server::oms::Response> const &, uint8_t user_id, uint64_t order_id, Args &&...);
 
-  void operator()(Trace<server::oms::OrderUpdate> const &, std::string_view const &client_order_id);
-
  private:
   OrderEntry::Handler &handler_;
   // config

@@ -354,12 +354,6 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
       auto external_account = fmt::format("{}"sv, item.account_id);
       auto price = static_cast<double>(item.price_ep) / security.price_factor;
       auto stop_price = static_cast<double>(item.stop_px_ep) / security.price_factor;
-      auto exchange_or_request_id = [&]() {
-        if (std::empty(item.cl_ord_id)) {
-          return item.order_id;
-        }
-        return item.cl_ord_id;
-      }();
       auto order_update = server::oms::OrderUpdate{
           .account = account_.name,
           .exchange = shared_.settings.exchange,
@@ -399,13 +393,13 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
       auto user_id = SOURCE_NONE;
       auto order_id = ORDER_ID_NONE;
       auto strategy_id = STRATEGY_ID_NONE;
-      if (shared_.update_order(exchange_or_request_id, stream_id_, trace_info, order_update, [&](auto &order) {
+      if (shared_.update_order(stream_id_, trace_info, order_update, [&](auto &order) {
             user_id = order.user_id;
             order_id = order.order_id;
             strategy_id = order.strategy_id;
           })) {
       } else {
-        log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, exchange_or_request_id);
+        log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, item.cl_ord_id);
       }
       if (item.trade_type == protocol::json::TradeType::TRADE) {
         if (item.exec_status != protocol::json::ExecStatus::TAKER_FILL && item.exec_status != protocol::json::ExecStatus::MAKER_FILL) {
@@ -447,7 +441,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
             .user = {},
             .strategy_id = strategy_id,
         };
-        create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id, exchange_or_request_id);
+        create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id);
       }
     };
     if (shared_.find_security(item.symbol, helper)) {
