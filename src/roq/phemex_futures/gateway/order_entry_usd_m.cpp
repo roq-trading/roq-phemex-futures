@@ -283,6 +283,7 @@ void OrderEntryUsdM::orders_create(
 
 void OrderEntryUsdM::orders_create_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.orders_create_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -298,8 +299,7 @@ void OrderEntryUsdM::orders_create_ack(Trace<web::rest::Response> const &event, 
           .quantity = NaN,
           .price = NaN,
       };
-      Trace event_2{event, response};
-      (*this)(event_2, user_id, order_id);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersCreateAck2 orders_create_ack{body, decode_buffer_};
@@ -367,8 +367,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCreateAck2> const &e
       .update_type = UpdateType::INCREMENTAL,
       .sending_time_utc = orders_create_ack.request_time,  // ???
   };
-  Trace event_2{trace_info, response};
-  (*this)(event_2, user_id, order_id, order_update);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id_, user_id, order_id);
 }
 
 // orders-replace
@@ -410,6 +409,7 @@ void OrderEntryUsdM::orders_replace(
 
 void OrderEntryUsdM::orders_replace_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.orders_replace_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -425,8 +425,7 @@ void OrderEntryUsdM::orders_replace_ack(Trace<web::rest::Response> const &event,
           .quantity = NaN,
           .price = NaN,
       };
-      Trace event_2{event, response};
-      (*this)(event_2, user_id, order_id);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersReplaceAck2 orders_replace_ack{body, decode_buffer_};
@@ -494,8 +493,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersReplaceAck2> const &
       .update_type = UpdateType::INCREMENTAL,
       .sending_time_utc = orders_replace_ack.request_time,
   };
-  Trace event_2{trace_info, response};
-  (*this)(event_2, user_id, order_id, order_update);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id_, user_id, order_id);
 }
 
 // orders-all
@@ -537,6 +535,7 @@ void OrderEntryUsdM::orders_cancel(
 
 void OrderEntryUsdM::orders_cancel_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.orders_cancel_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -552,8 +551,7 @@ void OrderEntryUsdM::orders_cancel_ack(Trace<web::rest::Response> const &event, 
           .quantity = NaN,
           .price = NaN,
       };
-      Trace event_2{event, response};
-      (*this)(event_2, user_id, order_id);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersCancelAck2 orders_cancel_ack{body, decode_buffer_};
@@ -621,8 +619,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCancelAck2> const &e
       .update_type = UpdateType::INCREMENTAL,
       .sending_time_utc = orders_cancel_ack.request_time,
   };
-  Trace event_2{trace_info, response};
-  (*this)(event_2, user_id, order_id, order_update);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id_, user_id, order_id);
 }
 
 // orders_all
@@ -756,15 +753,6 @@ void OrderEntryUsdM::process_response(web::rest::Response const &response, auto 
   } catch (std::exception &e) {
     log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
     error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, e.what());
-  }
-}
-
-template <typename... Args>
-void OrderEntryUsdM::operator()(Trace<server::oms::Response> const &event, uint8_t user_id, uint64_t order_id, Args &&...args) {
-  auto &[trace_info, response] = event;
-  if (shared_.update_order(user_id, order_id, stream_id_, trace_info, response, std::forward<Args>(args)..., []([[maybe_unused]] auto &order) {})) {
-  } else {
-    log::warn("Did not find order: user_id={}, order_id={}"sv, user_id, order_id);
   }
 }
 

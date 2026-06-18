@@ -386,14 +386,12 @@ void DropCopyUsdM::operator()(Trace<protocol::json::AccountsOrdersPositions2> co
     auto user_id = SOURCE_NONE;
     auto order_id = ORDER_ID_NONE;
     auto strategy_id = STRATEGY_ID_NONE;
-    if (shared_.update_order(stream_id_, trace_info, order_update, [&](auto &order) {
-          user_id = order.user_id;
-          order_id = order.order_id;
-          strategy_id = order.strategy_id;
-        })) {
-    } else {
-      log::warn("*** EXTERNAL ORDER *** ({} / {})"sv, item.order_id, item.cl_ord_id);
-    }
+    auto callback = [&](auto &order) {
+      user_id = order.user_id;
+      order_id = order.order_id;
+      strategy_id = order.strategy_id;
+    };
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id_, callback);
     if (item.trade_type == protocol::json::TradeType::TRADE) {
       if (item.exec_status != protocol::json::ExecStatus::TAKER_FILL && item.exec_status != protocol::json::ExecStatus::MAKER_FILL) {
         log::fatal("Unexpected: {}"sv, item);
