@@ -200,7 +200,7 @@ void OrderEntryUsdM::operator()(Trace<web::rest::Client::Latency> const &event) 
       .account = account_.name,
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -231,7 +231,7 @@ void OrderEntryUsdM::operator()(ConnectionStatus connection_status, std::string_
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 uint32_t OrderEntryUsdM::download(State state) {
@@ -663,7 +663,7 @@ void OrderEntryUsdM::orders_all_ack(Trace<web::rest::Response> const &event, [[m
   profile_.orders_all_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      auto orders_all_ack = CancelAllOrdersAck{
+      auto cancel_all_orders_ack = CancelAllOrdersAck{
           .stream_id = stream_id_,
           .account = account_.name,
           .order_id = {},
@@ -682,8 +682,7 @@ void OrderEntryUsdM::orders_all_ack(Trace<web::rest::Response> const &event, [[m
           .strategy_id = {},
       };
       TraceInfo trace_info;
-      Trace event_2{trace_info, orders_all_ack};
-      shared_(event_2);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, cancel_all_orders_ack);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersAllAck2 orders_all_ack{body, decode_buffer_};

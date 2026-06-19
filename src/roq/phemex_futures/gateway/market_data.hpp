@@ -11,13 +11,7 @@ namespace phemex_futures {
 namespace gateway {
 
 struct MarketData {
-  struct Handler {
-    virtual void operator()(Trace<StreamStatus> const &) = 0;
-    virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<MarketByPriceUpdate> const &, bool is_last) = 0;
-    virtual void operator()(Trace<TradeSummary> const &, bool is_last) = 0;
-    virtual void operator()(Trace<StatisticsUpdate> const &, bool is_last) = 0;
-  };
+  struct Handler {};
 
   MarketData() = default;
 

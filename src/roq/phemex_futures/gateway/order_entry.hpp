@@ -11,11 +11,7 @@ namespace phemex_futures {
 namespace gateway {
 
 struct OrderEntry {
-  struct Handler {
-    virtual void operator()(Trace<StreamStatus> const &) = 0;
-    virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id) = 0;
-  };
+  struct Handler {};
 
   OrderEntry() = default;
 

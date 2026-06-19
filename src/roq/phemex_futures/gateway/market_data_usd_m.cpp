@@ -168,7 +168,7 @@ void MarketDataUsdM::operator()(web::socket::Client::Latency const &latency) {
       .account = {},
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -199,7 +199,7 @@ void MarketDataUsdM::operator()(ConnectionStatus connection_status, std::string_
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 void MarketDataUsdM::ping(std::chrono::nanoseconds now) {
@@ -371,7 +371,7 @@ void MarketDataUsdM::operator()(Trace<protocol::json::Orderbook> const &event) {
           .max_depth = {},
           .checksum = {},
       };
-      create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, market_by_price_update, true, shared_.final_bids, shared_.final_asks);
     }
   });
 }
@@ -409,7 +409,7 @@ void MarketDataUsdM::operator()(Trace<protocol::json::Trades2> const &event) {
           .exchange_sequence = utils::safe_cast{trades.sequence},
           .sending_time_utc = {},
       };
-      create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, trade_summary, true);
     }
   });
 }
@@ -478,7 +478,7 @@ void MarketDataUsdM::operator()(Trace<protocol::json::Market24h2> const &event) 
         .exchange_sequence = {},
         .sending_time_utc = {},
     };
-    create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, statistics_update, true);
   });
 }
 

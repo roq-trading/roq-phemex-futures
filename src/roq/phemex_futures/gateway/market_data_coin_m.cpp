@@ -168,7 +168,7 @@ void MarketDataCoinM::operator()(web::socket::Client::Latency const &latency) {
       .account = {},
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -199,7 +199,7 @@ void MarketDataCoinM::operator()(ConnectionStatus connection_status, std::string
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 void MarketDataCoinM::ping(std::chrono::nanoseconds now) {
@@ -376,7 +376,7 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Book> const &event) {
             .max_depth = {},
             .checksum = {},
         };
-        create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true);
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, market_by_price_update, true, shared_.final_bids, shared_.final_asks);
       }
     };
     if (shared_.find_security(book.symbol, helper)) {
@@ -425,7 +425,7 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Trades> const &event) {
             .exchange_sequence = utils::safe_cast{trades.sequence},
             .sending_time_utc = {},
         };
-        create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, trade_summary, true);
       }
     };
     if (shared_.find_security(trades.symbol, helper)) {
@@ -500,7 +500,7 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Market24h> const &event) 
           .exchange_sequence = {},
           .sending_time_utc = {},
       };
-      create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, statistics_update, true);
     };
     if (shared_.find_security(market24h.market24h.symbol, helper)) {
     } else {

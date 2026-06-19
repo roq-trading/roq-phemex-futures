@@ -158,7 +158,7 @@ void DropCopyCoinM::operator()(web::socket::Client::Latency const &latency) {
       .account = account_.name,
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -189,7 +189,7 @@ void DropCopyCoinM::operator()(ConnectionStatus connection_status, std::string_v
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
@@ -330,7 +330,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
           .exchange_sequence = utils::safe_cast(accounts_orders_positions.sequence),
           .sending_time_utc = accounts_orders_positions.timestamp,
       };
-      create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, funds_update, true);
     };
     if (shared_.find_currency(item.currency, helper)) {
     } else {
@@ -439,7 +439,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
             .user = {},
             .strategy_id = strategy_id,
         };
-        create_trace_and_dispatch(handler_, trace_info, trade_update, true, user_id);
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, trade_update, true, user_id);
       }
     };
     if (shared_.find_security(item.symbol, helper)) {
@@ -529,7 +529,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
           .exchange_sequence = utils::safe_cast(item.exec_seq),
           .sending_time_utc = accounts_orders_positions.timestamp,
       };
-      create_trace_and_dispatch(handler_, trace_info, position_update, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, position_update, true);
     };
     if (shared_.find_security(item.symbol, helper)) {
     } else {
