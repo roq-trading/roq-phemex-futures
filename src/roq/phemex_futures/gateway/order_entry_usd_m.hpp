@@ -3,8 +3,6 @@
 #pragma once
 
 #include <string>
-#include <string_view>
-#include <vector>
 
 #include "roq/utils/metrics/counter.hpp"
 #include "roq/utils/metrics/latency.hpp"
@@ -36,7 +34,8 @@ namespace gateway {
 struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handler {
   OrderEntryUsdM(OrderEntry::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
 
-  bool ready() const override;
+ protected:
+  // OrderEntry
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
@@ -60,13 +59,16 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
 
   uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id) override;
 
- protected:
   // web::rest::Client::Handler
 
   void operator()(Trace<web::rest::Client::Connected> const &) override;
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
   bool get_ping_request(web::rest::Request &) override;
+
+  // helpers
+
+  bool ready() const override;
 
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 

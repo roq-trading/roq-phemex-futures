@@ -3,7 +3,6 @@
 #pragma once
 
 #include <string>
-#include <string_view>
 
 #include "roq/utils/metrics/counter.hpp"
 #include "roq/utils/metrics/latency.hpp"
@@ -12,8 +11,6 @@
 #include "roq/io/context.hpp"
 
 #include "roq/web/socket/client.hpp"
-
-#include "roq/core/download.hpp"
 
 #include "roq/core/json/buffer_stack.hpp"
 
@@ -32,7 +29,8 @@ namespace gateway {
 struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handler, protocol::json::Parser::Handler {
   DropCopyCoinM(DropCopy::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
 
-  bool ready() const;
+ protected:
+  // DropCopy
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
@@ -40,8 +38,8 @@ struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handle
 
   void operator()(metrics::Writer &) const override;
 
- protected:
   // web::socket::Client::Handler
+
   void operator()(web::socket::Client::Connected const &) override;
   void operator()(web::socket::Client::Disconnected const &) override;
   void operator()(web::socket::Client::Ready const &) override;
@@ -51,6 +49,7 @@ struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handle
   void operator()(web::socket::Client::Binary const &) override;
 
   // protocol::json::Parser::Handler
+
   // - admin
   void operator()(Trace<protocol::json::Pong> const &) override;
   void operator()(Trace<protocol::json::Ack> const &) override;
@@ -64,7 +63,10 @@ struct DropCopyCoinM final : public DropCopy, public web::socket::Client::Handle
   void operator()(Trace<protocol::json::AccountsOrdersPositions> const &) override;
   void operator()(Trace<protocol::json::PositionInfo> const &) override;
 
- private:
+  // helpers
+
+  bool ready() const;
+
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   void ping(std::chrono::nanoseconds now);

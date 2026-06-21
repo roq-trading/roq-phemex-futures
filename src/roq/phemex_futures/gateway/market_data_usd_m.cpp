@@ -2,8 +2,6 @@
 
 #include "roq/phemex_futures/gateway/market_data_usd_m.hpp"
 
-#include <algorithm>
-
 #include "roq/logging.hpp"
 
 #include "roq/mask.hpp"

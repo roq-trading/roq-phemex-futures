@@ -2,13 +2,7 @@
 
 #include "roq/phemex_futures/gateway/controller.hpp"
 
-#include <algorithm>
-#include <cctype>
-#include <limits>
-
 #include "roq/logging.hpp"
-
-#include "roq/clock.hpp"
 
 #include "roq/server/oms/exceptions.hpp"
 
@@ -259,24 +253,24 @@ void Controller::operator()(Rest::SymbolsUpdate &symbols_update) {
 // utilities
 
 void Controller::ensure_symbol_slices(size_t size) {
+  auto helper = [&](std::unique_ptr<MarketData> market_data) {
+    MessageInfo message_info;
+    Start start;
+    create_event_and_dispatch(*market_data, message_info, start);
+    market_data_.emplace_back(std::move(market_data));
+  };
   while (std::size(market_data_) < size) {
     log::debug("Create market-data (user-stream)"sv);
     switch (shared_.api.type) {
       using enum API::Type;
       case COIN_M: {
         auto market_data = std::make_unique<MarketDataCoinM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
-        MessageInfo message_info;
-        Start start;
-        create_event_and_dispatch(*market_data, message_info, start);
-        market_data_.emplace_back(std::move(market_data));
+        helper(std::move(market_data));
         break;
       }
       case USD_M: {
         auto market_data = std::make_unique<MarketDataUsdM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
-        MessageInfo message_info;
-        Start start;
-        create_event_and_dispatch(*market_data, message_info, start);
-        market_data_.emplace_back(std::move(market_data));
+        helper(std::move(market_data));
         break;
       }
     }

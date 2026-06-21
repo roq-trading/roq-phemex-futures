@@ -2,11 +2,7 @@
 
 #pragma once
 
-#include <deque>
 #include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
 
 #include "roq/utils/metrics/counter.hpp"
 #include "roq/utils/metrics/latency.hpp"
@@ -34,9 +30,8 @@ namespace gateway {
 struct MarketDataUsdM final : public MarketData, public web::socket::Client::Handler, public protocol::json::Parser2::Handler {
   MarketDataUsdM(MarketData::Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
 
-  uint16_t stream_id() const { return stream_id_; }
-
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
+ protected:
+  // MarketData
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
@@ -46,8 +41,8 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
 
   void subscribe(size_t start_from = 0) override;
 
- protected:
   // web::socket::client::Client::Handler
+
   void operator()(web::socket::Client::Connected const &) override;
   void operator()(web::socket::Client::Disconnected const &) override;
   void operator()(web::socket::Client::Ready const &) override;
@@ -56,7 +51,12 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
   void operator()(web::socket::Client::Text const &) override;
   void operator()(web::socket::Client::Binary const &) override;
 
- private:
+  // helpers
+
+  uint16_t stream_id() const { return stream_id_; }
+
+  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
+
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   void ping(std::chrono::nanoseconds now);
@@ -81,6 +81,8 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
   void operator()(Trace<protocol::json::IndexMarket24h> const &) override;
   void operator()(Trace<protocol::json::AccountsOrdersPositions2> const &) override;
   void operator()(Trace<protocol::json::PositionInfo> const &) override;
+
+  // helpers
 
   void check_subscribe_queue(std::chrono::nanoseconds now);
 

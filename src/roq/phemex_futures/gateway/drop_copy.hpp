@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <string_view>
-
 #include "roq/api.hpp"
 
 namespace roq {
