@@ -87,7 +87,7 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
   void check_subscribe_queue(std::chrono::nanoseconds now);
 
  private:
-  MarketData::Handler &handler_;
+  [[maybe_unused]] MarketData::Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;

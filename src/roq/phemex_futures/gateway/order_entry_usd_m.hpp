@@ -118,7 +118,7 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 
  private:
-  OrderEntry::Handler &handler_;
+  [[maybe_unused]] OrderEntry::Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;

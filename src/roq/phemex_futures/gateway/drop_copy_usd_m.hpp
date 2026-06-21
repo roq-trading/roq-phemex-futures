@@ -80,7 +80,7 @@ struct DropCopyUsdM final : public DropCopy, public web::socket::Client::Handler
   void parse(std::string_view const &message);
 
  private:
-  DropCopy::Handler &handler_;
+  [[maybe_unused]] DropCopy::Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;
