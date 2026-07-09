@@ -6,10 +6,10 @@
 
 namespace roq {
 namespace phemex_futures {
-namespace proto_bridge {
+namespace bridge {
 
 using Config = gateway::Config;
 
-}  // namespace proto_bridge
+}  // namespace bridge
 }  // namespace phemex_futures
 }  // namespace roq
