@@ -262,8 +262,13 @@ void DropCopyCoinM::operator()(Trace<protocol::json::Ack> const &event) {
       ready_ = true;
       (*this)(ConnectionStatus::READY);
     } else {
-      log::error(R"(Login failed: code={}, message="{}")"sv, ack.error.code, ack.error.message);
-      (*connection_).close();
+      if (shared_.settings.experimental.retry_logon) {
+        log::error("ack={}"sv, ack);
+        log::warn("Disconnecting..."sv);
+        (*connection_).close();
+      } else {
+        log::fatal("ack={}"sv, ack);
+      }
     }
   };
   auto aop_helper = [&]() {
