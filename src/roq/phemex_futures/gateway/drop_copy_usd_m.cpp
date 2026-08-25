@@ -263,11 +263,11 @@ void DropCopyUsdM::operator()(Trace<protocol::json::Ack> const &event) {
       (*this)(ConnectionStatus::READY);
     } else {
       if (shared_.settings.experimental.retry_logon) {
-        log::error("ack={}"sv, ack);
+        log::error("[{}] ack={}"sv, account_.name, ack);
         log::warn("Disconnecting..."sv);
         (*connection_).close();
       } else {
-        log::fatal("ack={}"sv, ack);
+        log::fatal("[{}] ack={}"sv, account_.name, ack);
       }
     }
   };
