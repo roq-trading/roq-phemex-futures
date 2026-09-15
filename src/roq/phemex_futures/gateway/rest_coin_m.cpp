@@ -286,6 +286,7 @@ void RestCoinM::operator()(Trace<protocol::json::ProductsAck> const &event) {
         .description = item.description.substr(0, detail::MAX_LENGTH_DESCRIPTION),  // XXX FIXME
         .security_type = map(item.type),
         .external_security_id = {},
+        .market_segment = {},
         .cfi_code = {},
         .base_currency = item.base_currency,
         .quote_currency = item.quote_currency,
