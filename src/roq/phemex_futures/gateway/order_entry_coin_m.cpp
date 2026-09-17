@@ -337,6 +337,7 @@ void OrderEntryCoinM::operator()(Trace<protocol::json::OrdersCreateAck> const &e
       .order_type = map(data.order_type),
       .time_in_force = map(data.time_in_force),
       .execution_instructions = {},  // ???
+      .execution_destination = {},
       .create_time_utc = data.transact_time_ns,
       .update_time_utc = data.transact_time_ns,
       .external_account = {},
@@ -542,6 +543,7 @@ void OrderEntryCoinM::operator()(Trace<protocol::json::OrdersCancelAck> const &e
       .order_type = map(data.order_type),
       .time_in_force = map(data.time_in_force),
       .execution_instructions = {},  // ???
+      .execution_destination = {},
       .create_time_utc = {},
       .update_time_utc = data.transact_time_ns,
       .external_account = {},
