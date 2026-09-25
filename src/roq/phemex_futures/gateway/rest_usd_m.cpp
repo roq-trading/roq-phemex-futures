@@ -99,8 +99,8 @@ void RestUsdM::operator()(Event<Stop> const &) {
 }
 
 void RestUsdM::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
+  auto &[message_info, timer] = event;
+  (*connection_).refresh(timer.now, shared_.rate_limit.suspend_until);
 }
 
 void RestUsdM::operator()(metrics::Writer &writer) const {
@@ -163,6 +163,10 @@ void RestUsdM::operator()(Trace<web::rest::Client::Latency> const &event) {
   };
   create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
+}
+
+void RestUsdM::operator()(Trace<web::rest::Client::Header> const &event) {
+  shared_.rate_limit(event);
 }
 
 bool RestUsdM::get_ping_request(web::rest::Request &request) {

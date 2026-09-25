@@ -17,6 +17,7 @@
 #include "roq/phemex_futures/gateway/settings.hpp"
 
 #include "roq/phemex_futures/tools/currency.hpp"
+#include "roq/phemex_futures/tools/rate_limit.hpp"
 #include "roq/phemex_futures/tools/security.hpp"
 
 namespace roq {
@@ -32,6 +33,8 @@ struct Shared final {
 
   Settings const &settings;
   API const api;
+
+  tools::RateLimit rate_limit;
 
   core::limit::RateLimiter rate_limiter;
 

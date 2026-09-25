@@ -1,0 +1,15 @@
+{
+  "name": "roq/phemex_futures/protocol/json/Header",
+  "type": "enum",
+  "values": [
+    {
+      "name": "X-RateLimit-Capacity"
+    },
+    {
+      "name": "X-RateLimit-Remaining"
+    },
+    {
+      "name": "X-RateLimit-Retry-After"
+    }
+  ]
+}

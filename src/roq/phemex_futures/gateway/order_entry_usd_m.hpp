@@ -64,6 +64,7 @@ struct OrderEntryUsdM final : public OrderEntry, public web::rest::Client::Handl
   void operator()(Trace<web::rest::Client::Connected> const &) override;
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
+  void operator()(Trace<web::rest::Client::Header> const &) override;
   bool get_ping_request(web::rest::Request &) override;
 
   // helpers

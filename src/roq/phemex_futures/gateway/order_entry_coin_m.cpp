@@ -112,11 +112,8 @@ void OrderEntryCoinM::operator()(Event<Stop> const &) {
 }
 
 void OrderEntryCoinM::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
-  if (!ready()) {
-    return;
-  }
+  auto &[message_info, timer] = event;
+  (*connection_).refresh(timer.now, shared_.rate_limit.suspend_until);
 }
 
 void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
@@ -197,6 +194,10 @@ void OrderEntryCoinM::operator()(Trace<web::rest::Client::Latency> const &event)
   };
   create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
+}
+
+void OrderEntryCoinM::operator()(Trace<web::rest::Client::Header> const &event) {
+  shared_.rate_limit(event);
 }
 
 void OrderEntryCoinM::operator()(ConnectionStatus connection_status, std::string_view const &reason) {

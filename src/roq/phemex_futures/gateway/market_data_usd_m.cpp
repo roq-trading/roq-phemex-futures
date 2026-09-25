@@ -107,14 +107,13 @@ void MarketDataUsdM::operator()(Event<Stop> const &) {
 }
 
 void MarketDataUsdM::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
-  if (ready()) {
-    if (next_ping_ < now) {
-      next_ping_ = now + shared_.settings.ws.ping_freq;
-      ping(now);
+  auto &[message_info, timer] = event;
+  if ((*connection_).refresh(timer.now, shared_.rate_limit.suspend_until)) {
+    if (next_ping_ < timer.now) {
+      next_ping_ = timer.now + shared_.settings.ws.ping_freq;
+      ping(timer.now);
     }
-    check_subscribe_queue(now);
+    check_subscribe_queue(timer.now);
   }
 }
 
