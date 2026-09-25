@@ -68,7 +68,7 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
 
   // helpers
 
-  void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
+  void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
 
  private:
   Rest::Handler &handler_;

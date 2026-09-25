@@ -67,8 +67,6 @@ static_assert(parse_header("X-RateLimit-Retry-After-CONTRACT"sv) == Header::X_RA
 
 // === IMPLEMENTATION ===
 
-// XXX FIXME TODO we could initialize with some flag about back-off policy
-
 void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
   auto &[trace_info, header] = event;
   auto update_value = [&](auto &result) {
@@ -78,13 +76,13 @@ void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
   };
   auto update_suspend_until = [&](auto &result, auto retry_after) {
     if (retry_after > 0) {
-      auto tmp = trace_info.origin_create_time + std::chrono::seconds{global.retry_after};
+      auto tmp = trace_info.origin_create_time + std::chrono::seconds{global_.retry_after};
       utils::update_max(result, tmp);
     } else {
       result = {};
     }
   };
-  auto update_suspend_until_2 = [&]() { suspend_until = std::max(global.suspend_until, contract.suspend_until); };
+  auto update_suspend_until_2 = [&]() { suspend_until_ = std::max(global_.suspend_until, contract_.suspend_until); };
   auto key = parse_header(header.name);
   switch (key) {
     using enum Header;
@@ -92,41 +90,45 @@ void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
       return;
     // global
     case X_RATE_LIMIT_CAPACITY:
-      update_value(global.capacity);
+      update_value(global_.capacity);
       break;
     case X_RATE_LIMIT_REMAINING:
-      if (update_value(global.remaining)) {
-        if (global.remaining > 0) {
-          global.suspend_until = {};
+      if (update_value(global_.remaining)) {
+        if (global_.remaining > 0) {
+          global_.suspend_until = {};
           update_suspend_until_2();
         }
       }
       break;
     case X_RATE_LIMIT_RETRY_AFTER:
-      if (update_value(global.retry_after)) {
-        update_suspend_until(global.suspend_until, global.retry_after);
+      if (update_value(global_.retry_after)) {
+        update_suspend_until(global_.suspend_until, global_.retry_after);
         update_suspend_until_2();
       }
       break;
     // contract
     case X_RATE_LIMIT_CAPACITY_CONTRACT:
-      update_value(contract.capacity);
+      update_value(contract_.capacity);
       break;
     case X_RATE_LIMIT_REMAINING_CONTRACT:
-      if (update_value(contract.remaining)) {
-        if (contract.remaining > 0) {
-          contract.suspend_until = {};
+      if (update_value(contract_.remaining)) {
+        if (contract_.remaining > 0) {
+          contract_.suspend_until = {};
           update_suspend_until_2();
         }
       }
       break;
     case X_RATE_LIMIT_RETRY_AFTER_CONTRACT:
-      if (update_value(contract.retry_after)) {
-        update_suspend_until(contract.suspend_until, contract.retry_after);
+      if (update_value(contract_.retry_after)) {
+        update_suspend_until(contract_.suspend_until, contract_.retry_after);
         update_suspend_until_2();
       }
       break;
   }
+}
+
+void RateLimit::operator()(Trace<web::rest::Response> const &event) {
+  auto &[trace_info, response] = event;
 }
 
 }  // namespace tools

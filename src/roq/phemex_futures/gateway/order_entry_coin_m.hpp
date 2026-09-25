@@ -115,7 +115,7 @@ struct OrderEntryCoinM final : public OrderEntry, public web::rest::Client::Hand
 
   // helpers
 
-  void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
+  void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
 
  private:
   [[maybe_unused]] OrderEntry::Handler &handler_;

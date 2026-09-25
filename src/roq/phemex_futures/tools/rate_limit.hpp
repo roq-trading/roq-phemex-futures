@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "roq/web/rest/client.hpp"
+#include "roq/web/rest/response.hpp"
 
 namespace roq {
 namespace phemex_futures {
@@ -16,8 +17,12 @@ struct RateLimit final {
   RateLimit(RateLimit &&) = default;
   RateLimit(RateLimit const &) = delete;
 
-  void operator()(Trace<web::rest::Client::Header> const &);
+  operator std::chrono::nanoseconds() const { return suspend_until_; }
 
+  void operator()(Trace<web::rest::Client::Header> const &);
+  void operator()(Trace<web::rest::Response> const &);
+
+ private:
   struct item_t {
     int32_t capacity = {};
     int32_t remaining = {};
@@ -25,10 +30,10 @@ struct RateLimit final {
     std::chrono::nanoseconds suspend_until = {};
   };
 
-  item_t global;
-  item_t contract;
+  item_t global_;
+  item_t contract_;
 
-  std::chrono::nanoseconds suspend_until = {};
+  std::chrono::nanoseconds suspend_until_ = {};
 };
 
 }  // namespace tools

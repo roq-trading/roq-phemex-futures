@@ -113,7 +113,7 @@ void OrderEntryUsdM::operator()(Event<Stop> const &) {
 
 void OrderEntryUsdM::operator()(Event<Timer> const &event) {
   auto &[message_info, timer] = event;
-  (*connection_).refresh(timer.now, shared_.rate_limit.suspend_until);
+  (*connection_).refresh(timer.now, shared_.rate_limit);
 }
 
 void OrderEntryUsdM::operator()(metrics::Writer &writer) const {
@@ -703,7 +703,9 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersAllAck2> const &even
 
 // helpers
 
-void OrderEntryUsdM::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
+void OrderEntryUsdM::process_response(Trace<web::rest::Response> const &event, auto error_handler, auto success_handler) {
+  auto &[trace, response] = event;
+  shared_.rate_limit(event);
   try {
     auto [status, category, body] = response.result();
     switch (category) {
@@ -721,7 +723,6 @@ void OrderEntryUsdM::process_response(web::rest::Response const &response, auto 
         switch (status) {
           using enum web::http::Status;
           case FORBIDDEN:            // 403
-          case I_AM_A_TEAPOT:        // 418
           case TOO_MANY_REQUESTS: {  // 429
             auto message = fmt::format("{}"sv, status);
             error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::REQUEST_RATE_LIMIT_REACHED, message);

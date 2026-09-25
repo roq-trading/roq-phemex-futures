@@ -100,7 +100,7 @@ void RestCoinM::operator()(Event<Stop> const &) {
 
 void RestCoinM::operator()(Event<Timer> const &event) {
   auto &[message_info, timer] = event;
-  (*connection_).refresh(timer.now, shared_.rate_limit.suspend_until);
+  (*connection_).refresh(timer.now, shared_.rate_limit);
 }
 
 void RestCoinM::operator()(metrics::Writer &writer) const {
@@ -341,7 +341,9 @@ void RestCoinM::operator()(Trace<protocol::json::ProductsAck> const &event) {
 
 // helpers
 
-void RestCoinM::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
+void RestCoinM::process_response(Trace<web::rest::Response> const &event, auto error_handler, auto success_handler) {
+  auto &[trace, response] = event;
+  shared_.rate_limit(event);
   try {
     auto [status, category, body] = response.result();
     switch (category) {
@@ -359,7 +361,6 @@ void RestCoinM::process_response(web::rest::Response const &response, auto error
         switch (status) {
           using enum web::http::Status;
           case FORBIDDEN:            // 403
-          case I_AM_A_TEAPOT:        // 418
           case TOO_MANY_REQUESTS: {  // 429
             auto message = fmt::format("{}"sv, status);
             error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::REQUEST_RATE_LIMIT_REACHED, message);
