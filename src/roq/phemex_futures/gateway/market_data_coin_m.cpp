@@ -109,11 +109,13 @@ void MarketDataCoinM::operator()(Event<Stop> const &) {
 void MarketDataCoinM::operator()(Event<Timer> const &event) {
   auto &[message_info, timer] = event;
   if ((*connection_).refresh(timer.now, shared_.rate_limit.suspend_until)) {
-    if (next_ping_ < timer.now) {
-      next_ping_ = timer.now + shared_.settings.ws.ping_freq;
-      ping(timer.now);
+    if (ready()) {
+      if (next_ping_ < timer.now) {
+        next_ping_ = timer.now + shared_.settings.ws.ping_freq;
+        ping(timer.now);
+      }
+      check_subscribe_queue(timer.now);
     }
-    check_subscribe_queue(timer.now);
   }
 }
 
