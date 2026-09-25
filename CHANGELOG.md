@@ -6,6 +6,7 @@ All notable changes will be documented in this file.
 
 ### Fixed
 
+* REST clients did not process ping response status code != 200 (#643)
 * Too aggressive REST ping frequency (#642)
 
 ## 1.1.8 &ndash; 2026-09-04

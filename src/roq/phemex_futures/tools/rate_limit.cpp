@@ -72,7 +72,6 @@ static_assert(parse_header("X-RateLimit-Retry-After-CONTRACT"sv) == Header::X_RA
 void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
   auto &[trace_info, header] = event;
   auto update_value = [&](auto &result) {
-    // log::warn("DEBUG header={}"sv, header);
     using value_type = std::remove_cvref_t<decltype(result)>;
     auto value = utils::charconv::from_chars<value_type>(header.value);
     return utils::update(result, value);
