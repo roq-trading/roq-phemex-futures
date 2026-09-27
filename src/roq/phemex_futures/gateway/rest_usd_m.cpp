@@ -37,7 +37,7 @@ auto create_name(auto stream_id) {
   return fmt::format("{}:{}"sv, stream_id, NAME);
 }
 
-auto create_connection(auto &handler, auto &settings, auto &context) {
+auto create_connection(auto &handler, auto &settings, auto &context, auto &shared) {
   auto uri = settings.rest.uri;
   auto config = web::rest::Client::Config{
       // connection
@@ -64,7 +64,7 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
       .decode_buffer_size = settings.misc.decode_buffer_size,
       .encode_buffer_size = settings.misc.encode_buffer_size,
   };
-  return web::rest::Client::create(handler, context, config);
+  return web::rest::Client::create(handler, context, config, shared.rate_limit);
 }
 
 struct create_metrics final : public utils::metrics::Factory {
@@ -75,7 +75,7 @@ struct create_metrics final : public utils::metrics::Factory {
 // === IMPLEMENTATION ===
 
 RestUsdM::RestUsdM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, Account &account)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context)},
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context, shared)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -100,7 +100,7 @@ void RestUsdM::operator()(Event<Stop> const &) {
 
 void RestUsdM::operator()(Event<Timer> const &event) {
   auto &[message_info, timer] = event;
-  (*connection_).refresh(timer.now, shared_.rate_limit);
+  (*connection_).refresh(timer.now);
 }
 
 void RestUsdM::operator()(metrics::Writer &writer) const {
@@ -138,7 +138,7 @@ void RestUsdM::operator()(ConnectionStatus connection_status, std::string_view c
 
 // web::rest::Client::Handler
 
-void RestUsdM::operator()(Trace<web::rest::Client::Connected> const &) {
+void RestUsdM::operator()(Trace<web::rest::Connected> const &) {
   if (download_.downloading()) {
     download_.bump();
   } else {
@@ -146,7 +146,7 @@ void RestUsdM::operator()(Trace<web::rest::Client::Connected> const &) {
   }
 }
 
-void RestUsdM::operator()(Trace<web::rest::Client::Disconnected> const &) {
+void RestUsdM::operator()(Trace<web::rest::Disconnected> const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   if (!download_.downloading()) {
@@ -154,7 +154,7 @@ void RestUsdM::operator()(Trace<web::rest::Client::Disconnected> const &) {
   }
 }
 
-void RestUsdM::operator()(Trace<web::rest::Client::Latency> const &event) {
+void RestUsdM::operator()(Trace<web::rest::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
@@ -163,10 +163,6 @@ void RestUsdM::operator()(Trace<web::rest::Client::Latency> const &event) {
   };
   create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
-}
-
-void RestUsdM::operator()(Trace<web::rest::Client::Header> const &event) {
-  shared_.rate_limit(event);
 }
 
 bool RestUsdM::get_ping_request(web::rest::Request &request) {
@@ -339,7 +335,6 @@ void RestUsdM::operator()(Trace<protocol::json::ProductsAck> const &event) {
 
 void RestUsdM::process_response(Trace<web::rest::Response> const &event, auto error_handler, auto success_handler) {
   auto &[trace, response] = event;
-  shared_.rate_limit(event);
   try {
     auto [status, category, body] = response.result();
     switch (category) {

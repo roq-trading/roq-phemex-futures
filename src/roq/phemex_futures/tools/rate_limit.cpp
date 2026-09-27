@@ -2,8 +2,6 @@
 
 #include "roq/phemex_futures/tools/rate_limit.hpp"
 
-#include "roq/logging.hpp"
-
 #include "roq/utils/compare.hpp"
 #include "roq/utils/update.hpp"
 
@@ -67,7 +65,15 @@ static_assert(parse_header("X-RateLimit-Retry-After-CONTRACT"sv) == Header::X_RA
 
 // === IMPLEMENTATION ===
 
-void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
+RateLimit::RateLimit(flags::Settings const &settings) : suspend_on_rate_limit_{settings.experimental.suspend_on_rate_limit} {
+}
+
+// web::rest::Interceptor
+
+void RateLimit::operator()(Trace<web::rest::MessageBegin> const &) {
+}
+
+void RateLimit::operator()(Trace<web::rest::MessageHeader> const &event) {
   auto &[trace_info, header] = event;
   auto update_value = [&](auto &result) {
     using value_type = std::remove_cvref_t<decltype(result)>;
@@ -82,7 +88,12 @@ void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
       result = {};
     }
   };
-  auto update_suspend_until_2 = [&]() { suspend_until_ = std::max(global_.suspend_until, contract_.suspend_until); };
+  auto update_suspend_until_2 = [&]() {
+    if (!suspend_on_rate_limit_) {
+      return;
+    }
+    suspend_until_ = std::max(global_.suspend_until, contract_.suspend_until);
+  };
   auto key = parse_header(header.name);
   switch (key) {
     using enum Header;
@@ -127,9 +138,14 @@ void RateLimit::operator()(Trace<web::rest::Client::Header> const &event) {
   }
 }
 
-void RateLimit::operator()(Trace<web::rest::Response> const &event) {
-  auto &[trace_info, response] = event;
+void RateLimit::operator()(Trace<web::rest::MessageEnd> const &event) {
+  auto &[trace_info, message_end] = event;
+  if (!suspend_on_rate_limit_) {
+    return;
+  }
 }
+
+// web::socket::Interceptor
 
 }  // namespace tools
 }  // namespace phemex_futures

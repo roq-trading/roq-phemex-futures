@@ -4,34 +4,44 @@
 
 #include <chrono>
 
-#include "roq/web/rest/client.hpp"
-#include "roq/web/rest/response.hpp"
+#include <fmt/format.h>
+
+#include "roq/web/rest/interceptor.hpp"
+
+#include "roq/web/socket/interceptor.hpp"
+
+#include "roq/phemex_futures/flags/settings.hpp"
 
 namespace roq {
 namespace phemex_futures {
 namespace tools {
 
-struct RateLimit final {
-  RateLimit() = default;
+struct RateLimit final : public web::rest::Interceptor, public web::socket::Interceptor {
+  explicit RateLimit(flags::Settings const &);
 
-  RateLimit(RateLimit &&) = default;
-  RateLimit(RateLimit const &) = delete;
-
-  operator std::chrono::nanoseconds() const { return suspend_until_; }
-
-  void operator()(Trace<web::rest::Client::Header> const &);
-  void operator()(Trace<web::rest::Response> const &);
-
- private:
-  struct item_t {
+  struct Params {
     int32_t capacity = {};
     int32_t remaining = {};
     int32_t retry_after = {};
     std::chrono::nanoseconds suspend_until = {};
   };
 
-  item_t global_;
-  item_t contract_;
+ protected:
+  // web::Interceptor
+  operator std::chrono::nanoseconds() const override { return suspend_until_; }
+
+  // web::rest::Interceptor
+  void operator()(Trace<web::rest::MessageBegin> const &) override;
+  void operator()(Trace<web::rest::MessageHeader> const &) override;
+  void operator()(Trace<web::rest::MessageEnd> const &) override;
+
+  // web::socket::Interceptor
+
+ private:
+  bool const suspend_on_rate_limit_;
+
+  Params global_;
+  Params contract_;
 
   std::chrono::nanoseconds suspend_until_ = {};
 };
@@ -39,3 +49,21 @@ struct RateLimit final {
 }  // namespace tools
 }  // namespace phemex_futures
 }  // namespace roq
+
+template <>
+struct fmt::formatter<roq::phemex_futures::tools::RateLimit::Params> {
+  constexpr auto parse(format_parse_context &context) { return std::begin(context); }
+  auto format(roq::phemex_futures::tools::RateLimit::Params const &value, format_context &context) const {
+    using namespace std::literals;
+    return fmt::format_to(
+        context.out(),
+        R"({{)"
+        R"(capacity={}, )"
+        R"(remaining={}, )"
+        R"(retry_after={})"
+        R"(}})"sv,
+        value.capacity,
+        value.remaining,
+        value.retry_after);
+  }
+};
