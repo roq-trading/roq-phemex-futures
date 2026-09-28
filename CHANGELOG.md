@@ -6,6 +6,7 @@ All notable changes will be documented in this file.
 
 ### Fixed
 
+* Coin-M didn't discard symbols based on the TOML config (#645)
 * REST clients did not process ping response status code != 200 (#643)
 * Too aggressive REST ping frequency (#642)
 

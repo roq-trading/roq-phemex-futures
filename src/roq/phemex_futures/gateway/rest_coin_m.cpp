@@ -312,7 +312,7 @@ void RestCoinM::operator()(Trace<protocol::json::ProductsAck> const &event) {
         .exchange_time_utc = {},
         .exchange_sequence = {},
         .sending_time_utc = {},
-        .discard = {},
+        .discard = discard,
     };
     create_trace_and_dispatch(shared_.dispatcher, trace_info, reference_data, true);
     if (discard) {
