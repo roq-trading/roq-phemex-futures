@@ -5,30 +5,38 @@
 #include <chrono>
 
 #include <fmt/format.h>
+#include <fmt/std.h>
 
 #include "roq/web/rest/interceptor.hpp"
 
 #include "roq/web/socket/interceptor.hpp"
 
-#include "roq/phemex_futures/flags/settings.hpp"
+#include "roq/server/settings.hpp"
 
 namespace roq {
 namespace phemex_futures {
 namespace tools {
 
-struct RateLimit final : public web::rest::Interceptor, public web::socket::Interceptor {
-  explicit RateLimit(flags::Settings const &);
+struct Throttle final : public web::rest::Interceptor, public web::socket::Interceptor {
+  explicit Throttle(server::Settings const &);  // XXX HANS server::Settings ?
 
   struct Params {
-    int32_t capacity = {};
-    int32_t remaining = {};
-    int32_t retry_after = {};
-    std::chrono::nanoseconds suspend_until = {};
+    operator bool() const { return static_cast<bool>(retry_after); }
+
+    void reset() {
+      capacity.reset();
+      remaining.reset();
+      retry_after.reset();
+    }
+
+    std::optional<int32_t> capacity;
+    std::optional<int32_t> remaining;
+    std::optional<std::chrono::seconds> retry_after;
   };
 
  protected:
   // web::Interceptor
-  operator std::chrono::nanoseconds() const override { return suspend_until_; }
+  operator std::chrono::nanoseconds() const override { return retry_after_; }
 
   // web::rest::Interceptor
   void operator()(Trace<web::rest::MessageBegin> const &) override;
@@ -38,12 +46,13 @@ struct RateLimit final : public web::rest::Interceptor, public web::socket::Inte
   // web::socket::Interceptor
 
  private:
-  bool const suspend_on_rate_limit_;
+  bool const enabled_;
 
   Params global_;
   Params contract_;
 
-  std::chrono::nanoseconds suspend_until_ = {};
+  std::chrono::nanoseconds retry_after_ = {};
+  std::chrono::nanoseconds retry_after_contract_ = {};
 };
 
 }  // namespace tools
@@ -51,9 +60,9 @@ struct RateLimit final : public web::rest::Interceptor, public web::socket::Inte
 }  // namespace roq
 
 template <>
-struct fmt::formatter<roq::phemex_futures::tools::RateLimit::Params> {
+struct fmt::formatter<roq::phemex_futures::tools::Throttle::Params> {
   constexpr auto parse(format_parse_context &context) { return std::begin(context); }
-  auto format(roq::phemex_futures::tools::RateLimit::Params const &value, format_context &context) const {
+  auto format(roq::phemex_futures::tools::Throttle::Params const &value, format_context &context) const {
     using namespace std::literals;
     return fmt::format_to(
         context.out(),
