@@ -405,6 +405,8 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Trades> const &event) {
         auto price = item.price_ep / security.price_factor;
         auto quantity = static_cast<double>(item.qty) / security.quantity_factor;
         auto item_2 = Trade{
+            .trade_conditions = {},
+            .trade_type = {},
             .side = map(item.side),
             .price = price,
             .quantity = quantity,

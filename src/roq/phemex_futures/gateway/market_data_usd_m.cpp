@@ -389,6 +389,8 @@ void MarketDataUsdM::operator()(Trace<protocol::json::Trades2> const &event) {
     auto timestamp = timestamp_type{};
     for (auto &item : trades.trades_p) {
       auto item_2 = Trade{
+          .trade_conditions = {},
+          .trade_type = {},
           .side = map(item.side),
           .price = item.price,
           .quantity = item.qty,
