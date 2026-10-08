@@ -77,7 +77,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-DropCopyCoinM::DropCopyCoinM(DropCopy::Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
+DropCopyCoinM::DropCopyCoinM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -128,52 +128,9 @@ void DropCopyCoinM::operator()(metrics::Writer &writer) const {
       .write(latency_.heartbeat, metrics::Type::LATENCY);
 }
 
-// web::socket::Client::Handler
-
-void DropCopyCoinM::operator()(Trace<web::socket::Connected> const &) {
-  assert(logon_timeout_.count() == 0);
-  auto now = clock::get_system();
-  logon_timeout_ = now + shared_.settings.ws.request_timeout;
-}
-
-void DropCopyCoinM::operator()(Trace<web::socket::Disconnected> const &) {
-  ++counter_.disconnect;
-  ready_ = false;
-  (*this)(ConnectionStatus::DISCONNECTED);
-  logon_timeout_ = {};
-  next_ping_ = {};
-}
-
-void DropCopyCoinM::operator()(Trace<web::socket::Latency> const &event) {
-  auto &[trace_info, latency] = event;
-  auto external_latency = ExternalLatency{
-      .stream_id = stream_id_,
-      .account = account_.name,
-      .latency = latency.sample,
-  };
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
-  latency_.ping.update(latency.sample);
-}
-
-void DropCopyCoinM::operator()(Trace<web::socket::Ready> const &) {
-  login();
-}
-
-void DropCopyCoinM::operator()(Trace<web::socket::Close> const &) {
-}
-
-void DropCopyCoinM::operator()(Trace<web::socket::Text> const &event) {
-  auto &[trace_info, text] = event;
-  parse(text.payload);
-}
-
-void DropCopyCoinM::operator()(Trace<web::socket::Binary> const &) {
-  log::fatal("Unexpected"sv);
-}
-
-void DropCopyCoinM::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
+void DropCopyCoinM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
   connection_status_ = connection_status;
-  TraceInfo trace_info;
   auto stream_status = StreamStatus{
       .stream_id = stream_id_,
       .account = account_.name,
@@ -193,55 +150,51 @@ void DropCopyCoinM::operator()(ConnectionStatus connection_status, std::string_v
   create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
-void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
-  auto message = fmt::format(
-      R"({{)"
-      R"("id":{},)"
-      R"("method":"server.ping",)"
-      R"("params":[])"
-      R"(}})"sv,
-      std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
-  (*connection_).send_text(message);
+// web::socket::Client::Handler
+
+void DropCopyCoinM::operator()(Trace<web::socket::Connected> const &event) {
+  auto &[trace_info, connected] = event;
+  assert(logon_timeout_.count() == 0);
+  auto now = clock::get_system();
+  logon_timeout_ = now + shared_.settings.ws.request_timeout;
 }
 
-void DropCopyCoinM::login() {
-  auto message = account_.create_ws_login(REQUEST_ID_AUTH);
-  // log::warn("DEBUG message={}"sv, message);
-  (*connection_).send_text(message);
+void DropCopyCoinM::operator()(Trace<web::socket::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
+  ++counter_.disconnect;
+  ready_ = false;
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
+  logon_timeout_ = {};
+  next_ping_ = {};
 }
 
-void DropCopyCoinM::subscribe() {
-  subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
+void DropCopyCoinM::operator()(Trace<web::socket::Latency> const &event) {
+  auto &[trace_info, latency] = event;
+  auto external_latency = ExternalLatency{
+      .stream_id = stream_id_,
+      .account = account_.name,
+      .latency = latency.sample,
+  };
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
+  latency_.ping.update(latency.sample);
 }
 
-void DropCopyCoinM::subscribe(uint64_t id, std::string_view const &topic) {
-  log::info(R"(Subscribe topic="{}")"sv, topic);
-  auto message = fmt::format(
-      R"({{)"
-      R"("id":{},)"
-      R"("method":"{}.subscribe",)"
-      R"("params":[])"
-      R"(}})"sv,
-      id,
-      topic);
-  log::debug("message={}"sv, message);
-  (*connection_).send_text(message);
+void DropCopyCoinM::operator()(Trace<web::socket::Ready> const &) {
+  login();
 }
 
-void DropCopyCoinM::parse(std::string_view const &message) {
-  profile_.parse([&]() {
-    log::info<5>(R"(message="{}")"sv, message);
-    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
-    try {
-      TraceInfo trace_info;
-      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
-        log_message();
-      }
-    } catch (...) {
-      log_message();
-      utils::exceptions::Unhandled::terminate();
-    }
-  });
+void DropCopyCoinM::operator()(Trace<web::socket::Close> const &event) {
+  auto &[trace_info, close] = event;
+  log::warn("close={}"sv, close);
+}
+
+void DropCopyCoinM::operator()(Trace<web::socket::Text> const &event) {
+  auto &[trace_info, text] = event;
+  parse(text.payload);
+}
+
+void DropCopyCoinM::operator()(Trace<web::socket::Binary> const &) {
+  log::fatal("Unexpected"sv);
 }
 
 // protocol::json::Parser::Handler
@@ -262,7 +215,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::Ack> const &event) {
     if (success) {
       subscribe();
       ready_ = true;
-      (*this)(ConnectionStatus::READY);
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
     } else {
       if (shared_.settings.experimental.retry_logon) {
         log::error("[{}] ack={}"sv, account_.name, ack);
@@ -548,6 +501,59 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
 void DropCopyCoinM::operator()(Trace<protocol::json::PositionInfo> const &event) {
   auto &[trace_info, position_info] = event;
   log::info<2>("position_info={}"sv, position_info);
+}
+
+// helpers
+
+void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("id":{},)"
+      R"("method":"server.ping",)"
+      R"("params":[])"
+      R"(}})"sv,
+      std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+  (*connection_).send_text(message);
+}
+
+void DropCopyCoinM::login() {
+  auto message = account_.create_ws_login(REQUEST_ID_AUTH);
+  // log::warn("DEBUG message={}"sv, message);
+  (*connection_).send_text(message);
+}
+
+void DropCopyCoinM::subscribe() {
+  subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
+}
+
+void DropCopyCoinM::subscribe(uint64_t id, std::string_view const &topic) {
+  log::info(R"(Subscribe topic="{}")"sv, topic);
+  auto message = fmt::format(
+      R"({{)"
+      R"("id":{},)"
+      R"("method":"{}.subscribe",)"
+      R"("params":[])"
+      R"(}})"sv,
+      id,
+      topic);
+  log::debug("message={}"sv, message);
+  (*connection_).send_text(message);
+}
+
+void DropCopyCoinM::parse(std::string_view const &message) {
+  profile_.parse([&]() {
+    log::info<5>(R"(message="{}")"sv, message);
+    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
+    try {
+      TraceInfo trace_info;
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+        log_message();
+      }
+    } catch (...) {
+      log_message();
+      utils::exceptions::Unhandled::terminate();
+    }
+  });
 }
 
 }  // namespace gateway

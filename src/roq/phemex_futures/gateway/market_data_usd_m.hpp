@@ -18,7 +18,8 @@
 
 #include "roq/server.hpp"
 
-#include "roq/phemex_futures/gateway/market_data.hpp"
+#include "roq/server/stream.hpp"
+
 #include "roq/phemex_futures/gateway/shared.hpp"
 
 #include "roq/phemex_futures/protocol/json/parser_2.hpp"
@@ -27,17 +28,32 @@ namespace roq {
 namespace phemex_futures {
 namespace gateway {
 
-struct MarketDataUsdM final : public MarketData, public web::socket::Client::Handler, public protocol::json::Parser2::Handler {
-  MarketDataUsdM(MarketData::Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
+struct MarketDataUsdM final : public Base<MarketDataUsdM>,
+                              public server::MarketDataStream,
+                              public web::socket::Client::Handler,
+                              public protocol::json::Parser2::Handler {
+  struct Handler {};
 
- protected:
-  // MarketData
+  MarketDataUsdM(Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
+
+  // protected:
+  friend base_type;
+
+  // server::Stream
+
+  uint16_t stream_id() const override { return stream_id_; }
+
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
   void operator()(Event<Timer> const &) override;
 
   void operator()(metrics::Writer &) const override;
+
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
+
+  // server::MarketDataStream
 
   void subscribe(size_t start_from = 0) override;
 
@@ -50,23 +66,6 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
   void operator()(Trace<web::socket::Close> const &) override;
   void operator()(Trace<web::socket::Text> const &) override;
   void operator()(Trace<web::socket::Binary> const &) override;
-
-  // helpers
-
-  uint16_t stream_id() const { return stream_id_; }
-
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
-
-  void ping(std::chrono::nanoseconds now);
-
-  void subscribe(std::span<Symbol const> const &symbols);
-  void subscribe(Symbol const &, std::string_view const &topic);
-  void subscribe(Symbol const &, std::string_view const &topic, uint32_t depth);
-  void subscribe(Symbol const &, std::string_view const &topic, std::chrono::seconds interval);
-
-  void parse(std::string_view const &message);
 
   // protocol::json::Parser2::Handler
   // - admin
@@ -86,8 +85,17 @@ struct MarketDataUsdM final : public MarketData, public web::socket::Client::Han
 
   void check_subscribe_queue(std::chrono::nanoseconds now);
 
+  void ping(std::chrono::nanoseconds now);
+
+  void subscribe(std::span<Symbol const> const &symbols);
+  void subscribe(Symbol const &, std::string_view const &topic);
+  void subscribe(Symbol const &, std::string_view const &topic, uint32_t depth);
+  void subscribe(Symbol const &, std::string_view const &topic, std::chrono::seconds interval);
+
+  void parse(std::string_view const &message);
+
  private:
-  [[maybe_unused]] MarketData::Handler &handler_;
+  [[maybe_unused]] Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;

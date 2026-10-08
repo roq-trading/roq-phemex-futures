@@ -16,8 +16,9 @@
 
 #include "roq/server.hpp"
 
+#include "roq/server/stream.hpp"
+
 #include "roq/phemex_futures/gateway/account.hpp"
-#include "roq/phemex_futures/gateway/drop_copy.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
 #include "roq/phemex_futures/protocol/json/parser_2.hpp"
@@ -26,17 +27,27 @@ namespace roq {
 namespace phemex_futures {
 namespace gateway {
 
-struct DropCopyUsdM final : public DropCopy, public web::socket::Client::Handler, protocol::json::Parser2::Handler {
-  DropCopyUsdM(DropCopy::Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public web::socket::Client::Handler, protocol::json::Parser2::Handler {
+  struct Handler {};
 
- protected:
-  // DropCopy
+  DropCopyUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+
+  // protected:
+  friend base_type;
+
+  // server::Stream
+
+  uint16_t stream_id() const override { return stream_id_; }
+
+  bool ready() const override;
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
   void operator()(Event<Timer> const &) override;
 
   void operator()(metrics::Writer &) const override;
+
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
 
   // web::socket::Client::Handler
 
@@ -65,10 +76,6 @@ struct DropCopyUsdM final : public DropCopy, public web::socket::Client::Handler
 
   // helpers
 
-  bool ready() const;
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
-
   void ping(std::chrono::nanoseconds now);
 
   void login();
@@ -80,7 +87,7 @@ struct DropCopyUsdM final : public DropCopy, public web::socket::Client::Handler
   void parse(std::string_view const &message);
 
  private:
-  [[maybe_unused]] DropCopy::Handler &handler_;
+  [[maybe_unused]] Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;

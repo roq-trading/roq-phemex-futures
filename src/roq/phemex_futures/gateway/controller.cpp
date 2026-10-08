@@ -77,7 +77,7 @@ auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &acc
     log::fatal("Unexpected: --number_of_order_entry_connections={}"sv, shared.settings.misc.number_of_order_entry_connections);
   }
   for (auto &[name, account] : accounts) {
-    std::vector<std::unique_ptr<OrderEntry>> order_entry;
+    std::vector<std::unique_ptr<server::OrderActionStream>> order_entry;
     for (size_t i = 0; i < shared.settings.misc.number_of_order_entry_connections; ++i) {
       switch (shared.api.type) {
         using enum API::Type;
@@ -189,10 +189,23 @@ void Controller::operator()(Event<Subscribe> const &event) {
       log::warn(R"(*** DUPLICATE SUBSCRIPTION *** (symbol="{}")"sv, item);
     }
   }
-  auto symbols_update = Rest::SymbolsUpdate{
-      .symbols = symbols,
-  };
-  (*this)(symbols_update);
+  switch (shared_.api.type) {
+    using enum API::Type;
+    case COIN_M: {
+      auto symbols_update = RestCoinM::SymbolsUpdate{
+          .symbols = symbols,
+      };
+      (*this)(symbols_update);
+      break;
+    }
+    case USD_M: {
+      auto symbols_update = RestUsdM::SymbolsUpdate{
+          .symbols = symbols,
+      };
+      (*this)(symbols_update);
+      break;
+    }
+  }
 }
 
 uint16_t Controller::operator()(
@@ -240,9 +253,19 @@ void Controller::operator()(metrics::Writer &writer) const {
   dispatch_helper(*this, writer);
 }
 
-// Rest::Handler
+// RestUsdM::Handler
 
-void Controller::operator()(Rest::SymbolsUpdate &symbols_update) {
+void Controller::operator()(RestUsdM::SymbolsUpdate &symbols_update) {
+  auto [size, start_from] = shared_.symbols(symbols_update.symbols);
+  ensure_symbol_slices(size);
+  for (auto &iter : market_data_) {
+    (*iter).subscribe(start_from);
+  }
+}
+
+// RestCoinM::Handler
+
+void Controller::operator()(RestCoinM::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
   for (auto &iter : market_data_) {
@@ -253,7 +276,7 @@ void Controller::operator()(Rest::SymbolsUpdate &symbols_update) {
 // utilities
 
 void Controller::ensure_symbol_slices(size_t size) {
-  auto helper = [&](std::unique_ptr<MarketData> market_data) {
+  auto helper = [&](std::unique_ptr<server::MarketDataStream> market_data) {
     MessageInfo message_info;
     Start start;
     create_event_and_dispatch(*market_data, message_info, start);
@@ -299,7 +322,7 @@ void Controller::dispatch_helper(auto &self, Args &&...args) {
   }
 }
 
-OrderEntry &Controller::get_order_entry(std::string_view const &account) {
+server::OrderActionStream &Controller::get_order_entry(std::string_view const &account) {
   auto iter = order_entry_.find(account);
   if (iter != std::end(order_entry_)) {
     return (*iter).second.get_next();
@@ -309,7 +332,7 @@ OrderEntry &Controller::get_order_entry(std::string_view const &account) {
 
 // OrderEntryRR
 
-Controller::OrderEntryRR::OrderEntryRR(std::vector<std::unique_ptr<OrderEntry>> &&order_entry) : order_entry_{std::move(order_entry)} {
+Controller::OrderEntryRR::OrderEntryRR(std::vector<std::unique_ptr<server::OrderActionStream>> &&order_entry) : order_entry_{std::move(order_entry)} {
   for (auto &item : order_entry_) {
     if (item == nullptr) {
       log::fatal("HERE"sv);
@@ -331,7 +354,7 @@ void Controller::OrderEntryRR::operator()(Args &&...args) const {
   }
 }
 
-OrderEntry &Controller::OrderEntryRR::get_next() {
+server::OrderActionStream &Controller::OrderEntryRR::get_next() {
   auto length = std::size(order_entry_);
   for (size_t offset = 0; offset < length; ++offset) {
     auto index = (index_ + offset) % length;

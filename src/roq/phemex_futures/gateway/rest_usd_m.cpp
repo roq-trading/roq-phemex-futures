@@ -74,7 +74,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-RestUsdM::RestUsdM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, Account &account)
+RestUsdM::RestUsdM(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, Account &account)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context, shared)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -87,7 +87,7 @@ RestUsdM::RestUsdM(Rest::Handler &handler, io::Context &context, uint16_t stream
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      shared_{shared}, account_{account}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
+      shared_{shared}, account_{account}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
 }
 
 void RestUsdM::operator()(Event<Start> const &) {
@@ -114,9 +114,9 @@ void RestUsdM::operator()(metrics::Writer &writer) const {
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
-void RestUsdM::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
+void RestUsdM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
   connection_status_ = connection_status;
-  TraceInfo trace_info;
   auto stream_status = StreamStatus{
       .stream_id = stream_id_,
       .account = {},
@@ -138,17 +138,19 @@ void RestUsdM::operator()(ConnectionStatus connection_status, std::string_view c
 
 // web::rest::Client::Handler
 
-void RestUsdM::operator()(Trace<web::rest::Connected> const &) {
+void RestUsdM::operator()(Trace<web::rest::Connected> const &event) {
+  auto &[trace_info, connected] = event;
   if (download_.downloading()) {
-    download_.bump();
+    download_.bump(trace_info);
   } else {
-    download_.begin();
+    download_.begin(trace_info);
   }
 }
 
-void RestUsdM::operator()(Trace<web::rest::Disconnected> const &) {
+void RestUsdM::operator()(Trace<web::rest::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  (*this)(ConnectionStatus::DISCONNECTED);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   if (!download_.downloading()) {
     download_.reset();
   }
@@ -173,18 +175,21 @@ bool RestUsdM::get_ping_request(web::rest::Request &request) {
   return false;
 }
 
-uint32_t RestUsdM::download(State state) {
+// core::Download
+
+int32_t RestUsdM::download(Trace<State> const &event) {
+  auto &[trace_info, state] = event;
   switch (state) {
     using enum State;
     case UNDEFINED:
       assert(false);
       break;
     case PRODUCTS:
-      (*this)(ConnectionStatus::DOWNLOADING, "products"sv);
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "products"sv);
       get_products();
       return 1;
     case DONE:
-      (*this)(ConnectionStatus::READY);
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
       return 0;
   }
   assert(false);
@@ -228,9 +233,8 @@ void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_
       } else {
         protocol::json::ProductsAck products_ack{body, decode_buffer_};
         if (products_ack.code == 0) {
-          Trace event{trace_info, products_ack};
-          (*this)(event);
-          download_.check(state);
+          create_trace_and_dispatch_2(trace_info, products_ack);
+          download_.check(trace_info, state);
         } else {
           handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(products_ack.code), products_ack.msg);
         }

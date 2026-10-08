@@ -74,7 +74,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-RestCoinM::RestCoinM(Rest::Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
+RestCoinM::RestCoinM(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context, shared)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -87,8 +87,10 @@ RestCoinM::RestCoinM(Rest::Handler &handler, io::Context &context, uint16_t stre
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto state) { return download(state); }} {
+      shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
 }
+
+// server::Stream
 
 void RestCoinM::operator()(Event<Start> const &) {
   (*connection_).start();
@@ -114,9 +116,9 @@ void RestCoinM::operator()(metrics::Writer &writer) const {
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
-void RestCoinM::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
+void RestCoinM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
   connection_status_ = connection_status;
-  TraceInfo trace_info;
   auto stream_status = StreamStatus{
       .stream_id = stream_id_,
       .account = {},
@@ -138,17 +140,19 @@ void RestCoinM::operator()(ConnectionStatus connection_status, std::string_view 
 
 // web::rest::Client::Handler
 
-void RestCoinM::operator()(Trace<web::rest::Connected> const &) {
+void RestCoinM::operator()(Trace<web::rest::Connected> const &event) {
+  auto &[trace_info, connected] = event;
   if (download_.downloading()) {
-    download_.bump();
+    download_.bump(trace_info);
   } else {
-    download_.begin();
+    download_.begin(trace_info);
   }
 }
 
-void RestCoinM::operator()(Trace<web::rest::Disconnected> const &) {
+void RestCoinM::operator()(Trace<web::rest::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  (*this)(ConnectionStatus::DISCONNECTED);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   if (!download_.downloading()) {
     download_.reset();
   }
@@ -165,18 +169,21 @@ void RestCoinM::operator()(Trace<web::rest::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
-uint32_t RestCoinM::download(State state) {
+// core::Download
+
+int32_t RestCoinM::download(Trace<State> const &event) {
+  auto &[trace_info, state] = event;
   switch (state) {
     using enum State;
     case UNDEFINED:
       assert(false);
       break;
     case PRODUCTS:
-      (*this)(ConnectionStatus::DOWNLOADING, "products"sv);
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "products"sv);
       get_products();
       return 1;
     case DONE:
-      (*this)(ConnectionStatus::READY);
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
       return 0;
   }
   assert(false);
@@ -220,9 +227,8 @@ void RestCoinM::get_products_ack(Trace<web::rest::Response> const &event, uint32
       } else {
         protocol::json::ProductsAck products_ack{body, decode_buffer_};
         if (products_ack.code == 0) {
-          Trace event{trace_info, products_ack};
-          (*this)(event);
-          download_.check(state);
+          create_trace_and_dispatch_2(trace_info, products_ack);
+          download_.check(trace_info, state);
         } else {
           handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(products_ack.code), products_ack.msg);
         }

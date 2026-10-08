@@ -12,13 +12,14 @@
 
 #include "roq/web/rest/client.hpp"
 
-#include "roq/core/download.hpp"
+#include "roq/core/download_2.hpp"
 
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
 
-#include "roq/phemex_futures/gateway/rest.hpp"
+#include "roq/server/stream.hpp"
+
 #include "roq/phemex_futures/gateway/shared.hpp"
 
 #include "roq/phemex_futures/protocol/json/products_ack.hpp"
@@ -27,11 +28,25 @@ namespace roq {
 namespace phemex_futures {
 namespace gateway {
 
-struct RestCoinM final : public Rest, public web::rest::Client::Handler {
-  RestCoinM(Rest::Handler &, io::Context &context, uint16_t stream_id, Shared &);
+struct RestCoinM final : public Base<RestCoinM>, public server::Stream, public web::rest::Client::Handler {
+  struct SymbolsUpdate final {
+    std::span<Symbol const> symbols;
+  };
 
- protected:
-  // Rest
+  struct Handler {
+    virtual void operator()(SymbolsUpdate &) = 0;
+  };
+
+  RestCoinM(Handler &, io::Context &context, uint16_t stream_id, Shared &);
+
+  // protected:
+  friend base_type;
+
+  // server::Stream
+
+  uint16_t stream_id() const override { return stream_id_; }
+
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
@@ -39,17 +54,15 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
 
   void operator()(metrics::Writer &) const override;
 
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
+
   // web::rest::Client::Handler
 
   void operator()(Trace<web::rest::Connected> const &) override;
   void operator()(Trace<web::rest::Disconnected> const &) override;
   void operator()(Trace<web::rest::Latency> const &) override;
 
-  // helpers
-
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
+  // core::Download
 
   enum class State {
     UNDEFINED = 0,
@@ -57,7 +70,7 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
     DONE,
   };
 
-  uint32_t download(State);
+  int32_t download(Trace<State> const &);
 
   // products
 
@@ -70,7 +83,7 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
   void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
 
  private:
-  Rest::Handler &handler_;
+  Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;
@@ -92,7 +105,7 @@ struct RestCoinM final : public Rest, public web::rest::Client::Handler {
   Shared &shared_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<State> download_;
+  core::Download2<State> download_;
 };
 
 }  // namespace gateway
