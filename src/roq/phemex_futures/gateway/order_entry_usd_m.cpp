@@ -270,13 +270,11 @@ void OrderEntryUsdM::orders_create(
         .quality_of_service = {},
     };
     log::info<2>("DEBUG request={}"sv, request);
-    auto callback = [this, user_id = message_info.source, order_id = create_order.order_id]([[maybe_unused]] auto &request_id, auto &response) {
+    auto callback = [this, user_id = message_info.source, order_id = create_order.order_id](auto &event, [[maybe_unused]] auto &request_id) {
       uint32_t version = 1;
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
       orders_create_ack(event, user_id, order_id, version);
     };
-    (*connection_)(request_id, request, callback);
+    (*connection_)(request, callback, request_id);
   });
 }
 
@@ -397,12 +395,8 @@ void OrderEntryUsdM::orders_replace(
     };
     log::info<2>("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = modify_order.order_id, version = modify_order.version](
-                        [[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      orders_replace_ack(event, user_id, order_id, version);
-    };
-    (*connection_)(request_id, request, callback);
+                        auto &event, [[maybe_unused]] auto &request_id) { orders_replace_ack(event, user_id, order_id, version); };
+    (*connection_)(request, callback, request_id);
   });
 }
 
@@ -523,12 +517,8 @@ void OrderEntryUsdM::orders_cancel(
     };
     log::info<2>("DEBUG request={}"sv, request);
     auto callback = [this, user_id = message_info.source, order_id = cancel_order.order_id, version = cancel_order.version](
-                        [[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      orders_cancel_ack(event, user_id, order_id, version);
-    };
-    (*connection_)(request_id, request, callback);
+                        auto &event, [[maybe_unused]] auto &request_id) { orders_cancel_ack(event, user_id, order_id, version); };
+    (*connection_)(request, callback, request_id);
   });
 }
 
@@ -644,12 +634,8 @@ void OrderEntryUsdM::orders_all(Event<CancelAllOrders> const &event, std::string
           .quality_of_service = {},
       };
       log::info<2>("DEBUG request={}"sv, request);
-      auto callback = [this, user_id = message_info.source]([[maybe_unused]] auto &request_id, auto &response) {
-        TraceInfo trace_info;
-        Trace event{trace_info, response};
-        orders_all_ack(event, user_id);
-      };
-      (*connection_)(request_id, request, callback);
+      auto callback = [this, user_id = message_info.source](auto &event, [[maybe_unused]] auto &request_id) { orders_all_ack(event, user_id); };
+      (*connection_)(request, callback, request_id);
     };
     if (shared_.dispatcher.get_all_order_symbols(helper, account_.name)) {
     } else {
