@@ -98,16 +98,18 @@ MarketDataCoinM::MarketDataCoinM(Handler &handler, io::Context &context, uint16_
       shared_{shared}, request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID} {
 }
 
-void MarketDataCoinM::operator()(Event<Start> const &) {
+// server::Stream
+
+void MarketDataCoinM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void MarketDataCoinM::operator()(Event<Stop> const &) {
+void MarketDataCoinM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void MarketDataCoinM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void MarketDataCoinM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   if ((*connection_).refresh(timer.now)) {
     if (ready()) {
       if (next_ping_ < timer.now) {

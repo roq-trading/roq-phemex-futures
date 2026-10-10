@@ -99,20 +99,22 @@ OrderEntryCoinM::OrderEntryCoinM(Handler &handler, io::Context &context, uint16_
       account_{account}, shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
 }
 
+// server::Stream
+
 bool OrderEntryCoinM::ready() const {
   return connection_status_ == ConnectionStatus::READY;
 }
 
-void OrderEntryCoinM::operator()(Event<Start> const &) {
+void OrderEntryCoinM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void OrderEntryCoinM::operator()(Event<Stop> const &) {
+void OrderEntryCoinM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void OrderEntryCoinM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void OrderEntryCoinM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
 }
 

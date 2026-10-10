@@ -98,16 +98,18 @@ MarketDataUsdM::MarketDataUsdM(Handler &handler, io::Context &context, uint16_t 
       shared_{shared}, request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID} {
 }
 
-void MarketDataUsdM::operator()(Event<Start> const &) {
+// server::Stream
+
+void MarketDataUsdM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void MarketDataUsdM::operator()(Event<Stop> const &) {
+void MarketDataUsdM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void MarketDataUsdM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void MarketDataUsdM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   if ((*connection_).refresh(timer.now)) {
     if (ready()) {
       if (next_ping_ < timer.now) {

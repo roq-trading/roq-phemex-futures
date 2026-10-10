@@ -99,20 +99,22 @@ OrderEntryUsdM::OrderEntryUsdM(Handler &handler, io::Context &context, uint16_t 
       account_{account}, shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
 }
 
+// server::Stream
+
 bool OrderEntryUsdM::ready() const {
   return connection_status_ == ConnectionStatus::READY;
 }
 
-void OrderEntryUsdM::operator()(Event<Start> const &) {
+void OrderEntryUsdM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void OrderEntryUsdM::operator()(Event<Stop> const &) {
+void OrderEntryUsdM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void OrderEntryUsdM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void OrderEntryUsdM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
 }
 

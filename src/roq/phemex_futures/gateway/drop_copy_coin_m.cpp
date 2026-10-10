@@ -93,20 +93,22 @@ DropCopyCoinM::DropCopyCoinM(Handler &handler, io::Context &context, uint16_t st
       account_{account}, shared_{shared} {
 }
 
+// server::Stream
+
 bool DropCopyCoinM::ready() const {
   return (*connection_).ready();
 }
 
-void DropCopyCoinM::operator()(Event<Start> const &) {
+void DropCopyCoinM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void DropCopyCoinM::operator()(Event<Stop> const &) {
+void DropCopyCoinM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void DropCopyCoinM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void DropCopyCoinM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   if ((*connection_).refresh(timer.now)) {
     if (ready()) {
       if (next_ping_ < timer.now) {
@@ -155,8 +157,7 @@ void DropCopyCoinM::operator()(Trace<ConnectionStatus> const &event, std::string
 void DropCopyCoinM::operator()(Trace<web::socket::Connected> const &event) {
   auto &[trace_info, connected] = event;
   assert(logon_timeout_.count() == 0);
-  auto now = clock::get_system();
-  logon_timeout_ = now + shared_.settings.ws.request_timeout;
+  logon_timeout_ = trace_info.origin_create_time + shared_.settings.ws.request_timeout;
 }
 
 void DropCopyCoinM::operator()(Trace<web::socket::Disconnected> const &event) {

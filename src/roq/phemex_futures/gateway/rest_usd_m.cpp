@@ -90,16 +90,18 @@ RestUsdM::RestUsdM(Handler &handler, io::Context &context, uint16_t stream_id, S
       shared_{shared}, account_{account}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
 }
 
-void RestUsdM::operator()(Event<Start> const &) {
+// server::Stream
+
+void RestUsdM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void RestUsdM::operator()(Event<Stop> const &) {
+void RestUsdM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void RestUsdM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void RestUsdM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
 }
 

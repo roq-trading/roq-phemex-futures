@@ -93,20 +93,22 @@ DropCopyUsdM::DropCopyUsdM(Handler &handler, io::Context &context, uint16_t stre
       account_{account}, shared_{shared} {
 }
 
+// server::Stream
+
 bool DropCopyUsdM::ready() const {
   return (*connection_).ready();
 }
 
-void DropCopyUsdM::operator()(Event<Start> const &) {
+void DropCopyUsdM::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void DropCopyUsdM::operator()(Event<Stop> const &) {
+void DropCopyUsdM::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void DropCopyUsdM::operator()(Event<Timer> const &event) {
-  auto &[message_info, timer] = event;
+void DropCopyUsdM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
   if ((*connection_).refresh(timer.now)) {
     if (ready()) {
       if (next_ping_ < timer.now) {
@@ -155,8 +157,7 @@ void DropCopyUsdM::operator()(Trace<ConnectionStatus> const &event, std::string_
 void DropCopyUsdM::operator()(Trace<web::socket::Connected> const &event) {
   auto &[trace_info, connected] = event;
   assert(logon_timeout_.count() == 0);
-  auto now = clock::get_system();
-  logon_timeout_ = now + shared_.settings.ws.request_timeout;
+  logon_timeout_ = trace_info.origin_create_time + shared_.settings.ws.request_timeout;
 }
 
 void DropCopyUsdM::operator()(Trace<web::socket::Disconnected> const &event) {
