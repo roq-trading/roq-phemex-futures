@@ -22,6 +22,7 @@
 
 #include "roq/phemex_futures/gateway/account.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
+#include "roq/phemex_futures/gateway/symbols_update.hpp"
 
 #include "roq/phemex_futures/protocol/json/products_ack.hpp"
 
@@ -30,12 +31,8 @@ namespace phemex_futures {
 namespace gateway {
 
 struct RestUsdM final : public Base<RestUsdM>, public server::Stream, public web::rest::Client::Handler {
-  struct SymbolsUpdate final {
-    std::span<Symbol const> symbols;
-  };
-
   struct Handler {
-    virtual void operator()(SymbolsUpdate &) = 0;
+    virtual void operator()(Trace<SymbolsUpdate> const &) = 0;
   };
 
   RestUsdM(Handler &, io::Context &context, uint16_t stream_id, Shared &, Account &);

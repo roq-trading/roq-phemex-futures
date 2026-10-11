@@ -92,7 +92,7 @@ struct MarketDataCoinM final : public Base<MarketDataCoinM>,
   void subscribe(Symbol const &, std::string_view const &topic, uint32_t depth);
   void subscribe(Symbol const &, std::string_view const &topic, std::chrono::seconds interval);
 
-  void parse(std::string_view const &message);
+  void parse(TraceInfo const &, std::string_view const &message);
 
  private:
   [[maybe_unused]] Handler &handler_;

@@ -33,7 +33,8 @@ namespace roq {
 namespace phemex_futures {
 namespace gateway {
 
-struct Controller final : public server::Handler,
+struct Controller final : public Base<Controller>,
+                          public server::Handler,
                           public RestUsdM::Handler,
                           public RestCoinM::Handler,
                           public MarketDataUsdM::Handler,
@@ -52,6 +53,8 @@ struct Controller final : public server::Handler,
   Controller(Controller const &) = delete;
 
  protected:
+  friend base_type;
+
   // server::Handler
 
   void operator()(Trace<Start> const &) override;
@@ -86,17 +89,13 @@ struct Controller final : public server::Handler,
 
   void operator()(metrics::Writer &) const override;
 
-  // RestUsdM::Handler
+  // RestUsdM::Handler + RestCoinM::Handler
 
-  void operator()(RestUsdM::SymbolsUpdate &) override;
-
-  // RestCoinM::Handler
-
-  void operator()(RestCoinM::SymbolsUpdate &) override;
+  void operator()(Trace<SymbolsUpdate> const &) override;
 
   // helpers
 
-  void ensure_symbol_slices(size_t size);
+  void ensure_symbol_slices(TraceInfo const &, size_t size);
 
   void subscribe_helper(auto &symbols);
 
