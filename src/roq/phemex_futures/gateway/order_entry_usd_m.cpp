@@ -226,7 +226,8 @@ void OrderEntryUsdM::operator()(Trace<web::rest::Latency> const &event) {
 
 bool OrderEntryUsdM::get_ping_request(web::rest::Request &request) {
   if (shared_.settings.vip) {
-    request.headers = account_.create_headers(request.path, request.query, request.body);
+    TraceInfo trace_info;  // XXX FIXME TODO
+    request.headers = account_.create_headers(trace_info, request.path, request.query, request.body);
     return true;
   }
   return false;
@@ -260,7 +261,7 @@ void OrderEntryUsdM::orders_create(
     auto &[message_info, create_order] = event;
     auto path = shared_.api.order_management.orders_create;
     auto query = protocol::json::Encoder::orders_create_usd_m(encode_buffer_, create_order, order, ref_data, request_id);
-    auto headers = account_.create_headers(path, query, {}, request_id);
+    auto headers = account_.create_headers(message_info, path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
         .path = path,
@@ -384,7 +385,7 @@ void OrderEntryUsdM::orders_replace(
     auto &[message_info, modify_order] = event;
     auto path = shared_.api.order_management.orders_replace;
     auto query = protocol::json::Encoder::orders_replace_usd_m(encode_buffer_, modify_order, order, ref_data, request_id);
-    auto headers = account_.create_headers(path, query, {}, request_id);
+    auto headers = account_.create_headers(message_info, path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::PUT,
         .path = path,
@@ -506,7 +507,7 @@ void OrderEntryUsdM::orders_cancel(
     auto &[message_info, cancel_order] = event;
     auto path = shared_.api.order_management.orders_cancel;
     auto query = protocol::json::Encoder::orders_cancel_usd_m(encode_buffer_, cancel_order, order, ref_data, request_id);
-    auto headers = account_.create_headers(path, query, {}, request_id);
+    auto headers = account_.create_headers(message_info, path, query, {}, request_id);
     auto request = web::rest::Request{
         .method = web::http::Method::DELETE,
         .path = path,
@@ -624,7 +625,7 @@ void OrderEntryUsdM::orders_all(Event<CancelAllOrders> const &event, std::string
     auto path = shared_.api.order_management.orders_all;
     auto helper = [&](auto &symbol) {
       auto query = protocol::json::Encoder::orders_all(encode_buffer_, cancel_all_orders, symbol, request_id);
-      auto headers = account_.create_headers(path, query, {}, request_id);
+      auto headers = account_.create_headers(message_info, path, query, {}, request_id);
       auto request = web::rest::Request{
           .method = web::http::Method::DELETE,
           .path = path,

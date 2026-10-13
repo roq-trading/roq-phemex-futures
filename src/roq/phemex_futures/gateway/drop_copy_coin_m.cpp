@@ -180,8 +180,9 @@ void DropCopyCoinM::operator()(Trace<web::socket::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
-void DropCopyCoinM::operator()(Trace<web::socket::Ready> const &) {
-  login();
+void DropCopyCoinM::operator()(Trace<web::socket::Ready> const &event) {
+  auto &[trace_info, ready] = event;
+  login(trace_info);
 }
 
 void DropCopyCoinM::operator()(Trace<web::socket::Close> const &event) {
@@ -517,8 +518,8 @@ void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
   (*connection_).send_text(message);
 }
 
-void DropCopyCoinM::login() {
-  auto message = account_.create_ws_login(REQUEST_ID_AUTH);
+void DropCopyCoinM::login(TraceInfo const &trace_info) {
+  auto message = account_.create_ws_login(trace_info, REQUEST_ID_AUTH);
   // log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }

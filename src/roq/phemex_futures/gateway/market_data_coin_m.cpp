@@ -95,7 +95,7 @@ MarketDataCoinM::MarketDataCoinM(Handler &handler, io::Context &context, uint16_
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      shared_{shared}, request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID} {
+      shared_{shared}, request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID}, subscribe_queue_{shared_.rate_limiter} {
 }
 
 // server::Stream
@@ -116,7 +116,7 @@ void MarketDataCoinM::operator()(Trace<Timer> const &event) {
         next_ping_ = timer.now + shared_.settings.ws.ping_freq;
         ping(timer.now);
       }
-      check_subscribe_queue(timer.now);
+      check_subscribe_queue(trace_info);
     }
   }
 }
@@ -442,10 +442,9 @@ void MarketDataCoinM::operator()(Trace<protocol::json::PositionInfo> const &) {
 
 // helpers
 
-void MarketDataCoinM::check_subscribe_queue(std::chrono::nanoseconds now) {
-  auto can_request = [&](auto now) { return shared_.rate_limiter.can_request(now); };
-  auto request = [&](auto &message) { (*connection_).send_text(message); };
-  subscribe_queue_.dispatch(can_request, request, now);
+void MarketDataCoinM::check_subscribe_queue(TraceInfo const &trace_info) {
+  auto callback = [&]([[maybe_unused]] auto &trace_info, auto &message) { (*connection_).send_text(message); };
+  subscribe_queue_.dispatch(trace_info, callback);
 }
 
 void MarketDataCoinM::ping(std::chrono::nanoseconds now) {

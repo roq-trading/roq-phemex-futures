@@ -171,7 +171,8 @@ void RestUsdM::operator()(Trace<web::rest::Latency> const &event) {
 
 bool RestUsdM::get_ping_request(web::rest::Request &request) {
   if (shared_.settings.vip) {
-    request.headers = account_.create_headers(request.path, request.query, request.body);
+    TraceInfo trace_info;  // XXX FIXME TODO
+    request.headers = account_.create_headers(trace_info, request.path, request.query, request.body);
     return true;
   }
   return false;

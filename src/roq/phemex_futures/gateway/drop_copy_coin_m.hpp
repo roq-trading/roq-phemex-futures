@@ -78,7 +78,7 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
 
   void ping(std::chrono::nanoseconds now);
 
-  void login();
+  void login(TraceInfo const &);
 
   void subscribe();
 

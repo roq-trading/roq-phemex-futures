@@ -78,7 +78,7 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   void ping(std::chrono::nanoseconds now);
 
-  void login();
+  void login(TraceInfo const &);
 
   void subscribe();
 

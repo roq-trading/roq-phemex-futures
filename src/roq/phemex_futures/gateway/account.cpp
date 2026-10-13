@@ -33,24 +33,29 @@ auto create_crypto(auto &config, auto &name) {
 Account::Account(Config const &config, std::string_view const &name) : name{name}, crypto_{create_crypto<decltype(crypto_)>(config, name)} {
 }
 
-std::string Account::create_ws_login(uint64_t request_id) {
-  auto now_utc = clock::get_realtime<std::chrono::seconds>() + TIMEOUT;
-  return crypto_.create_ws_login(now_utc, request_id);
+std::string Account::create_ws_login(TraceInfo const &trace_info, uint64_t request_id) {
+  auto now_utc = trace_info.origin_create_time_utc + TIMEOUT;
+  return crypto_.create_ws_login(utils::safe_cast(now_utc), request_id);
 }
 
-std::string_view Account::create_headers(std::string_view const &path, std::string_view const &query) {
-  return create_headers(path, query, {}, {});
-}
-
-std::string_view Account::create_headers(std::string_view const &path, std::string_view const &query, std::string_view const &body) {
-  return create_headers(path, query, body, {});
+std::string_view Account::create_headers(TraceInfo const &trace_info, std::string_view const &path, std::string_view const &query) {
+  return create_headers(trace_info, path, query, {}, {});
 }
 
 std::string_view Account::create_headers(
-    std::string_view const &path, std::string_view const &query, std::string_view const &body, std::string_view const &request_id) {
+    TraceInfo const &trace_info, std::string_view const &path, std::string_view const &query, std::string_view const &body) {
+  return create_headers(trace_info, path, query, body, {});
+}
+
+std::string_view Account::create_headers(
+    TraceInfo const &trace_info,
+    std::string_view const &path,
+    std::string_view const &query,
+    std::string_view const &body,
+    std::string_view const &request_id) {
   auto query_2 = std::empty(query) ? query : query.substr(1);
-  auto now_utc = clock::get_realtime<std::chrono::seconds>() + TIMEOUT;
-  return crypto_.create_headers(path, query_2, body, now_utc, request_id);
+  auto now_utc = trace_info.origin_create_time_utc + TIMEOUT;
+  return crypto_.create_headers(path, query_2, body, utils::safe_cast(now_utc), request_id);
 }
 
 }  // namespace gateway

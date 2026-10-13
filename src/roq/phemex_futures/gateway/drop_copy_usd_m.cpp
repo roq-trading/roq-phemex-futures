@@ -180,8 +180,9 @@ void DropCopyUsdM::operator()(Trace<web::socket::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
-void DropCopyUsdM::operator()(Trace<web::socket::Ready> const &) {
-  login();
+void DropCopyUsdM::operator()(Trace<web::socket::Ready> const &event) {
+  auto &[trace_info, ready] = event;
+  login(trace_info);
 }
 
 void DropCopyUsdM::operator()(Trace<web::socket::Close> const &event) {
@@ -441,8 +442,8 @@ void DropCopyUsdM::ping(std::chrono::nanoseconds now) {
   (*connection_).send_text(message);
 }
 
-void DropCopyUsdM::login() {
-  auto message = account_.create_ws_login(REQUEST_ID_AUTH);
+void DropCopyUsdM::login(TraceInfo const &trace_info) {
+  auto message = account_.create_ws_login(trace_info, REQUEST_ID_AUTH);
   // log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
 }
