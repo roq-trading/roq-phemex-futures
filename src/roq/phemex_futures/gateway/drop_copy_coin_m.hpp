@@ -12,6 +12,8 @@
 
 #include "roq/web/socket/client.hpp"
 
+#include "roq/core/download_2.hpp"
+
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
@@ -59,6 +61,16 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
   void operator()(Trace<web::socket::Text> const &) override;
   void operator()(Trace<web::socket::Binary> const &) override;
 
+  // core::Download
+
+  enum class State {
+    UNDEFINED = 0,
+    SUBSCRIBE_AOP,
+    DONE,
+  };
+
+  int32_t download(Trace<State> const &);
+
   // protocol::json::Parser::Handler
 
   // - admin
@@ -76,11 +88,9 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
 
   // helpers
 
-  void ping(std::chrono::nanoseconds now);
+  void send_ping(std::chrono::nanoseconds now);
 
-  void login(TraceInfo const &);
-
-  void subscribe();
+  void send_login(TraceInfo const &);
 
   void subscribe(uint64_t id, std::string_view const &topic);
 
@@ -110,8 +120,8 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
   // cache
   Shared &shared_;
   // state
-  bool ready_ = false;
   ConnectionStatus connection_status_ = {};
+  core::Download2<State> download_;
   std::chrono::nanoseconds logon_timeout_ = {};
   std::chrono::nanoseconds next_ping_ = {};
 };

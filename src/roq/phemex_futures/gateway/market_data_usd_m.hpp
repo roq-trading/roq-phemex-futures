@@ -85,7 +85,7 @@ struct MarketDataUsdM final : public Base<MarketDataUsdM>,
 
   void check_subscribe_queue(TraceInfo const &);
 
-  void ping(std::chrono::nanoseconds now);
+  void send_ping(std::chrono::nanoseconds now);
 
   void subscribe(std::span<Symbol const> const &symbols);
   void subscribe(Symbol const &, std::string_view const &topic);

@@ -12,6 +12,8 @@
 
 #include "roq/web/socket/client.hpp"
 
+#include "roq/core/download_2.hpp"
+
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
@@ -49,6 +51,16 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
 
+  // core::Download
+
+  enum class State {
+    UNDEFINED = 0,
+    SUBSCRIBE_AOP,
+    DONE,
+  };
+
+  int32_t download(Trace<State> const &);
+
   // web::socket::Client::Handler
 
   void operator()(Trace<web::socket::Connected> const &) override;
@@ -76,11 +88,9 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   // helpers
 
-  void ping(std::chrono::nanoseconds now);
+  void send_ping(std::chrono::nanoseconds now);
 
-  void login(TraceInfo const &);
-
-  void subscribe();
+  void send_login(TraceInfo const &);
 
   void subscribe(uint64_t id, std::string_view const &topic);
 
@@ -110,8 +120,8 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
   // cache
   Shared &shared_;
   // state
-  bool ready_ = false;
   ConnectionStatus connection_status_ = {};
+  core::Download2<State> download_;
   std::chrono::nanoseconds logon_timeout_ = {};
   std::chrono::nanoseconds next_ping_ = {};
 };

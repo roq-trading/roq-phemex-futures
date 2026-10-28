@@ -114,7 +114,7 @@ void MarketDataUsdM::operator()(Trace<Timer> const &event) {
     if (ready()) {
       if (next_ping_ < timer.now) {
         next_ping_ = timer.now + shared_.settings.ws.ping_freq;
-        ping(timer.now);
+        send_ping(timer.now);
       }
       check_subscribe_queue(trace_info);
     }
@@ -420,7 +420,7 @@ void MarketDataUsdM::check_subscribe_queue(TraceInfo const &trace_info) {
   subscribe_queue_.dispatch(trace_info, callback);
 }
 
-void MarketDataUsdM::ping(std::chrono::nanoseconds now) {
+void MarketDataUsdM::send_ping(std::chrono::nanoseconds now) {
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"

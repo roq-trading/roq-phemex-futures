@@ -90,13 +90,13 @@ DropCopyCoinM::DropCopyCoinM(Handler &handler, io::Context &context, uint16_t st
           .ping = create_metrics(shared.settings, name_, "ping"sv),
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
-      account_{account}, shared_{shared} {
+      account_{account}, shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
 }
 
 // server::Stream
 
 bool DropCopyCoinM::ready() const {
-  return (*connection_).ready();
+  return connection_status_ == ConnectionStatus::READY;
 }
 
 void DropCopyCoinM::operator()(Trace<Start> const &) {
@@ -113,7 +113,7 @@ void DropCopyCoinM::operator()(Trace<Timer> const &event) {
     if (ready()) {
       if (next_ping_ < timer.now) {
         next_ping_ = timer.now + shared_.settings.ws.ping_freq;
-        ping(timer.now);
+        send_ping(timer.now);
       }
     }
   }
@@ -163,7 +163,6 @@ void DropCopyCoinM::operator()(Trace<web::socket::Connected> const &event) {
 void DropCopyCoinM::operator()(Trace<web::socket::Disconnected> const &event) {
   auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  ready_ = false;
   create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   logon_timeout_ = {};
   next_ping_ = {};
@@ -182,7 +181,7 @@ void DropCopyCoinM::operator()(Trace<web::socket::Latency> const &event) {
 
 void DropCopyCoinM::operator()(Trace<web::socket::Ready> const &event) {
   auto &[trace_info, ready] = event;
-  login(trace_info);
+  send_login(trace_info);
 }
 
 void DropCopyCoinM::operator()(Trace<web::socket::Close> const &event) {
@@ -197,6 +196,27 @@ void DropCopyCoinM::operator()(Trace<web::socket::Text> const &event) {
 
 void DropCopyCoinM::operator()(Trace<web::socket::Binary> const &) {
   log::fatal("Unexpected"sv);
+}
+
+// core::Download
+
+int32_t DropCopyCoinM::download(Trace<State> const &event) {
+  auto &[trace_info, state] = event;
+  switch (state) {
+    using enum State;
+    case UNDEFINED:
+      assert(false);
+      break;
+    case SUBSCRIBE_AOP:
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "subscribe-aop"sv);
+      subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
+      return 1;
+    case DONE:
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
+      return 0;
+  }
+  assert(false);
+  return 0;
 }
 
 // protocol::json::Parser::Handler
@@ -215,9 +235,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::Ack> const &event) {
   auto success = ack.result.status == protocol::json::AckResultStatus::SUCCESS;
   auto auth_helper = [&]() {
     if (success) {
-      subscribe();
-      ready_ = true;
-      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
+      download_.begin(trace_info);
     } else {
       if (shared_.settings.experimental.retry_logon) {
         log::error("[{}] ack={}"sv, account_.name, ack);
@@ -232,6 +250,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::Ack> const &event) {
     if (!success) {
       log::warn(R"(Subscription failed: code={}, message="{}")"sv, ack.error.code, ack.error.message);
     }
+    download_.check(trace_info, State::SUBSCRIBE_AOP);
   };
   switch (ack.id) {
     case REQUEST_ID_AUTH:
@@ -507,7 +526,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::PositionInfo> const &event)
 
 // helpers
 
-void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
+void DropCopyCoinM::send_ping(std::chrono::nanoseconds now) {
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"
@@ -518,14 +537,10 @@ void DropCopyCoinM::ping(std::chrono::nanoseconds now) {
   (*connection_).send_text(message);
 }
 
-void DropCopyCoinM::login(TraceInfo const &trace_info) {
+void DropCopyCoinM::send_login(TraceInfo const &trace_info) {
   auto message = account_.create_ws_login(trace_info, REQUEST_ID_AUTH);
   // log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
-}
-
-void DropCopyCoinM::subscribe() {
-  subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
 }
 
 void DropCopyCoinM::subscribe(uint64_t id, std::string_view const &topic) {
