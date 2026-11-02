@@ -101,15 +101,16 @@ auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &acc
     auto &request = get_request(requests, account.name);
     std::vector<std::unique_ptr<server::OrderActionStream>> order_entry;
     for (size_t i = 0; i < shared.settings.misc.number_of_order_entry_connections; ++i) {
+      auto master = i == 0;
       switch (shared.api.type) {
         using enum API::Type;
         case COIN_M: {
-          auto obj = std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, account, shared, request);
+          auto obj = std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, account, shared, request, master);
           order_entry.emplace_back(std::move(obj));
           break;
         }
         case USD_M: {
-          auto obj = std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, account, shared, request);
+          auto obj = std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, account, shared, request, master);
           order_entry.emplace_back(std::move(obj));
           break;
         }

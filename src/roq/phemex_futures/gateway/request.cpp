@@ -12,11 +12,11 @@ namespace gateway {
 
 // === IMPLEMENTATION ===
 
-Request::Request(Shared &shared) : lost_orders{*this}, trades{*this}, shared_{shared} {
+Request::Request(Shared &shared) : stale_orders{*this}, trades{*this}, shared_{shared} {
 }
 
 bool Request::ready() const {
-  return lost_orders.ready() && trades.ready();
+  return stale_orders.ready() && trades.ready();
 }
 
 bool Request::can_request(TraceInfo const &trace_info) {

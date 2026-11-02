@@ -57,7 +57,7 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
   enum class State {
     UNDEFINED = 0,
     SUBSCRIBE_AOP,
-    GET_LOST_ORDERS,
+    GET_STALE_ORDERS,
     GET_TRADES,
     DONE,
   };

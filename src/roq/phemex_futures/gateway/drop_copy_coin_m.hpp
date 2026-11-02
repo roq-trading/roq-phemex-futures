@@ -67,7 +67,7 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
   enum class State {
     UNDEFINED = 0,
     SUBSCRIBE_AOP,
-    GET_LOST_ORDERS,
+    GET_STALE_ORDERS,
     GET_TRADES,
     DONE,
   };

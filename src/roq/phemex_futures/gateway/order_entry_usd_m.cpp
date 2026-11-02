@@ -76,8 +76,8 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-OrderEntryUsdM::OrderEntryUsdM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)},
+OrderEntryUsdM::OrderEntryUsdM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request, bool master)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)}, master_{master},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -116,7 +116,9 @@ void OrderEntryUsdM::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   if ((*connection_).refresh(timer.now)) {
     if (ready()) {
-      check_request_queue(trace_info);
+      if (master_) {
+        check_request_queue(trace_info);
+      }
     }
   }
 }
@@ -715,14 +717,14 @@ void OrderEntryUsdM::get_order_ack(Trace<web::rest::Response> const &event, std:
     };
     process_response(event, handle_error, handle_success);
     //
-    if (download_lost_orders_counter_) {
-      --download_lost_orders_counter_;
+    if (download_stale_orders_counter_) {
+      --download_stale_orders_counter_;
     } else {
       log::fatal("Unexpected"sv);
     }
-    log::warn("DEBUG remaining orders: {}"sv, download_lost_orders_counter_);
-    if (download_lost_orders_counter_ == 0) {
-      request_.lost_orders.commit(trace_info);
+    log::warn("DEBUG remaining orders: {}"sv, download_stale_orders_counter_);
+    if (download_stale_orders_counter_ == 0) {
+      request_.stale_orders.commit(trace_info);
     }
   });
 }
@@ -814,17 +816,17 @@ void OrderEntryUsdM::get_user_fills_ack(Trace<web::rest::Response> const &event)
 // helpers
 
 void OrderEntryUsdM::check_request_queue(TraceInfo const &trace_info) {
-  request_.lost_orders.check_pending(trace_info, [this](auto &trace_info) {
+  request_.stale_orders.check_pending(trace_info, [this](auto &trace_info) {
     // XXX FIXME TODO throttle requests
     auto helper = [&](auto &order) { get_order(trace_info, order.client_order_id, order.external_order_id, order.symbol); };
-    for (auto &[user_id, order_id] : request_.details_lost_orders) {
+    for (auto &[user_id, order_id] : request_.details_stale_orders) {
       if (shared_.dispatcher.find_order(user_id, order_id, helper)) {
-        ++download_lost_orders_counter_;
+        ++download_stale_orders_counter_;
       } else {
         log::warn("Unexpected: user_id={}, order_id={}"sv, user_id, order_id);
       }
     }
-    request_.details_lost_orders.clear();
+    request_.details_stale_orders.clear();
   });
   request_.trades.check_pending(trace_info, [this](auto &trace_info) { get_user_fills(trace_info); });
 }

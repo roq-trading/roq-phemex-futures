@@ -213,12 +213,12 @@ int32_t DropCopyCoinM::download(Trace<State> const &event) {
       publish_downloading();
       subscribe(REQUEST_ID_AOP, shared_.api.order_management.accounts_orders_positions);
       return 1;
-    case GET_LOST_ORDERS:
-      if (std::empty(request_.details_lost_orders)) {
+    case GET_STALE_ORDERS:
+      if (std::empty(request_.details_stale_orders)) {
         return 0;
       } else {
         publish_downloading();
-        request_.lost_orders.request(trace_info);
+        request_.stale_orders.request(trace_info);
         return 1;
       }
     case GET_TRADES:
@@ -585,9 +585,9 @@ void DropCopyCoinM::check_request_queue(TraceInfo const &trace_info) {
       break;
     case SUBSCRIBE_AOP:
       break;
-    case GET_LOST_ORDERS:
-      if (request_.lost_orders.has_response()) {
-        if (!std::empty(request_.details_lost_orders)) {
+    case GET_STALE_ORDERS:
+      if (request_.stale_orders.has_response()) {
+        if (!std::empty(request_.details_stale_orders)) {
           log::fatal("Unexpected"sv);
         }
         download_.check(trace_info, state);
@@ -607,7 +607,7 @@ bool DropCopyCoinM::check_stale_orders() {
   size_t counter = 0;
   auto helper = [&](auto &order) {
     auto key = std::make_pair(order.user_id, order.order_id);
-    auto res = request_.details_lost_orders.insert(key);
+    auto res = request_.details_stale_orders.insert(key);
     if (res.second) {
       log::warn(
           R"(DEBUG stale order: )"
@@ -633,7 +633,7 @@ void DropCopyCoinM::check_stale_orders(TraceInfo const &trace_info) {
   if (next_check_stale_orders_ < trace_info.origin_create_time) {
     next_check_stale_orders_ = trace_info.origin_create_time + CHECK_STALE_ORDERS_FREQ;
     if (check_stale_orders()) {
-      request_.lost_orders.request(trace_info);
+      request_.stale_orders.request(trace_info);
     }
   }
 }

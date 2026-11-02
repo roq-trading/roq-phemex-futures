@@ -35,7 +35,7 @@ namespace gateway {
 struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderActionStream, public web::rest::Client::Handler {
   struct Handler {};
 
-  OrderEntryUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
+  OrderEntryUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &, bool master);
 
   // protected:
   friend base_type;
@@ -136,6 +136,7 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
   // config
   uint16_t const stream_id_;
   std::string const name_;
+  bool const master_;
   // connection
   std::unique_ptr<web::rest::Client> connection_;
   // buffers
@@ -166,7 +167,7 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
   //
   std::string encode_buffer_;
   //
-  size_t download_lost_orders_counter_ = {};
+  size_t download_stale_orders_counter_ = {};
 };
 
 }  // namespace gateway
