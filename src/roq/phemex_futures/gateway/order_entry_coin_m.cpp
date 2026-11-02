@@ -25,7 +25,6 @@ auto const NAME = "om"sv;
 
 auto const SUPPORTS = Mask{
     SupportType::CREATE_ORDER,
-    // SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
     SupportType::ORDER_ACK,
 };
@@ -77,7 +76,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-OrderEntryCoinM::OrderEntryCoinM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
+OrderEntryCoinM::OrderEntryCoinM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account)},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -92,18 +91,18 @@ OrderEntryCoinM::OrderEntryCoinM(Handler &handler, io::Context &context, uint16_
           .orders_cancel_ack = create_metrics(shared.settings, name_, "orders_cancel_ack"sv),
           .orders_all = create_metrics(shared.settings, name_, "orders_all"sv),
           .orders_all_ack = create_metrics(shared.settings, name_, "orders_all_ack"sv),
+          .order = create_metrics(shared.settings, name_, "order"sv),
+          .order_ack = create_metrics(shared.settings, name_, "order_ack"sv),
+          .user_fills = create_metrics(shared.settings, name_, "user_fills"sv),
+          .user_fills_ack = create_metrics(shared.settings, name_, "user_fills_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      account_{account}, shared_{shared}, download_{shared.settings.rest.request_timeout, [this](auto &event) { return download(event); }} {
+      account_{account}, shared_{shared}, request_{request} {
 }
 
 // server::Stream
-
-bool OrderEntryCoinM::ready() const {
-  return connection_status_ == ConnectionStatus::READY;
-}
 
 void OrderEntryCoinM::operator()(Trace<Start> const &) {
   (*connection_).start();
@@ -115,7 +114,11 @@ void OrderEntryCoinM::operator()(Trace<Stop> const &) {
 
 void OrderEntryCoinM::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  (*connection_).refresh(timer.now);
+  if ((*connection_).refresh(timer.now)) {
+    if (ready()) {
+      check_request_queue(trace_info);
+    }
+  }
 }
 
 void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
@@ -131,6 +134,10 @@ void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
       .write(profile_.orders_cancel_ack, metrics::Type::PROFILE)
       .write(profile_.orders_all, metrics::Type::PROFILE)
       .write(profile_.orders_all_ack, metrics::Type::PROFILE)
+      .write(profile_.order, metrics::Type::PROFILE)
+      .write(profile_.order_ack, metrics::Type::PROFILE)
+      .write(profile_.user_fills, metrics::Type::PROFILE)
+      .write(profile_.user_fills_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
 }
@@ -172,10 +179,6 @@ uint16_t OrderEntryCoinM::operator()(
     [[maybe_unused]] std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id) {
   throw server::oms::NotSupported{"not supported"sv};
-  /*
-  orders_replace(event, order, request_id, previous_request_id);
-  return stream_id_;
-  */
 }
 
 uint16_t OrderEntryCoinM::operator()(
@@ -197,20 +200,13 @@ uint16_t OrderEntryCoinM::operator()(Event<CancelAllOrders> const &event, std::s
 
 void OrderEntryCoinM::operator()(Trace<web::rest::Connected> const &event) {
   auto &[trace_info, connected] = event;
-  if (download_.downloading()) {
-    download_.bump(trace_info);
-  } else {
-    download_.begin(trace_info);
-  }
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
 }
 
 void OrderEntryCoinM::operator()(Trace<web::rest::Disconnected> const &event) {
   auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
   create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
-  if (!download_.downloading()) {
-    download_.reset();
-  }
 }
 
 void OrderEntryCoinM::operator()(Trace<web::rest::Latency> const &event) {
@@ -222,23 +218,6 @@ void OrderEntryCoinM::operator()(Trace<web::rest::Latency> const &event) {
   };
   create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
-}
-
-// core::Download
-
-int32_t OrderEntryCoinM::download(Trace<State> const &event) {
-  auto &[trace_info, state] = event;
-  switch (state) {
-    using enum State;
-    case UNDEFINED:
-      assert(false);
-      break;
-    case DONE:
-      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
-      return 0;
-  }
-  assert(false);
-  return 0;
 }
 
 // orders-create
@@ -282,6 +261,7 @@ void OrderEntryCoinM::orders_create(
 void OrderEntryCoinM::orders_create_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.orders_create_ack([&]() {
     auto &[trace_info, response] = event;
+    log::warn("DEBUG response={}"sv, response);
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -405,6 +385,7 @@ void OrderEntryCoinM::orders_replace(
 void OrderEntryCoinM::orders_replace_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.orders_replace_ack([&]() {
     auto &[trace_info, response] = event;
+    log::warn("DEBUG response={}"sv, response);
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -479,6 +460,7 @@ void OrderEntryCoinM::orders_cancel(
 void OrderEntryCoinM::orders_cancel_ack(Trace<web::rest::Response> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   profile_.orders_cancel_ack([&]() {
     auto &[trace_info, response] = event;
+    log::warn("DEBUG response={}"sv, response);
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto response = server::oms::Response{
@@ -601,6 +583,7 @@ void OrderEntryCoinM::orders_all(Event<CancelAllOrders> const &event, std::strin
 void OrderEntryCoinM::orders_all_ack(Trace<web::rest::Response> const &event, [[maybe_unused]] uint8_t user_id) {
   profile_.orders_all_ack([&]() {
     auto &[trace_info, response] = event;
+    log::warn("DEBUG response={}"sv, response);
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto cancel_all_orders_ack = CancelAllOrdersAck{
@@ -640,7 +623,162 @@ void OrderEntryCoinM::operator()(Trace<protocol::json::OrdersAllAck> const &even
   log::info<2>("orders_all_ack={}"sv, orders_all_ack);
 }
 
+// order
+
+void OrderEntryCoinM::get_order(
+    TraceInfo const &trace_info, std::string_view const &client_order_id, std::string_view const &external_order_id, std::string_view const &symbol) {
+  profile_.order([&]() {
+    if (!ready()) {
+      throw server::oms::NotReady{"not ready"sv};
+    }
+    auto path = shared_.api.order_management.order;
+    auto query = protocol::json::Encoder::order_coin_m(encode_buffer_, client_order_id, external_order_id, symbol);
+    auto headers = account_.create_headers(trace_info, path, query, {});
+    auto request = web::rest::Request{
+        .method = web::http::Method::GET,
+        .path = path,
+        .query = query,
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = web::http::ContentType::APPLICATION_X_WWW_FORM_URLENCODED,
+        .headers = headers,
+        .body = {},
+        .quality_of_service = {},
+    };
+    log::info<2>("DEBUG request={}"sv, request);
+    auto callback = [this, client_order_id = std::string{client_order_id}](auto &event, [[maybe_unused]] auto &request_id) {
+      get_order_ack(event, client_order_id);
+    };
+    (*connection_)(request, callback, "order"sv);
+  });
+}
+
+void OrderEntryCoinM::get_order_ack(Trace<web::rest::Response> const &event, std::string_view const &client_order_id) {
+  profile_.order_ack([&]() {
+    auto &[trace_info, response] = event;
+    log::warn("DEBUG response={}"sv, response);
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+    };
+    auto handle_success = [&](auto &body) {
+      log::warn("DEBUG {}"sv, body);
+      protocol::json::GetOrderAck get_order_ack{body, decode_buffer_};
+      create_trace_and_dispatch_2(trace_info, get_order_ack);
+    };
+    process_response(event, handle_error, handle_success);
+    //
+    if (download_lost_orders_counter_) {
+      --download_lost_orders_counter_;
+    } else {
+      log::fatal("Unexpected"sv);
+    }
+    log::warn("DEBUG remaining orders: {}"sv, download_lost_orders_counter_);
+    if (download_lost_orders_counter_ == 0) {
+      request_.lost_orders.commit(trace_info);
+    }
+  });
+}
+
+void OrderEntryCoinM::operator()(Trace<protocol::json::GetOrderAck> const &event) {
+  auto &[trace_info, get_order_ack] = event;
+  log::info<2>("get_order_ack={}"sv, get_order_ack);
+  for (auto &item : get_order_ack.data) {
+    auto order_update = server::oms::OrderUpdate{
+        .account = account_.name,
+        .exchange = shared_.settings.exchange,
+        .symbol = item.symbol,
+        .side = map(item.side),
+        .position_effect = {},
+        .margin_mode = {},
+        .max_show_quantity = NaN,
+        .order_type = map(item.order_type),
+        .time_in_force = map(item.time_in_force),
+        .execution_instructions = {},  // ???
+        .execution_destination = {},
+        .create_time_utc = item.transact_time_ns,
+        .update_time_utc = item.transact_time_ns,
+        .external_account = {},
+        .external_order_id = item.order_id,
+        .client_order_id = item.cl_ord_id,
+        .order_status = map(item.ord_status),
+        .error = {},
+        .text = get_order_ack.msg,
+        .quantity = item.order_qty,
+        .price = item.price,
+        .stop_price = NaN,
+        .leverage = NaN,
+        .remaining_quantity = item.leaves_qty,
+        .traded_quantity = item.cum_qty,
+        .average_traded_price = NaN,
+        .last_traded_quantity = NaN,
+        .last_traded_price = NaN,
+        .last_liquidity = {},
+        .routing_id = {},
+        .max_request_version = {},
+        .max_response_version = {},
+        .max_accepted_version = {},
+        .update_type = UpdateType::INCREMENTAL,
+        .sending_time_utc = item.action_time_ns,  // ???
+    };
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id_);
+  }
+}
+
+// user-fills
+
+void OrderEntryCoinM::get_user_fills(TraceInfo const &trace_info) {
+  profile_.user_fills([&]() {
+    if (!ready()) {
+      throw server::oms::NotReady{"not ready"sv};
+    }
+    auto path = shared_.api.order_management.user_fills;
+    auto query = protocol::json::Encoder::user_fills_coin_m(encode_buffer_);
+    auto headers = account_.create_headers(trace_info, path, query, {});
+    auto request = web::rest::Request{
+        .method = web::http::Method::GET,
+        .path = path,
+        .query = query,
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = web::http::ContentType::APPLICATION_X_WWW_FORM_URLENCODED,
+        .headers = headers,
+        .body = {},
+        .quality_of_service = {},
+    };
+    log::info<2>("DEBUG request={}"sv, request);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_user_fills_ack(event); };
+    (*connection_)(request, callback, "user-fills"sv);
+  });
+}
+
+void OrderEntryCoinM::get_user_fills_ack(Trace<web::rest::Response> const &event) {
+  profile_.user_fills_ack([&]() {
+    auto &[trace_info, response] = event;
+    log::warn("DEBUG response={}"sv, response);
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+    };
+    auto handle_success = [&](auto &body) { log::warn("DEBUG {}"sv, body); };
+    process_response(event, handle_error, handle_success);
+    request_.trades.commit(trace_info);
+  });
+}
+
 // helpers
+
+void OrderEntryCoinM::check_request_queue(TraceInfo const &trace_info) {
+  request_.lost_orders.check_pending(trace_info, [this](auto &trace_info) {
+    // XXX FIXME TODO throttle requests
+    auto helper = [&](auto &order) { get_order(trace_info, order.client_order_id, order.external_order_id, order.symbol); };
+    for (auto &[user_id, order_id] : request_.details_lost_orders) {
+      if (shared_.dispatcher.find_order(user_id, order_id, helper)) {
+        ++download_lost_orders_counter_;
+      } else {
+        log::warn("Unexpected: user_id={}, order_id={}"sv, user_id, order_id);
+      }
+    }
+    request_.details_lost_orders.clear();
+  });
+  request_.trades.check_pending(trace_info, [this](auto &trace_info) { get_user_fills(trace_info); });
+}
 
 void OrderEntryCoinM::process_response(Trace<web::rest::Response> const &event, auto error_handler, auto success_handler) {
   auto &[trace, response] = event;

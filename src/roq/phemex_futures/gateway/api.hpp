@@ -28,7 +28,8 @@ struct API final {
   struct {
     std::string_view accounts_orders_positions;
     std::string_view open_orders;
-    std::string_view fill_history;
+    std::string_view order;
+    std::string_view user_fills;
     std::string_view orders_create;
     std::string_view orders_replace;
     std::string_view orders_cancel;

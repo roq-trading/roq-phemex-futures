@@ -1,0 +1,98 @@
+{
+  "name": "roq/phemex_futures/protocol/json/GetOrderAck2DataRowsItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "orderId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "clOrdId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "symbol",
+      "type": "std/string_view"
+    },
+    {
+      "name": "side",
+      "type": "roq/phemex_futures/protocol/json/Side"
+    },
+    {
+      "name": "ordType",
+      "type": "roq/phemex_futures/protocol/json/OrderType"
+    },
+    {
+      "name": "actionTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "priceRp",
+      "type": "std/double"
+    },
+    {
+      "name": "orderQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "displayQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "timeInForce",
+      "type": "roq/phemex_futures/protocol/json/TimeInForce"
+    },
+    {
+      "name": "reduceOnly",
+      "type": "std/bool"
+    },
+    {
+      "name": "takeProfitRp",
+      "type": "std/double"
+    },
+    {
+      "name": "stopLossRp",
+      "type": "std/double"
+    },
+    {
+      "name": "closedPnlRv",
+      "type": "std/double"
+    },
+    {
+      "name": "closedSizeRq",
+      "type": "std/double"
+    },
+    {
+      "name": "cumQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "cumValueRv",
+      "type": "std/double"
+    },
+    {
+      "name": "leavesQtyRq",
+      "type": "std/double"
+    },
+    {
+      "name": "leavesValueRv",
+      "type": "std/double"
+    },
+    {
+      "name": "stopDirection",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordStatus",
+      "type": "roq/phemex_futures/protocol/json/OrderStatus"
+    },
+    {
+      "name": "transactTimeNs",
+      "type": "std/nanoseconds"
+    },
+    {
+      "name": "bizError",
+      "type": "std/int32"
+    }
+  ]
+}

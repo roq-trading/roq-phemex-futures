@@ -20,6 +20,11 @@ event.hpp
 event_type.hpp
 exec_inst.hpp
 exec_status.hpp
+get_order_ack.hpp
+get_order_ack2.hpp
+get_order_ack2_data.hpp
+get_order_ack2_data_rows_item.hpp
+get_order_ack_data_item.hpp
 header.hpp
 index_market24h.hpp
 index_market24h_data.hpp
@@ -96,6 +101,11 @@ event.cpp
 event_type.cpp
 exec_inst.cpp
 exec_status.cpp
+get_order_ack.cpp
+get_order_ack2.cpp
+get_order_ack2_data.cpp
+get_order_ack2_data_rows_item.cpp
+get_order_ack_data_item.cpp
 header.cpp
 index_market24h.cpp
 index_market24h_data.cpp

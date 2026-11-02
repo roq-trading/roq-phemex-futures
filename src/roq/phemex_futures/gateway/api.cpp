@@ -27,7 +27,8 @@ auto const API_COIN_M = API{
     .order_management{
         .accounts_orders_positions = "aop"sv,
         .open_orders = "/orders/activeList"sv,
-        .fill_history = "/exchange/order/trade"sv,
+        .order = "/exchange/order"sv,
+        .user_fills = "/exchange/order/trade"sv,
         .orders_create = "/orders/create"sv,
         .orders_replace = "/orders/replace"sv,
         .orders_cancel = "/orders/cancel"sv,
@@ -46,7 +47,8 @@ auto const API_USD_M = API{
     .order_management{
         .accounts_orders_positions = "aop_p"sv,
         .open_orders = "/g-orders/activeList"sv,
-        .fill_history = "/exchange/order/v2/tradingList"sv,
+        .order = "/api-data/g-futures/orders/by-order-id"sv,
+        .user_fills = "/exchange/order/v2/tradingList"sv,
         .orders_create = "/g-orders/create"sv,
         .orders_replace = "/g-orders/replace"sv,
         .orders_cancel = "/g-orders/cancel"sv,

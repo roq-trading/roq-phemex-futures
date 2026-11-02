@@ -25,6 +25,11 @@ set(AUTOGEN_SCHEMAS
     event_type.json
     exec_inst.json
     exec_status.json
+    get_order_ack.json
+    get_order_ack2.json
+    get_order_ack2_data.json
+    get_order_ack2_data_rows_item.json
+    get_order_ack_data_item.json
     header.json
     index_market24h.json
     index_market24h_data.json

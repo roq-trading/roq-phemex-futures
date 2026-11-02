@@ -21,6 +21,7 @@
 #include "roq/server/stream.hpp"
 
 #include "roq/phemex_futures/gateway/account.hpp"
+#include "roq/phemex_futures/gateway/request.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
 #include "roq/phemex_futures/protocol/json/parser_2.hpp"
@@ -32,7 +33,7 @@ namespace gateway {
 struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public web::socket::Client::Handler, protocol::json::Parser2::Handler {
   struct Handler {};
 
-  DropCopyUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+  DropCopyUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
 
   // protected:
   friend base_type;
@@ -41,7 +42,7 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   uint16_t stream_id() const override { return stream_id_; }
 
-  bool ready() const override;
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Trace<Start> const &) override;
   void operator()(Trace<Stop> const &) override;
@@ -56,6 +57,8 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
   enum class State {
     UNDEFINED = 0,
     SUBSCRIBE_AOP,
+    GET_LOST_ORDERS,
+    GET_TRADES,
     DONE,
   };
 
@@ -94,6 +97,11 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   void subscribe(uint64_t id, std::string_view const &topic);
 
+  void check_request_queue(TraceInfo const &);
+
+  bool check_stale_orders();
+  void check_stale_orders(TraceInfo const &);
+
   void parse(TraceInfo const &, std::string_view const &message);
 
  private:
@@ -119,11 +127,13 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
   Account &account_;
   // cache
   Shared &shared_;
+  Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
   core::Download2<State> download_;
   std::chrono::nanoseconds logon_timeout_ = {};
   std::chrono::nanoseconds next_ping_ = {};
+  std::chrono::nanoseconds next_check_stale_orders_ = {};
 };
 
 }  // namespace gateway

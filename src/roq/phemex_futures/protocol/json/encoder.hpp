@@ -43,6 +43,14 @@ struct Encoder final {
       std::string &buffer, CancelOrder const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
 
   static std::string_view orders_all(std::string &buffer, CancelAllOrders const &, std::string_view const &symbol, std::string_view const &request_id);
+
+  static std::string_view order_coin_m(
+      std::string &buffer, std::string_view const &client_order_id, std::string_view const &external_order_id, std::string_view const &symbol);
+  static std::string_view order_usd_m(
+      std::string &buffer, std::string_view const &client_order_id, std::string_view const &external_order_id, std::string_view const &symbol);
+
+  static std::string_view user_fills_coin_m(std::string &buffer);
+  static std::string_view user_fills_usd_m(std::string &buffer);
 };
 
 }  // namespace json

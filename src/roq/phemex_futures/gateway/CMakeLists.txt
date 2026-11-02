@@ -11,6 +11,7 @@ set(SOURCES
     market_data_usd_m.cpp
     order_entry_coin_m.cpp
     order_entry_usd_m.cpp
+    request.cpp
     rest_coin_m.cpp
     rest_usd_m.cpp
     shared.cpp)

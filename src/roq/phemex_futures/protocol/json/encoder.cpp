@@ -211,6 +211,40 @@ std::string_view Encoder::orders_all(
   return buffer;
 }
 
+std::string_view Encoder::order_coin_m(
+    std::string &buffer, std::string_view const &client_order_id, std::string_view const &external_order_id, std::string_view const &symbol) {
+  buffer.clear();
+  fmt::format_to(std::back_inserter(buffer), "?symbol={}"sv, symbol);
+  if (std::empty(external_order_id)) {
+    fmt::format_to(std::back_inserter(buffer), "&clOrdID={}"sv, client_order_id);
+  } else {
+    fmt::format_to(std::back_inserter(buffer), "&orderID={}"sv, external_order_id);
+  }
+  return buffer;
+}
+
+std::string_view Encoder::order_usd_m(
+    std::string &buffer, std::string_view const &client_order_id, std::string_view const &external_order_id, std::string_view const &symbol) {
+  buffer.clear();
+  fmt::format_to(std::back_inserter(buffer), "?symbol={}"sv, symbol);
+  if (std::empty(external_order_id)) {
+    fmt::format_to(std::back_inserter(buffer), "&clOrdID={}"sv, client_order_id);
+  } else {
+    fmt::format_to(std::back_inserter(buffer), "&orderID={}"sv, external_order_id);
+  }
+  return buffer;
+}
+
+std::string_view Encoder::user_fills_coin_m(std::string &buffer) {
+  buffer.clear();
+  return buffer;
+}
+
+std::string_view Encoder::user_fills_usd_m(std::string &buffer) {
+  buffer.clear();
+  return buffer;
+}
+
 }  // namespace json
 }  // namespace protocol
 }  // namespace phemex_futures

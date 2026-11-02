@@ -40,10 +40,30 @@ template <typename R>
 auto create_accounts(auto &config) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
-  for (auto &[_, iter] : config.accounts) {
-    result.try_emplace(static_cast<std::string_view>(iter.name), std::make_unique<Account>(config, iter.name));
+  for (auto &[_, account] : config.accounts) {
+    auto obj = std::make_unique<Account>(config, account.name);
+    result.try_emplace(account.name, std::move(obj));
   }
   return result;
+}
+
+template <typename R>
+R create_requests(auto &config, auto &shared) {
+  using result_type = std::remove_cvref_t<R>;
+  result_type result;
+  for (auto &[_, account] : config.accounts) {
+    auto obj = std::make_unique<Request>(shared);
+    result.try_emplace(account.name, std::move(obj));
+  }
+  return result;
+}
+
+Request &get_request(auto &requests, auto &account) {
+  auto iter = requests.find(account);
+  if (iter == std::end(requests)) {
+    log::fatal("Unexpected"sv);
+  }
+  return *(*iter).second;
 }
 
 template <typename R>
@@ -70,44 +90,56 @@ auto create_rest(auto &gateway, auto &context, auto &stream_id, auto &shared, au
 }
 
 template <typename R>
-auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
+auto create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &requests) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
   if (!shared.settings.misc.number_of_order_entry_connections) {
     log::fatal("Unexpected: --number_of_order_entry_connections={}"sv, shared.settings.misc.number_of_order_entry_connections);
   }
-  for (auto &[name, account] : accounts) {
+  for (auto &[_, item] : accounts) {
+    auto &account = *item;
+    auto &request = get_request(requests, account.name);
     std::vector<std::unique_ptr<server::OrderActionStream>> order_entry;
     for (size_t i = 0; i < shared.settings.misc.number_of_order_entry_connections; ++i) {
       switch (shared.api.type) {
         using enum API::Type;
-        case COIN_M:
-          order_entry.emplace_back(std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, *account, shared));
+        case COIN_M: {
+          auto obj = std::make_unique<OrderEntryCoinM>(gateway, context, ++stream_id, account, shared, request);
+          order_entry.emplace_back(std::move(obj));
           break;
-        case USD_M:
-          order_entry.emplace_back(std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, *account, shared));
+        }
+        case USD_M: {
+          auto obj = std::make_unique<OrderEntryUsdM>(gateway, context, ++stream_id, account, shared, request);
+          order_entry.emplace_back(std::move(obj));
           break;
+        }
       }
     }
-    result.try_emplace(static_cast<std::string_view>(name), std::move(order_entry));
+    result.try_emplace(account.name, std::move(order_entry));
   }
   return result;
 }
 
 template <typename R>
-auto create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared) {
+auto create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &requests) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
   switch (shared.api.type) {
     using enum API::Type;
     case COIN_M:
-      for (auto &[name, account] : accounts) {
-        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<DropCopyCoinM>(gateway, context, ++stream_id, *account, shared));
+      for (auto &[_, item] : accounts) {
+        auto &account = *item;
+        auto &request = get_request(requests, account.name);
+        auto obj = std::make_unique<DropCopyCoinM>(gateway, context, ++stream_id, account, shared, request);
+        result.try_emplace(account.name, std::move(obj));
       }
       break;
     case USD_M:
-      for (auto &[name, account] : accounts) {
-        result.try_emplace(static_cast<std::string_view>(name), std::make_unique<DropCopyUsdM>(gateway, context, ++stream_id, *account, shared));
+      for (auto &[_, item] : accounts) {
+        auto &account = *item;
+        auto &request = get_request(requests, account.name);
+        auto obj = std::make_unique<DropCopyUsdM>(gateway, context, ++stream_id, account, shared, request);
+        result.try_emplace(account.name, std::move(obj));
       }
       break;
   }
@@ -135,9 +167,10 @@ uint8_t Controller::parse_api(Settings const &settings) {
 
 Controller::Controller(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
     : dispatcher_{dispatcher}, master_account_{config.get_master_account()}, accounts_{create_accounts<decltype(accounts_)>(config)}, context_{context},
-      shared_{dispatcher, settings}, rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, shared_, accounts_, master_account_)},
-      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_)},
-      drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_)} {
+      shared_{dispatcher, settings}, requests_{create_requests<decltype(requests_)>(config, shared_)},
+      rest_{create_rest<decltype(rest_)>(*this, context_, stream_id_, shared_, accounts_, master_account_)},
+      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_, requests_)},
+      drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, requests_)} {
 }
 
 // server::Handler
@@ -268,13 +301,13 @@ void Controller::ensure_symbol_slices(TraceInfo const &trace_info, size_t size) 
     switch (shared_.api.type) {
       using enum API::Type;
       case COIN_M: {
-        auto market_data = std::make_unique<MarketDataCoinM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
-        helper(std::move(market_data));
+        auto obj = std::make_unique<MarketDataCoinM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
+        helper(std::move(obj));
         break;
       }
       case USD_M: {
-        auto market_data = std::make_unique<MarketDataUsdM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
-        helper(std::move(market_data));
+        auto obj = std::make_unique<MarketDataUsdM>(*this, context_, ++stream_id_, shared_, std::size(market_data_));
+        helper(std::move(obj));
         break;
       }
     }

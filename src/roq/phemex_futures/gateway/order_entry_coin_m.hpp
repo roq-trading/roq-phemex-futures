@@ -12,8 +12,6 @@
 
 #include "roq/web/rest/client.hpp"
 
-#include "roq/core/download_2.hpp"
-
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
@@ -21,8 +19,10 @@
 #include "roq/server/stream.hpp"
 
 #include "roq/phemex_futures/gateway/account.hpp"
+#include "roq/phemex_futures/gateway/request.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
+#include "roq/phemex_futures/protocol/json/get_order_ack.hpp"
 #include "roq/phemex_futures/protocol/json/orders_all_ack.hpp"
 #include "roq/phemex_futures/protocol/json/orders_cancel_ack.hpp"
 #include "roq/phemex_futures/protocol/json/orders_create_ack.hpp"
@@ -35,7 +35,7 @@ namespace gateway {
 struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::OrderActionStream, public web::rest::Client::Handler {
   struct Handler {};
 
-  OrderEntryCoinM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+  OrderEntryCoinM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
 
   // protected:
   friend base_type;
@@ -44,7 +44,7 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
 
   uint16_t stream_id() const override { return stream_id_; }
 
-  bool ready() const override;
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Trace<Start> const &) override;
   void operator()(Trace<Stop> const &) override;
@@ -77,15 +77,6 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
   void operator()(Trace<web::rest::Connected> const &) override;
   void operator()(Trace<web::rest::Disconnected> const &) override;
   void operator()(Trace<web::rest::Latency> const &) override;
-
-  // core::Download
-
-  enum class State {
-    UNDEFINED = 0,
-    DONE,
-  };
-
-  int32_t download(Trace<State> const &);
 
   // orders-create
 
@@ -121,7 +112,21 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
   void orders_all_ack(Trace<web::rest::Response> const &, uint8_t user_id);
   void operator()(Trace<protocol::json::OrdersAllAck> const &, uint8_t user_id);
 
+  // order
+
+  void get_order(TraceInfo const &, std::string_view const &client_order_id, std::string_view const &external_order_id, std::string_view const &symbol);
+  void get_order_ack(Trace<web::rest::Response> const &, std::string_view const &client_order_id);
+  void operator()(Trace<protocol::json::GetOrderAck> const &);
+
+  // user-fills
+
+  void get_user_fills(TraceInfo const &);
+  void get_user_fills_ack(Trace<web::rest::Response> const &);
+  // void operator()(Trace<protocol::json::GetUserFillsAck> const &);
+
   // helpers
+
+  void check_request_queue(TraceInfo const &);
 
   void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
 
@@ -144,7 +149,9 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
         orders_create_ack,                   //
         orders_replace, orders_replace_ack,  //
         orders_cancel, orders_cancel_ack,    //
-        orders_all, orders_all_ack;
+        orders_all, orders_all_ack,          //
+        order, order_ack,                    //
+        user_fills, user_fills_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;
@@ -152,11 +159,13 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
   // account
   Account &account_;
   Shared &shared_;
+  Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download2<State> download_;
   //
   std::string encode_buffer_;
+  //
+  size_t download_lost_orders_counter_ = {};
 };
 
 }  // namespace gateway

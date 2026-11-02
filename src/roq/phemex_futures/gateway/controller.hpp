@@ -16,6 +16,7 @@
 
 #include "roq/phemex_futures/gateway/account.hpp"
 #include "roq/phemex_futures/gateway/config.hpp"
+#include "roq/phemex_futures/gateway/request.hpp"
 #include "roq/phemex_futures/gateway/settings.hpp"
 #include "roq/phemex_futures/gateway/shared.hpp"
 
@@ -133,6 +134,7 @@ struct Controller final : public Base<Controller>,
   io::Context &context_;
   // shared
   Shared shared_;
+  utils::unordered_map<std::string, std::unique_ptr<Request>> const requests_;
   // seed
   uint16_t stream_id_ = {};
   // streams

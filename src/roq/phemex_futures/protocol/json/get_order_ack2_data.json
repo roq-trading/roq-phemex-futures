@@ -1,0 +1,11 @@
+{
+  "name": "roq/phemex_futures/protocol/json/GetOrderAck2Data",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "rows",
+      "type": "roq/phemex_futures/protocol/json/GetOrderAck2DataRowsItem",
+      "array": "std/span"
+    }
+  ]
+}
