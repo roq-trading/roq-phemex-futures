@@ -102,7 +102,10 @@ void RestCoinM::operator()(Trace<Stop> const &) {
 
 void RestCoinM::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  (*connection_).refresh(timer.now);
+  if ((*connection_).refresh(trace_info)) {
+    if (ready()) {
+    }
+  }
 }
 
 void RestCoinM::operator()(metrics::Writer &writer) const {

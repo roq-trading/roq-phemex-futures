@@ -91,7 +91,7 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
 
   // helpers
 
-  void send_ping(std::chrono::nanoseconds now);
+  void send_ping(TraceInfo const &);
 
   void send_login(TraceInfo const &);
 

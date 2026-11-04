@@ -91,7 +91,7 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   // helpers
 
-  void send_ping(std::chrono::nanoseconds now);
+  void send_ping(TraceInfo const &);
 
   void send_login(TraceInfo const &);
 

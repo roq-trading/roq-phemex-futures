@@ -110,11 +110,11 @@ void MarketDataCoinM::operator()(Trace<Stop> const &) {
 
 void MarketDataCoinM::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(timer.now)) {
+  if ((*connection_).refresh(trace_info)) {
     if (ready()) {
-      if (next_ping_ < timer.now) {
-        next_ping_ = timer.now + shared_.settings.ws.ping_freq;
-        send_ping(timer.now);
+      if (next_ping_ < trace_info.origin_create_time) {
+        next_ping_ = trace_info.origin_create_time + shared_.settings.ws.ping_freq;
+        send_ping(trace_info);
       }
       check_subscribe_queue(trace_info);
     }
@@ -447,14 +447,14 @@ void MarketDataCoinM::check_subscribe_queue(TraceInfo const &trace_info) {
   subscribe_queue_.dispatch(trace_info, callback);
 }
 
-void MarketDataCoinM::send_ping(std::chrono::nanoseconds now) {
+void MarketDataCoinM::send_ping(TraceInfo const &trace_info) {
   auto message = fmt::format(
       R"({{)"
       R"("id":{},)"
       R"("method":"server.ping",)"
       R"("params":[])"
       R"(}})"sv,
-      std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+      std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.origin_create_time).count());
   (*connection_).send_text(message);
 }
 
