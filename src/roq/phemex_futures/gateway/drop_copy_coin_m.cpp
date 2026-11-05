@@ -36,8 +36,6 @@ size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
 uint64_t const REQUEST_ID_AUTH = 1;
 uint64_t const REQUEST_ID_AOP = 2;
-
-auto const CHECK_STALE_ORDERS_FREQ = 10s;
 }  // namespace
 
 // === HELPERS ===
@@ -631,7 +629,7 @@ bool DropCopyCoinM::check_stale_orders() {
 
 void DropCopyCoinM::check_stale_orders(TraceInfo const &trace_info) {
   if (next_check_stale_orders_ < trace_info.origin_create_time) {
-    next_check_stale_orders_ = trace_info.origin_create_time + CHECK_STALE_ORDERS_FREQ;
+    next_check_stale_orders_ = trace_info.origin_create_time + shared_.settings.experimental.check_stale_order_freq;
     if (check_stale_orders()) {
       request_.stale_orders.request(trace_info);
     }
