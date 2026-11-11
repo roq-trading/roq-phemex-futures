@@ -29,6 +29,10 @@ namespace roq {
 
 template <>
 template <>
+std::optional<Error> Map<int32_t>::helper() const;
+
+template <>
+template <>
 std::optional<UpdateType> Map<phemex_futures::protocol::json::EventType>::helper() const;
 
 template <>

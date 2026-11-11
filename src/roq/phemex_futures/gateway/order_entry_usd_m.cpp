@@ -288,7 +288,8 @@ void OrderEntryUsdM::orders_create_ack(Trace<web::rest::Response> const &event, 
       if (orders_create_ack.code == 0) {
         create_trace_and_dispatch_2(trace_info, orders_create_ack, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_create_ack.code), orders_create_ack.msg);
+        auto error = map(orders_create_ack.code).template get<Error>();
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_create_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -411,7 +412,8 @@ void OrderEntryUsdM::orders_replace_ack(Trace<web::rest::Response> const &event,
       if (orders_replace_ack.code == 0) {
         create_trace_and_dispatch_2(trace_info, orders_replace_ack, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_replace_ack.code), orders_replace_ack.msg);
+        auto error = map(orders_replace_ack.code).template get<Error>();
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_replace_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -534,7 +536,8 @@ void OrderEntryUsdM::orders_cancel_ack(Trace<web::rest::Response> const &event, 
       if (orders_cancel_ack.code == 0) {
         create_trace_and_dispatch_2(trace_info, orders_cancel_ack, user_id, order_id, version);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_cancel_ack.code), orders_cancel_ack.msg);
+        auto error = map(orders_cancel_ack.code).template get<Error>();
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_cancel_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -662,7 +665,8 @@ void OrderEntryUsdM::orders_all_ack(Trace<web::rest::Response> const &event, [[m
       if (orders_all_ack.code == 0) {
         create_trace_and_dispatch_2(trace_info, orders_all_ack, user_id);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_all_ack.code), orders_all_ack.msg);
+        auto error = map(orders_all_ack.code).template get<Error>();
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_all_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);

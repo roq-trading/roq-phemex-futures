@@ -239,7 +239,8 @@ void RestUsdM::get_products_ack(Trace<web::rest::Response> const &event, uint32_
           create_trace_and_dispatch_2(trace_info, products_ack);
           download_.check(trace_info, state);
         } else {
-          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(products_ack.code), products_ack.msg);
+          auto error = map(products_ack.code).template get<Error>();
+          handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, products_ack.msg);
         }
       }
     };
@@ -370,6 +371,7 @@ void RestUsdM::process_response(Trace<web::rest::Response> const &event, auto er
           default: {
             // protocol::json::Message error{body};
             // XXX HANS error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(error.code), error.msg);
+            error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::UNKNOWN, ""sv);
           }
         }
         break;
