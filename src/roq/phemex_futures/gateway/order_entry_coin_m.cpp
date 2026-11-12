@@ -658,7 +658,7 @@ void OrderEntryCoinM::get_order(
   });
 }
 
-void OrderEntryCoinM::get_order_ack(Trace<web::rest::Response> const &event, std::string_view const &client_order_id) {
+void OrderEntryCoinM::get_order_ack(Trace<web::rest::Response> const &event, [[maybe_unused]] std::string_view const &client_order_id) {
   profile_.order_ack([&]() {
     auto &[trace_info, response] = event;
     log::warn("DEBUG response={}"sv, response);
