@@ -284,11 +284,12 @@ void OrderEntryCoinM::orders_create_ack(Trace<web::rest::Response> const &event,
     auto handle_success = [&](auto &body) {
       // log::warn(R"(DEBUG body="{}")"sv, body);
       protocol::json::OrdersCreateAck orders_create_ack{body, decode_buffer_};
-      if (orders_create_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, orders_create_ack, user_id, order_id, version);
-      } else {
+      log::info<2>("orders_create_ack={}"sv, orders_create_ack);
+      if (orders_create_ack.code != 0) {
         auto error = map(orders_create_ack.code).template get<Error>();
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_create_ack.msg);
+      } else if (shared_.settings.oms.unsafe_order_ack) {
+        create_trace_and_dispatch_2(trace_info, orders_create_ack, user_id, order_id, version);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -297,7 +298,6 @@ void OrderEntryCoinM::orders_create_ack(Trace<web::rest::Response> const &event,
 
 void OrderEntryCoinM::operator()(Trace<protocol::json::OrdersCreateAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, orders_create_ack] = event;
-  log::info<2>("orders_create_ack={}"sv, orders_create_ack);
   auto &data = orders_create_ack.data;
   auto response = server::oms::Response{
       .request_type = RequestType::CREATE_ORDER,
@@ -408,11 +408,12 @@ void OrderEntryCoinM::orders_replace_ack(Trace<web::rest::Response> const &event
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersReplaceAck orders_replace_ack{body, decode_buffer_};
-      if (orders_replace_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, orders_replace_ack, user_id, order_id, version);
-      } else {
+      log::info<2>("orders_replace_ack={}"sv, orders_replace_ack);
+      if (orders_replace_ack.code != 0) {
         auto error = map(orders_replace_ack.code).template get<Error>();
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_replace_ack.msg);
+      } else if (shared_.settings.oms.unsafe_order_ack) {
+        create_trace_and_dispatch_2(trace_info, orders_replace_ack, user_id, order_id, version);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -424,8 +425,7 @@ void OrderEntryCoinM::operator()(
     [[maybe_unused]] uint8_t user_id,
     [[maybe_unused]] uint64_t order_id,
     [[maybe_unused]] uint32_t version) {
-  auto &[trace_info, orders_replace_ack] = event;
-  log::info<2>("orders_replace_ack={}"sv, orders_replace_ack);
+  [[maybe_unused]] auto &[trace_info, orders_replace_ack] = event;
 }
 
 // orders-cancel
@@ -484,11 +484,12 @@ void OrderEntryCoinM::orders_cancel_ack(Trace<web::rest::Response> const &event,
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersCancelAck orders_cancel_ack{body, decode_buffer_};
-      if (orders_cancel_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, orders_cancel_ack, user_id, order_id, version);
-      } else {
+      log::info<2>("orders_cancel_ack={}"sv, orders_cancel_ack);
+      if (orders_cancel_ack.code != 0) {
         auto error = map(orders_cancel_ack.code).template get<Error>();
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_cancel_ack.msg);
+      } else if (shared_.settings.oms.unsafe_order_ack) {
+        create_trace_and_dispatch_2(trace_info, orders_cancel_ack, user_id, order_id, version);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -497,7 +498,6 @@ void OrderEntryCoinM::orders_cancel_ack(Trace<web::rest::Response> const &event,
 
 void OrderEntryCoinM::operator()(Trace<protocol::json::OrdersCancelAck> const &event, uint8_t user_id, uint64_t order_id, uint32_t version) {
   auto &[trace_info, orders_cancel_ack] = event;
-  log::info<2>("orders_cancel_ack={}"sv, orders_cancel_ack);
   auto &data = orders_cancel_ack.data;
   auto response = server::oms::Response{
       .request_type = RequestType::CANCEL_ORDER,
@@ -613,11 +613,12 @@ void OrderEntryCoinM::orders_all_ack(Trace<web::rest::Response> const &event, [[
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersAllAck orders_all_ack{body, decode_buffer_};
-      if (orders_all_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, orders_all_ack, user_id);
-      } else {
+      log::info<2>("orders_all_ack={}"sv, orders_all_ack);
+      if (orders_all_ack.code != 0) {
         auto error = map(orders_all_ack.code).template get<Error>();
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, orders_all_ack.msg);
+      } else if (shared_.settings.oms.unsafe_order_ack) {
+        create_trace_and_dispatch_2(trace_info, orders_all_ack, user_id);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -625,8 +626,7 @@ void OrderEntryCoinM::orders_all_ack(Trace<web::rest::Response> const &event, [[
 }
 
 void OrderEntryCoinM::operator()(Trace<protocol::json::OrdersAllAck> const &event, [[maybe_unused]] uint8_t user_id) {
-  auto &[trace_info, orders_all_ack] = event;
-  log::info<2>("orders_all_ack={}"sv, orders_all_ack);
+  [[maybe_unused]] auto &[trace_info, orders_all_ack] = event;
 }
 
 // order
@@ -668,6 +668,7 @@ void OrderEntryCoinM::get_order_ack(Trace<web::rest::Response> const &event, std
     auto handle_success = [&](auto &body) {
       log::warn("DEBUG {}"sv, body);
       protocol::json::GetOrderAck get_order_ack{body, decode_buffer_};
+      log::info<2>("get_order_ack={}"sv, get_order_ack);
       create_trace_and_dispatch_2(trace_info, get_order_ack);
     };
     process_response(event, handle_error, handle_success);
@@ -686,7 +687,6 @@ void OrderEntryCoinM::get_order_ack(Trace<web::rest::Response> const &event, std
 
 void OrderEntryCoinM::operator()(Trace<protocol::json::GetOrderAck> const &event) {
   auto &[trace_info, get_order_ack] = event;
-  log::info<2>("get_order_ack={}"sv, get_order_ack);
   for (auto &item : get_order_ack.data) {
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
