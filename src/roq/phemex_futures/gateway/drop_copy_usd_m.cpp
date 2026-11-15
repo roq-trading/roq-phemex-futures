@@ -360,6 +360,7 @@ void DropCopyUsdM::operator()(Trace<protocol::json::AccountsOrdersPositions2> co
         .execution_destination = {},
         .create_time_utc = item.transact_time_ns,
         .update_time_utc = item.transact_time_ns,
+        .external_trace_id = {},
         .external_account = external_account,
         .external_order_id = item.order_id,
         .client_order_id = item.cl_ord_id,
