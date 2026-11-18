@@ -537,7 +537,7 @@ void MarketDataCoinM::parse(TraceInfo const &trace_info, std::string_view const 
     log::info<5>(R"(message="{}")"sv, message);
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
-      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.app.disable_strict_parsing)) {
         log_message();
       }
     } catch (...) {
