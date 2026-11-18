@@ -56,21 +56,25 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
 
   // server::OrderActionStream
 
-  uint16_t operator()(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id) override;
+  void operator()(Trace<server::oms::OrderActionBatchBegin> const &) override;
+  void operator()(Trace<server::oms::OrderActionBatchCommit> const &) override;
+  void operator()(Trace<server::oms::OrderActionBatchRollback> const &) override;
+
+  uint16_t operator()(Trace<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id) override;
   uint16_t operator()(
-      Event<ModifyOrder> const &,
+      Trace<ModifyOrder> const &,
       server::oms::Order const &,
       server::oms::RefData const &,
       std::string_view const &request_id,
       std::string_view const &previous_request_id) override;
   uint16_t operator()(
-      Event<CancelOrder> const &,
+      Trace<CancelOrder> const &,
       server::oms::Order const &,
       server::oms::RefData const &,
       std::string_view const &request_id,
       std::string_view const &previous_request_id) override;
 
-  uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id) override;
+  uint16_t operator()(Trace<CancelAllOrders> const &, std::string_view const &request_id) override;
 
   // web::rest::Client::Handler
 
@@ -81,14 +85,14 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
 
   // orders-create
 
-  void orders_create(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
+  void orders_create(Trace<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
   void orders_create_ack(Trace<web::rest::Response> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
   void operator()(Trace<protocol::json::OrdersCreateAck2> const &, uint8_t user_id, uint64_t order_id, uint32_t version);
 
   // orders-replace
 
   void orders_replace(
-      Event<ModifyOrder> const &,
+      Trace<ModifyOrder> const &,
       server::oms::Order const &,
       server::oms::RefData const &,
       std::string_view const &request_id,
@@ -99,7 +103,7 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
   // orders-cancel
 
   void orders_cancel(
-      Event<CancelOrder> const &,
+      Trace<CancelOrder> const &,
       server::oms::Order const &,
       server::oms::RefData const &,
       std::string_view const &request_id,
@@ -109,9 +113,9 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
 
   // orders-all
 
-  void orders_all(Event<CancelAllOrders> const &, std::string_view const &request_id);
-  void orders_all_ack(Trace<web::rest::Response> const &, uint8_t user_id);
-  void operator()(Trace<protocol::json::OrdersAllAck2> const &, uint8_t user_id);
+  void orders_all(Trace<CancelAllOrders> const &, std::string_view const &request_id);
+  void orders_all_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<protocol::json::OrdersAllAck2> const &);
 
   // order
 
