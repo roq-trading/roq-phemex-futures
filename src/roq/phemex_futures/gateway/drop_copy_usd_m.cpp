@@ -180,7 +180,7 @@ void DropCopyUsdM::operator()(Trace<web::socket::Latency> const &event) {
 
 void DropCopyUsdM::operator()(Trace<web::socket::Ready> const &event) {
   auto &[trace_info, ready] = event;
-  create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::AUTHENTICATING);
   send_login(trace_info);
 }
 
