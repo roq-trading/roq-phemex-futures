@@ -136,15 +136,13 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
 
  private:
   [[maybe_unused]] Handler &handler_;
-  // config
+  //
   uint16_t const stream_id_;
   std::string const name_;
   bool const master_;
-  // connection
-  std::unique_ptr<web::rest::Client> connection_;
-  // buffers
+  std::unique_ptr<web::rest::Client> const connection_;
+  //
   core::json::BufferStack decode_buffer_;
-  // metrics
   struct {
     utils::metrics::Counter disconnect;
   } counter_;
@@ -161,15 +159,11 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
   struct {
     utils::metrics::Latency ping;
   } latency_;
-  // account
   Account &account_;
   Shared &shared_;
   Request &request_;
-  // state
   ConnectionStatus connection_status_ = {};
-  //
   std::string encode_buffer_;
-  //
   size_t download_stale_orders_counter_ = {};
 };
 
