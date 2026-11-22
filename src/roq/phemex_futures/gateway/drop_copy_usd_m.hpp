@@ -35,7 +35,7 @@ struct DropCopyUsdM final : Base<DropCopyUsdM>, public server::Stream, public we
 
   DropCopyUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

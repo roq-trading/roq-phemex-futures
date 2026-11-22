@@ -37,7 +37,7 @@ struct OrderEntryCoinM final : public Base<OrderEntryCoinM>, public server::Orde
 
   OrderEntryCoinM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &, bool master);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

@@ -35,7 +35,7 @@ struct DropCopyCoinM final : public Base<DropCopyCoinM>, public server::Stream, 
 
   DropCopyCoinM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

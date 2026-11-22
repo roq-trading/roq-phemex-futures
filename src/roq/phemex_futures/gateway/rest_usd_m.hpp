@@ -37,7 +37,7 @@ struct RestUsdM final : public Base<RestUsdM>, public server::Stream, public web
 
   RestUsdM(Handler &, io::Context &context, uint16_t stream_id, Shared &, Account &);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

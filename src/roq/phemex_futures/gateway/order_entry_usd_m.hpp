@@ -37,7 +37,7 @@ struct OrderEntryUsdM final : public Base<OrderEntryUsdM>, public server::OrderA
 
   OrderEntryUsdM(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &, bool master);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

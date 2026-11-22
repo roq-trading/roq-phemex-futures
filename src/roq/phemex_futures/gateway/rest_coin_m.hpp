@@ -36,7 +36,7 @@ struct RestCoinM final : public Base<RestCoinM>, public server::Stream, public w
 
   RestCoinM(Handler &, io::Context &context, uint16_t stream_id, Shared &);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

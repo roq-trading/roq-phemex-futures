@@ -36,7 +36,7 @@ struct MarketDataUsdM final : public Base<MarketDataUsdM>,
 
   MarketDataUsdM(Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream

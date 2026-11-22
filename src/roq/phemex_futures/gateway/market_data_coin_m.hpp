@@ -36,7 +36,7 @@ struct MarketDataCoinM final : public Base<MarketDataCoinM>,
 
   MarketDataCoinM(Handler &, io::Context &, uint16_t stream_id, Shared &, size_t index);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream
