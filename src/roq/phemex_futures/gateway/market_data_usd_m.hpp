@@ -41,10 +41,6 @@ struct MarketDataUsdM final : public Base<MarketDataUsdM>,
 
   // server::Stream
 
-  uint16_t stream_id() const override { return stream_id_; }
-
-  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
-
   void operator()(Trace<Start> const &) override;
   void operator()(Trace<Stop> const &) override;
   void operator()(Trace<Timer> const &) override;
@@ -97,7 +93,6 @@ struct MarketDataUsdM final : public Base<MarketDataUsdM>,
  private:
   [[maybe_unused]] Handler &handler_;
   //
-  uint16_t const stream_id_;
   std::string const name_;
   size_t const index_;
   std::unique_ptr<web::socket::Client> const connection_;
@@ -115,7 +110,6 @@ struct MarketDataUsdM final : public Base<MarketDataUsdM>,
     utils::metrics::Latency ping;
   } latency_;
   Shared &shared_;
-  ConnectionStatus connection_status_ = {};
   std::chrono::nanoseconds next_ping_ = {};
   uint64_t request_id_ = {};
   core::limit::Queue<std::string> subscribe_queue_;

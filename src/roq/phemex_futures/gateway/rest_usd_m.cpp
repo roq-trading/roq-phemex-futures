@@ -75,7 +75,7 @@ struct create_metrics final : public utils::metrics::Factory {
 // === IMPLEMENTATION ===
 
 RestUsdM::RestUsdM(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, Account &account)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context, shared)},
+    : server::Stream{stream_id}, handler_{handler}, name_{create_name(stream_id)}, connection_{create_connection(*this, shared.settings, context, shared)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -121,25 +121,26 @@ void RestUsdM::operator()(metrics::Writer &writer) const {
 
 void RestUsdM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
   auto &[trace_info, connection_status] = event;
-  connection_status_ = connection_status;
-  auto stream_status = StreamStatus{
-      .stream_id = stream_id_,
-      .account = {},
-      .supports = SUPPORTS,
-      .transport = Transport::TCP,
-      .protocol = Protocol::HTTP,
-      .encoding = {Encoding::JSON},
-      .priority = Priority::PRIMARY,
-      .connection_status = connection_status_,
-      .reason = reason,
-      .interface = (*connection_).get_interface(),
-      .proxy = (*connection_).get_proxy(),
-      .peer = (*connection_).get_current_peer(),
-      .authority = (*connection_).get_current_authority(),
-      .path = (*connection_).get_current_path(),
-  };
-  log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
+  if (update(connection_status, reason)) {
+    auto stream_status = StreamStatus{
+        .stream_id = stream_id(),
+        .account = {},
+        .supports = SUPPORTS,
+        .transport = Transport::TCP,
+        .protocol = Protocol::HTTP,
+        .encoding = {Encoding::JSON},
+        .priority = Priority::PRIMARY,
+        .connection_status = connection_status,
+        .reason = reason,
+        .interface = (*connection_).get_interface(),
+        .proxy = (*connection_).get_proxy(),
+        .peer = (*connection_).get_current_peer(),
+        .authority = (*connection_).get_current_authority(),
+        .path = (*connection_).get_current_path(),
+    };
+    log::info("stream_status={}"sv, stream_status);
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
+  }
 }
 
 // web::rest::Client::Handler
@@ -156,7 +157,7 @@ void RestUsdM::operator()(Trace<web::rest::Connected> const &event) {
 void RestUsdM::operator()(Trace<web::rest::Disconnected> const &event) {
   auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
+  publish(trace_info, ConnectionStatus::DISCONNECTED);
   if (!download_.downloading()) {
     download_.reset();
   }
@@ -165,7 +166,7 @@ void RestUsdM::operator()(Trace<web::rest::Disconnected> const &event) {
 void RestUsdM::operator()(Trace<web::rest::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
-      .stream_id = stream_id_,
+      .stream_id = stream_id(),
       .account = {},
       .latency = latency.sample,
   };
@@ -192,11 +193,11 @@ int32_t RestUsdM::download(Trace<State> const &event) {
       assert(false);
       break;
     case PRODUCTS:
-      create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "products"sv);
+      publish(trace_info, ConnectionStatus::DOWNLOADING, state);
       get_products();
       return 1;
     case DONE:
-      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
+      publish(trace_info, ConnectionStatus::READY);
       return 0;
   }
   assert(false);
@@ -285,7 +286,7 @@ void RestUsdM::operator()(Trace<protocol::json::ProductsAck> const &event) {
     log::info<2>("item={}"sv, item);
     auto discard = discard_helper(item.symbol, item.type, item.status);
     auto reference_data = ReferenceData{
-        .stream_id = stream_id_,
+        .stream_id = stream_id(),
         .exchange = shared_.settings.exchange,
         .symbol = item.symbol,
         .description = item.description.substr(0, detail::MAX_LENGTH_DESCRIPTION),  // XXX FIXME
