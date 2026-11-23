@@ -34,6 +34,8 @@ constexpr Helper<int32_t>::operator std::optional<roq::Error>() const {
       return Error::REQUEST_RATE_LIMIT_REACHED;
     case 10'002:  // OM_ORDER_NOT_FOUND
       return Error::TOO_LATE_TO_MODIFY_OR_CANCEL;
+    case 11'081:  // TE_RISK_LIMIT_EXCEEDS
+      return Error::RISK_LIMIT_REACHED;
     case 22'001:  // XXX cancel "no orders to cancel"
       return Error::TOO_LATE_TO_MODIFY_OR_CANCEL;
     case 25'202:  // Insufficient balance
