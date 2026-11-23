@@ -104,17 +104,17 @@ OrderEntryUsdM::OrderEntryUsdM(Handler &handler, io::Context &context, uint16_t 
 
 // server::Stream
 
-void OrderEntryUsdM::operator()(Trace<Start> const &) {
-  (*connection_).start();
+void OrderEntryUsdM::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
 }
 
-void OrderEntryUsdM::operator()(Trace<Stop> const &) {
-  (*connection_).stop();
+void OrderEntryUsdM::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
 }
 
 void OrderEntryUsdM::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(trace_info)) {
+  if ((*connection_)(event)) {
     if (ready()) {
       if (master_) {
         check_request_queue(trace_info);
@@ -182,13 +182,12 @@ void OrderEntryUsdM::operator()(Trace<server::oms::OrderActionBatchRollback> con
   throw server::oms::NotSupported{"not supported"sv};
 }
 
-uint16_t OrderEntryUsdM::operator()(
+void OrderEntryUsdM::operator()(
     Trace<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   orders_create(event, order, ref_data, request_id);
-  return stream_id();
 }
 
-uint16_t OrderEntryUsdM::operator()(
+void OrderEntryUsdM::operator()(
     Trace<ModifyOrder> const &,
     server::oms::Order const &,
     server::oms::RefData const &,
@@ -197,19 +196,17 @@ uint16_t OrderEntryUsdM::operator()(
   throw server::oms::NotSupported{"not supported"sv};
 }
 
-uint16_t OrderEntryUsdM::operator()(
+void OrderEntryUsdM::operator()(
     Trace<CancelOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   orders_cancel(event, order, ref_data, request_id, previous_request_id);
-  return stream_id();
 }
 
-uint16_t OrderEntryUsdM::operator()(Trace<CancelAllOrders> const &event, std::string_view const &request_id) {
+void OrderEntryUsdM::operator()(Trace<CancelAllOrders> const &event, std::string_view const &request_id) {
   orders_all(event, request_id);
-  return stream_id();
 }
 
 // web::rest::Client::Handler

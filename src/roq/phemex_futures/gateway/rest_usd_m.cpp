@@ -92,17 +92,16 @@ RestUsdM::RestUsdM(Handler &handler, io::Context &context, uint16_t stream_id, S
 
 // server::Stream
 
-void RestUsdM::operator()(Trace<Start> const &) {
-  (*connection_).start();
+void RestUsdM::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
 }
 
-void RestUsdM::operator()(Trace<Stop> const &) {
-  (*connection_).stop();
+void RestUsdM::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
 }
 
 void RestUsdM::operator()(Trace<Timer> const &event) {
-  auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(trace_info)) {
+  if ((*connection_)(event)) {
     if (ready()) {
     }
   }

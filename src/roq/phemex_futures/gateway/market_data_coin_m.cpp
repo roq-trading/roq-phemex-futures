@@ -100,17 +100,17 @@ MarketDataCoinM::MarketDataCoinM(Handler &handler, io::Context &context, uint16_
 
 // server::Stream
 
-void MarketDataCoinM::operator()(Trace<Start> const &) {
-  (*connection_).start();
+void MarketDataCoinM::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
 }
 
-void MarketDataCoinM::operator()(Trace<Stop> const &) {
-  (*connection_).stop();
+void MarketDataCoinM::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
 }
 
 void MarketDataCoinM::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(trace_info)) {
+  if ((*connection_)(event)) {
     if (ready()) {
       if (next_ping_ < trace_info.origin_create_time) {
         next_ping_ = trace_info.origin_create_time + shared_.settings.ws.ping_freq;

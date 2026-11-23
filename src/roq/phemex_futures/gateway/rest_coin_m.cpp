@@ -92,17 +92,16 @@ RestCoinM::RestCoinM(Handler &handler, io::Context &context, uint16_t stream_id,
 
 // server::Stream
 
-void RestCoinM::operator()(Trace<Start> const &) {
-  (*connection_).start();
+void RestCoinM::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
 }
 
-void RestCoinM::operator()(Trace<Stop> const &) {
-  (*connection_).stop();
+void RestCoinM::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
 }
 
 void RestCoinM::operator()(Trace<Timer> const &event) {
-  auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(trace_info)) {
+  if ((*connection_)(event)) {
     if (ready()) {
     }
   }
