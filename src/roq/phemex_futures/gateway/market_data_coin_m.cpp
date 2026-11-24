@@ -78,7 +78,7 @@ struct create_metrics final : public utils::metrics::Factory {
 // === IMPLEMENTATION ===
 
 MarketDataCoinM::MarketDataCoinM(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, size_t index)
-    : server::MarketDataStream{stream_id}, handler_{handler}, name_{create_name(stream_id)}, index_{index},
+    : server::MarketDataStream{stream_id, {}, SUPPORTS}, handler_{handler}, name_{create_name(stream_id)}, index_{index},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -141,9 +141,9 @@ void MarketDataCoinM::operator()(Trace<ConnectionStatus> const &event, std::stri
   auto &[trace_info, connection_status] = event;
   if (update(connection_status, reason)) {
     auto stream_status = StreamStatus{
-        .stream_id = stream_id(),
-        .account = {},
-        .supports = SUPPORTS,
+        .stream_id = stream_id,
+        .account = account,
+        .supports = supports,
         .transport = Transport::TCP,
         .protocol = Protocol::WS,
         .encoding = {Encoding::JSON},
@@ -184,7 +184,7 @@ void MarketDataCoinM::operator()(Trace<web::socket::Disconnected> const &event) 
 void MarketDataCoinM::operator()(Trace<web::socket::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
-      .stream_id = stream_id(),
+      .stream_id = stream_id,
       .account = {},
       .latency = latency.sample,
   };
@@ -272,7 +272,7 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Book> const &event) {
       }
       if (!(std::empty(bids) && std::empty(asks))) {
         auto market_by_price_update = MarketByPriceUpdate{
-            .stream_id = stream_id(),
+            .stream_id = stream_id,
             .exchange = shared_.settings.exchange,
             .symbol = book.symbol,
             .bids = bids,
@@ -329,7 +329,7 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Trades> const &event) {
       }
       if (!std::empty(trades_2)) {
         auto trade_summary = TradeSummary{
-            .stream_id = stream_id(),
+            .stream_id = stream_id,
             .exchange = shared_.settings.exchange,
             .symbol = trades.symbol,
             .trades = trades_2,
@@ -403,7 +403,7 @@ void MarketDataCoinM::operator()(Trace<protocol::json::Market24h> const &event) 
           },
       }};
       auto statistics_update = StatisticsUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = market24h.market24h.symbol,
           .statistics = statistics,

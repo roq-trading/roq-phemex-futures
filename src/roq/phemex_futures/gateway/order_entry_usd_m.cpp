@@ -77,7 +77,7 @@ struct create_metrics final : public utils::metrics::Factory {
 // === IMPLEMENTATION ===
 
 OrderEntryUsdM::OrderEntryUsdM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request, bool master)
-    : server::OrderActionStream{stream_id}, handler_{handler}, name_{create_name(stream_id, account)}, master_{master},
+    : server::OrderActionStream{stream_id, account.name, SUPPORTS}, handler_{handler}, name_{create_name(stream_id, account)}, master_{master},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -148,9 +148,9 @@ void OrderEntryUsdM::operator()(Trace<ConnectionStatus> const &event, std::strin
   auto &[trace_info, connection_status] = event;
   if (update(connection_status, reason)) {
     auto stream_status = StreamStatus{
-        .stream_id = stream_id(),
-        .account = account_.name,
-        .supports = SUPPORTS,
+        .stream_id = stream_id,
+        .account = account,
+        .supports = supports,
         .transport = Transport::TCP,
         .protocol = Protocol::HTTP,
         .encoding = {Encoding::JSON},
@@ -225,7 +225,7 @@ void OrderEntryUsdM::operator()(Trace<web::rest::Disconnected> const &event) {
 void OrderEntryUsdM::operator()(Trace<web::rest::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
-      .stream_id = stream_id(),
+      .stream_id = stream_id,
       .account = account_.name,
       .latency = latency.sample,
   };
@@ -293,7 +293,7 @@ void OrderEntryUsdM::orders_create_ack(Trace<web::rest::Response> const &event, 
           .quantity = NaN,
           .price = NaN,
       };
-      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id(), user_id, order_id);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersCreateAck2 orders_create_ack{body, decode_buffer_};
@@ -364,7 +364,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCreateAck2> const &e
       .update_type = UpdateType::INCREMENTAL,
       .sending_time_utc = orders_create_ack.request_time,  // ???
   };
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id(), user_id, order_id);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id, user_id, order_id);
 }
 
 // orders-replace
@@ -421,7 +421,7 @@ void OrderEntryUsdM::orders_replace_ack(Trace<web::rest::Response> const &event,
           .quantity = NaN,
           .price = NaN,
       };
-      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id(), user_id, order_id);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersReplaceAck2 orders_replace_ack{body, decode_buffer_};
@@ -492,7 +492,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersReplaceAck2> const &
       .update_type = UpdateType::INCREMENTAL,
       .sending_time_utc = orders_replace_ack.request_time,
   };
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id(), user_id, order_id);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id, user_id, order_id);
 }
 
 // orders-all
@@ -549,7 +549,7 @@ void OrderEntryUsdM::orders_cancel_ack(Trace<web::rest::Response> const &event, 
           .quantity = NaN,
           .price = NaN,
       };
-      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id(), user_id, order_id);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id, user_id, order_id);
     };
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersCancelAck2 orders_cancel_ack{body, decode_buffer_};
@@ -620,7 +620,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::OrdersCancelAck2> const &e
       .update_type = UpdateType::INCREMENTAL,
       .sending_time_utc = orders_cancel_ack.request_time,
   };
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id(), user_id, order_id);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, response, order_update, stream_id, user_id, order_id);
 }
 
 // orders_all
@@ -663,7 +663,7 @@ void OrderEntryUsdM::orders_all_ack(Trace<web::rest::Response> const &event) {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(DEBUG origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       auto cancel_all_orders_ack = CancelAllOrdersAck{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .account = account_.name,
           .order_id = {},
           .exchange = shared_.settings.exchange,
@@ -797,7 +797,7 @@ void OrderEntryUsdM::operator()(Trace<protocol::json::GetOrderAck2> const &event
         .update_type = UpdateType::SNAPSHOT,
         .sending_time_utc = item.action_time_ns,  // ???
     };
-    create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id());
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id);
   }
 }
 

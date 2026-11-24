@@ -78,7 +78,7 @@ struct create_metrics final : public utils::metrics::Factory {
 // === IMPLEMENTATION ===
 
 DropCopyCoinM::DropCopyCoinM(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
-    : server::Stream{stream_id}, handler_{handler}, name_{create_name(stream_id, account)},
+    : server::Stream{stream_id, account.name, SUPPORTS}, handler_{handler}, name_{create_name(stream_id, account)},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -132,9 +132,9 @@ void DropCopyCoinM::operator()(Trace<ConnectionStatus> const &event, std::string
   auto &[trace_info, connection_status] = event;
   if (update(connection_status, reason)) {
     auto stream_status = StreamStatus{
-        .stream_id = stream_id(),
-        .account = account_.name,
-        .supports = SUPPORTS,
+        .stream_id = stream_id,
+        .account = account,
+        .supports = supports,
         .transport = Transport::TCP,
         .protocol = Protocol::WS,
         .encoding = {Encoding::JSON},
@@ -171,7 +171,7 @@ void DropCopyCoinM::operator()(Trace<web::socket::Disconnected> const &event) {
 void DropCopyCoinM::operator()(Trace<web::socket::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
-      .stream_id = stream_id(),
+      .stream_id = stream_id,
       .account = account_.name,
       .latency = latency.sample,
   };
@@ -315,7 +315,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
       auto account_balance = static_cast<double>(item.account_balance_ev) / currency.value_factor;
       // XXX FIXME TODO is hold = account_balance_ev - total_used_balance_ev ???
       auto funds_update = FundsUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .account = account_.name,
           .currency = item.currency,
           .margin_mode = {},  // ???
@@ -399,7 +399,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
         order_id = order.order_id;
         strategy_id = order.strategy_id;
       };
-      create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id(), callback);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id, callback);
       if (item.trade_type == protocol::json::TradeType::TRADE) {
         if (item.exec_status != protocol::json::ExecStatus::TAKER_FILL && item.exec_status != protocol::json::ExecStatus::MAKER_FILL) {
           log::fatal("Unexpected: {}"sv, item);
@@ -418,7 +418,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
         };
         fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.exec_id);
         auto trade_update = TradeUpdate{
-            .stream_id = stream_id(),
+            .stream_id = stream_id,
             .account = account_.name,
             .order_id = order_id,
             .exchange = shared_.settings.exchange,
@@ -517,7 +517,7 @@ void DropCopyCoinM::operator()(Trace<protocol::json::AccountsOrdersPositions> co
       auto short_quantity = side == Side::SELL ? assigned_pos_balance : 0.0;
       // cross_shared_balance_rv ???
       auto position_update = PositionUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .account = account_.name,
           .exchange = shared_.settings.exchange,
           .symbol = item.symbol,
