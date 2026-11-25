@@ -104,25 +104,6 @@ OrderEntryCoinM::OrderEntryCoinM(Handler &handler, io::Context &context, uint16_
 
 // server::Stream
 
-void OrderEntryCoinM::operator()(Trace<Start> const &event) {
-  (*connection_)(event);
-}
-
-void OrderEntryCoinM::operator()(Trace<Stop> const &event) {
-  (*connection_)(event);
-}
-
-void OrderEntryCoinM::operator()(Trace<Timer> const &event) {
-  auto &[trace_info, timer] = event;
-  if ((*connection_)(event)) {
-    if (ready()) {
-      if (master_) {
-        check_request_queue(trace_info);
-      }
-    }
-  }
-}
-
 void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
   writer
       // counter
@@ -142,6 +123,25 @@ void OrderEntryCoinM::operator()(metrics::Writer &writer) const {
       .write(profile_.user_fills_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
+}
+
+void OrderEntryCoinM::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
+}
+
+void OrderEntryCoinM::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
+}
+
+void OrderEntryCoinM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
+  if ((*connection_)(event)) {
+    if (ready()) {
+      if (master_) {
+        check_request_queue(trace_info);
+      }
+    }
+  }
 }
 
 void OrderEntryCoinM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {

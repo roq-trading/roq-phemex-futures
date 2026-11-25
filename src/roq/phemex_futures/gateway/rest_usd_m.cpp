@@ -92,6 +92,17 @@ RestUsdM::RestUsdM(Handler &handler, io::Context &context, uint16_t stream_id, S
 
 // server::Stream
 
+void RestUsdM::operator()(metrics::Writer &writer) const {
+  writer
+      // counter
+      .write(counter_.disconnect, metrics::Type::COUNTER)
+      // profile
+      .write(profile_.products, metrics::Type::PROFILE)
+      .write(profile_.products_ack, metrics::Type::PROFILE)
+      // latency
+      .write(latency_.ping, metrics::Type::LATENCY);
+}
+
 void RestUsdM::operator()(Trace<Start> const &event) {
   (*connection_)(event);
 }
@@ -105,17 +116,6 @@ void RestUsdM::operator()(Trace<Timer> const &event) {
     if (ready()) {
     }
   }
-}
-
-void RestUsdM::operator()(metrics::Writer &writer) const {
-  writer
-      // counter
-      .write(counter_.disconnect, metrics::Type::COUNTER)
-      // profile
-      .write(profile_.products, metrics::Type::PROFILE)
-      .write(profile_.products_ack, metrics::Type::PROFILE)
-      // latency
-      .write(latency_.ping, metrics::Type::LATENCY);
 }
 
 void RestUsdM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {

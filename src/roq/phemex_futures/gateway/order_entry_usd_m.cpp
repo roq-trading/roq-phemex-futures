@@ -104,25 +104,6 @@ OrderEntryUsdM::OrderEntryUsdM(Handler &handler, io::Context &context, uint16_t 
 
 // server::Stream
 
-void OrderEntryUsdM::operator()(Trace<Start> const &event) {
-  (*connection_)(event);
-}
-
-void OrderEntryUsdM::operator()(Trace<Stop> const &event) {
-  (*connection_)(event);
-}
-
-void OrderEntryUsdM::operator()(Trace<Timer> const &event) {
-  auto &[trace_info, timer] = event;
-  if ((*connection_)(event)) {
-    if (ready()) {
-      if (master_) {
-        check_request_queue(trace_info);
-      }
-    }
-  }
-}
-
 void OrderEntryUsdM::operator()(metrics::Writer &writer) const {
   writer
       // counter
@@ -142,6 +123,25 @@ void OrderEntryUsdM::operator()(metrics::Writer &writer) const {
       .write(profile_.user_fills_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
+}
+
+void OrderEntryUsdM::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
+}
+
+void OrderEntryUsdM::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
+}
+
+void OrderEntryUsdM::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
+  if ((*connection_)(event)) {
+    if (ready()) {
+      if (master_) {
+        check_request_queue(trace_info);
+      }
+    }
+  }
 }
 
 void OrderEntryUsdM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {

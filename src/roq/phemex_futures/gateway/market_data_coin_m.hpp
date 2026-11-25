@@ -41,13 +41,13 @@ struct MarketDataCoinM final : public Base<MarketDataCoinM>,
 
   // server::Stream
 
+  void operator()(metrics::Writer &) const override;
+
   void operator()(Trace<Start> const &) override;
   void operator()(Trace<Stop> const &) override;
   void operator()(Trace<Timer> const &) override;
 
-  void operator()(metrics::Writer &) const override;
-
-  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason) override;
 
   // server::MarketDataStream
 

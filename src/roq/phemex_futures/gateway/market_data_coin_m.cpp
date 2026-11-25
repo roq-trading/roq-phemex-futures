@@ -100,6 +100,22 @@ MarketDataCoinM::MarketDataCoinM(Handler &handler, io::Context &context, uint16_
 
 // server::Stream
 
+void MarketDataCoinM::operator()(metrics::Writer &writer) const {
+  writer
+      // counter
+      .write(counter_.disconnect, metrics::Type::COUNTER)
+      // profile
+      .write(profile_.parse, metrics::Type::PROFILE)
+      .write(profile_.pong, metrics::Type::PROFILE)
+      .write(profile_.ack, metrics::Type::PROFILE)
+      .write(profile_.book, metrics::Type::PROFILE)
+      .write(profile_.trades, metrics::Type::PROFILE)
+      .write(profile_.market24h, metrics::Type::PROFILE)
+      .write(profile_.kline, metrics::Type::PROFILE)
+      // latency
+      .write(latency_.ping, metrics::Type::LATENCY);
+}
+
 void MarketDataCoinM::operator()(Trace<Start> const &event) {
   (*connection_)(event);
 }
@@ -119,22 +135,6 @@ void MarketDataCoinM::operator()(Trace<Timer> const &event) {
       check_subscribe_queue(trace_info);
     }
   }
-}
-
-void MarketDataCoinM::operator()(metrics::Writer &writer) const {
-  writer
-      // counter
-      .write(counter_.disconnect, metrics::Type::COUNTER)
-      // profile
-      .write(profile_.parse, metrics::Type::PROFILE)
-      .write(profile_.pong, metrics::Type::PROFILE)
-      .write(profile_.ack, metrics::Type::PROFILE)
-      .write(profile_.book, metrics::Type::PROFILE)
-      .write(profile_.trades, metrics::Type::PROFILE)
-      .write(profile_.market24h, metrics::Type::PROFILE)
-      .write(profile_.kline, metrics::Type::PROFILE)
-      // latency
-      .write(latency_.ping, metrics::Type::LATENCY);
 }
 
 void MarketDataCoinM::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
